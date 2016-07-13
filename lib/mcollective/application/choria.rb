@@ -107,9 +107,16 @@ module MCollective
       20.times do |i|
         log("Waiting for %s nodes to start a run" % bold(nodes.size)) if i % 4 == 0
 
-        break if client.status.map {|resp| resp.results[:data][:applying] }.all?
+        return if client.status.map {|resp| resp.results[:data][:applying] }.all?
         sleep 5
       end
+
+      puts(red("Failed to start %s nodes after 100 seconds" % nodes.size))
+      nodes.each do |node|
+        puts("\t%s" % bold(node))
+      end
+
+      exit(1)
     end
 
     def wait_till_nodes_idle(nodes)
