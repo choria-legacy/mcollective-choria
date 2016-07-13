@@ -125,9 +125,12 @@ module MCollective
       20.times do |i|
         log("Waiting for %s nodes to become idle" % bold(nodes.size)) if i % 4 == 0
 
-        break if client.status.map {|resp| resp.results[:data][:applying] }.none?
+        return if client.status.map {|resp| resp.results[:data][:applying] }.none?
         sleep 5
       end
+
+      puts(red("Waited a 100 seconds for %s nodes to become idle, cannot continue" % nodes.size))
+      exit(1)
     end
 
     def failed_nodes(nodes)
@@ -137,8 +140,14 @@ module MCollective
     end
 
     def run_plan(env)
-      gc = 1
+      if client.limit_targets
+        limit_count = client.limit_targets
+      else
+        limit_count = env.nodes.size
+      end
 
+      gc = 1
+      client.limit_targets = false
       client.progress = false
 
       unless all_nodes_enabled?(env.nodes)
@@ -149,11 +158,19 @@ module MCollective
         start_time = Time.now
 
         puts
-        puts("Running node group %s with %s nodes" % [bold(gc), bold(group.size)])
 
-        wait_till_nodes_idle(group)
-        run_nodes(group)
-        wait_till_nodes_idle(group)
+        if limit_count
+          puts("Running node group %s with %s nodes limited to %s a time" % [bold(gc), bold(group.size), bold(limit_count)])
+        else
+          puts("Running node group %s with %s nodes" % [bold(gc), bold(group.size)])
+        end
+
+        group.in_groups_of(limit_count) do |group_nodes|
+          group_nodes.compact!
+          wait_till_nodes_idle(group_nodes)
+          run_nodes(group_nodes)
+          wait_till_nodes_idle(group_nodes)
+        end
 
         if !(failed = failed_nodes(group).empty?)
           puts("Puppet failed to run on %s / %s nodes, cannot continue" % [red(failed.size), red(group.size)])
