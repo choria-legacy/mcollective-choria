@@ -9,6 +9,9 @@ in the right order.
 
 This is super early days and it's no doubt broken still.
 
+It makes the same assumptions of certificates and security as the `ripienaar/mcollective-security-puppet`
+model and as such are dependant on it.
+
 Example
 -------
 
@@ -83,7 +86,6 @@ Running node group 1 with 1 nodes
         2016-07-13 20:20:34 +0200: Waiting for 1 nodes to start a run
         2016-07-13 20:20:55 +0200: Waiting for 1 nodes to start a run
         2016-07-13 20:21:00 +0200: Waiting for 1 nodes to become idle
-  1 initial commit
         2016-07-13 20:21:20 +0200: Waiting for 1 nodes to become idle
         2016-07-13 20:21:40 +0200: Waiting for 1 nodes to become idle
 
@@ -100,4 +102,15 @@ Running node group 2 with 3 nodes
 
 Succesful run of 3 nodes in group 2 in 87.10 seconds
 ```
+
+Status?
+-------
+
+The basic feature work and it works with the Open Source PuppetServer too.
+
+There is some more to do around ensuring that the status reports this tool base it's success
+or fail on are actually ones produced by Puppet Runs it started, Puppet now supports a per
+run unique report file, but the MCollective Puppet Agent is unaware of this.
+
+Additionally it does not yet support the new model of cached catalogs.
 
