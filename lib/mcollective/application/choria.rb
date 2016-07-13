@@ -18,10 +18,17 @@ based on a sorted list of certificate names, this means the batches
 will always run in predictable order.
 EOU
 
+    exclude_argument_sections "common", "filter", "rpc"
+
     option :environment,
            :arguments => ["--environment ENVIRONMENT"],
            :description => "The environment to run, defaults to production",
            :type => String
+
+    option :batch,
+           :arguments => ["--batch SIZE"],
+           :description => "Run the nodes in each group in batches of a certain size",
+           :type => Integer
 
     def valid_commands
       methods.grep(/_command$/).map{|c| c.to_s.gsub("_command", "")}
@@ -105,7 +112,7 @@ EOU
       log("Running Puppet on %s nodes" % bold(nodes.size))
 
       client.discover(:nodes => nodes)
-      client.runonce
+      client.runonce(:splay => false, :use_cached_catalog => false, :force => true)
       wait_till_nodes_start(nodes)
     end
 
@@ -155,18 +162,11 @@ EOU
     end
 
     def run_plan(env)
-      batch_size = env.nodes.size
-      batch_sleep = 0
-
-      if client.batch_size
-        batch_size = client.batch_size
-        batch_sleep = client.batch_sleep_time
-      end
-
-      gc = 1
+      batch_size = configuration.fetch(:batch, env.nodes.size)
       client.limit_targets = false
       client.progress = false
       client.batch_size = 0
+      gc = 1
 
       unless all_nodes_enabled?(env.nodes)
         abort(red("Not all nodes in the plan are enabled, cannot continue"))
@@ -188,7 +188,6 @@ EOU
           wait_till_nodes_idle(group_nodes)
           run_nodes(group_nodes)
           wait_till_nodes_idle(group_nodes)
-          sleep(batch_sleep)
         end
 
         if !(failed = failed_nodes(group).empty?)

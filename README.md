@@ -111,6 +111,3 @@ The basic feature work and it works with the Open Source PuppetServer too.
 There is some more to do around ensuring that the status reports this tool base it's success
 or fail on are actually ones produced by Puppet Runs it started, Puppet now supports a per
 run unique report file, but the MCollective Puppet Agent is unaware of this.
-
-Additionally it does not yet support the new model of cached catalogs.
-
