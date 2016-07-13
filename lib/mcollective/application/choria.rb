@@ -2,6 +2,22 @@ module MCollective
   class Application::Choria < Application
     description "Orchastrator for Puppet Applications"
 
+    usage <<-EOU
+mco choria [OPTIONS] [FILTERS] <ACTION>
+
+The ACTION can be one of the following:
+
+   plan  - view the plan for a specific environment
+   run   - run a the plan for a specific environment
+
+The environment is chosen using --environment and the concurrent
+runs may be limited using --batch.
+
+The batching works a bit different than typical, it will only batch
+based on a sorted list of certificate names, this means the batches
+will always run in predictable order.
+EOU
+
     option :environment,
            :arguments => ["--environment ENVIRONMENT"],
            :description => "The environment to run, defaults to production",
@@ -25,7 +41,6 @@ module MCollective
 
     def validate_configuration(configuration)
       configuration[:environment] ||= "production"
-
     end
 
     def choria
@@ -140,15 +155,18 @@ module MCollective
     end
 
     def run_plan(env)
-      if client.limit_targets
-        limit_count = client.limit_targets
-      else
-        limit_count = env.nodes.size
+      batch_size = env.nodes.size
+      batch_sleep = 0
+
+      if client.batch_size
+        batch_size = client.batch_size
+        batch_sleep = client.batch_sleep_time
       end
 
       gc = 1
       client.limit_targets = false
       client.progress = false
+      client.batch_size = 0
 
       unless all_nodes_enabled?(env.nodes)
         abort(red("Not all nodes in the plan are enabled, cannot continue"))
@@ -159,17 +177,18 @@ module MCollective
 
         puts
 
-        if limit_count
-          puts("Running node group %s with %s nodes limited to %s a time" % [bold(gc), bold(group.size), bold(limit_count)])
+        if batch_size
+          puts("Running node group %s with %s nodes batched %s a time" % [bold(gc), bold(group.size), bold(batch_size)])
         else
           puts("Running node group %s with %s nodes" % [bold(gc), bold(group.size)])
         end
 
-        group.in_groups_of(limit_count) do |group_nodes|
+        group.in_groups_of(batch_size) do |group_nodes|
           group_nodes.compact!
           wait_till_nodes_idle(group_nodes)
           run_nodes(group_nodes)
           wait_till_nodes_idle(group_nodes)
+          sleep(batch_sleep)
         end
 
         if !(failed = failed_nodes(group).empty?)
