@@ -123,6 +123,18 @@ EOU
       client.status.map {|resp| resp.results[:data][:enabled]}.all?
     end
 
+    def disable_nodes(nodes, msg)
+      log("Disabling Puppet on %s nodes: %s" % [bold(nodes.size), msg])
+
+      client.discover(:nodes => nodes)
+      client.disable(:message => msg)
+    end
+
+    def enable_nodes(nodes)
+      log("Enabling Puppet on %s nodes" % [bold(nodes.size)])
+      client.enable
+    end
+
     def wait_till_nodes_start(nodes)
       client.discover(:nodes => nodes)
 
@@ -172,6 +184,8 @@ EOU
         abort(red("Not all nodes in the plan are enabled, cannot continue"))
       end
 
+      disable_nodes(env.nodes, "Disabled during orchastration job initiated by %s at %s" % [choria.certname, Time.now])
+
       env.each_node_group do |group|
         start_time = Time.now
 
@@ -186,6 +200,7 @@ EOU
         group.in_groups_of(batch_size) do |group_nodes|
           group_nodes.compact!
           wait_till_nodes_idle(group_nodes)
+          enable_nodes(group_nodes)
           run_nodes(group_nodes)
           wait_till_nodes_idle(group_nodes)
         end
@@ -207,6 +222,9 @@ EOU
 
         gc += 1
       end
+    ensure
+      puts
+      enable_nodes(env.nodes)
     end
 
     def plan_command
