@@ -207,12 +207,12 @@ the site and also groups of them and the order to run in.
   2. Disables all the nodes so no automated or human triggered runs can interfere
   3. Waits for all nodes to become idle, if after a long timeout they don't exit
   4. Iterate the groups finding the nodes per group, loop them possibly in small batches
-     * Enable Puppet on these nodes
-     * Run Puppet
-     * Wait for it to start, exit if they do not idle after a long time
-     * Wait for it to become idle, exit if they do not go idle after a long time
-     * Disable them all
-     * If any of the nodes had failed resources, fail
+     1. Enable Puppet on these nodes
+     2. Run Puppet
+     3. Wait for it to start, exit if they do not idle after a long time
+     4. Wait for it to become idle, exit if they do not go idle after a long time
+     5. Disable them all
+     6. If any of the nodes had failed resources, fail
   5. Enable all the nodes
 
 There is some improvements to be made, specifically there's a small window between
