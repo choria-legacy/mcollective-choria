@@ -63,9 +63,9 @@ EOU
     end
 
     def show_plan(env)
-      puts("Puppet Site Plan for the %s Environment" % Util.colorize(:bold, env.environment))
+      puts("Puppet Site Plan for the %s Environment" % bold(env.environment))
       puts
-      puts("%s applications on %s managed nodes:" % [Util.colorize(:bold, env.applications.size), Util.colorize(:bold, env.nodes.size)])
+      puts("%s applications on %s managed nodes:" % [bold(env.applications.size), bold(env.nodes.size)])
       puts
       env.applications.each do |app|
         puts("\t%s" % app)
@@ -73,11 +73,14 @@ EOU
       puts
       puts("Node groups and run order:")
 
+      cnt = 1
+
       env.each_node_group do |group|
-        puts(Util.colorize(:green, "   ------------------------------------------------------------------"))
+        puts("   %s %s %s" % [green("   ---"), bold("Group %d" % cnt), green("--------------------------------------")])
+        puts
 
         group.each do |node|
-          puts("\t%s" % Util.colorize(:bold, node))
+          puts("\t%s" % bold(node))
 
           app_resources = env.node(node)[:application_resources].sort_by{|k,v| k}
           app_resources.each do |app, resources|
@@ -85,6 +88,8 @@ EOU
           end
           puts
         end
+
+        cnt += 1
       end
     end
 
