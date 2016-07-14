@@ -9,8 +9,8 @@ in the right order.
 
 To combat issues with concurrent scheduled or manual runs it will disable Puppet on all nodes
 at start of the run and enable them right before interacting with them to start runs, this way
-even though it does not support the new Puppet uniquely named last_run_summary.yaml files it
-does have some defence against inconsistant run states and reports.
+it does have some defence against inconsistant run states and reports though it is not 100%
+fool proof.
 
 This is super early days and it's no doubt broken still.
 
@@ -145,11 +145,83 @@ Succesful run of 3 nodes in group 2 in 61.78 seconds
 
 ```
 
+Setup
+-----
+
+Setting up involves a few things, the instructions below work with the FOSS stack
+
+First you should have the `ripienaar/mcollective-security-puppet` plugin working and
+it's certificates etc.
+
+On your PuppetServer use the `puppetlabs/puppet_authorization` module to add a authorization rule:
+
+```puppet
+puppet_authorization::rule { "puppetlabs environment":
+  match_request_path   => "/puppet/v3/environment",
+  match_request_type   => "path",
+  match_request_method => "get",
+  allow                => ["*.mcollective"],
+  sort_order           => 510,
+  path                 => "/etc/puppetlabs/puppetserver/conf.d/auth.conf",
+  notify               => Class["puppetserver::config"]
+}
+```
+
+This gives certificates `*.mcollective` access to the environment graph, adjust to local taste.
+
+
+Add in the old `/etc/puppetlabs/puppet/auth.conf` add an entry:
+
+```
+path /puppet/v3/environment
+method find
+allow *
+```
+
+And finally in your `/etc/puppetlabs/puppet/puppet.conf` add:
+
+```
+[master]
+app_management = true
+```
+
+Finally you need to have authorization to use the actions needed on the Puppet Agent,
+you can give yourself these by adding the following data to Hiera:
+
+```yaml
+mcollective_agent_puppet::policies:
+  - action: "allow"
+    callers: "puppet=rip.mcollective"
+    actions: "disable,enable,last_run_summary,runonce,status"
+    facts: "*"
+    classes: "*"
+```
+
+Logic Flow
+----------
+
+Once it has the site catalog from the Puppet Server it finds the list of all nodes in
+the site and also groups of them and the order to run in.
+
+  1. Checks if all the nodes are enabled, if any are disabled it cannot continue
+  2. Disables all the nodes so no automated or human triggered runs can interfere
+  3. Waits for all nodes to become idle, if after a long timeout they don't exit
+  4. Iterate the groups finding the nodes per group, loop them possibly in small batches
+     * Enable Puppet on these nodes
+     * Run Puppet
+     * Wait for it to start, exit if they do not idle after a long time
+     * Wait for it to become idle, exit if they do not go idle after a long time
+     * Disable them all
+     * If any of the nodes had failed resources, fail
+  5. Enable all the nodes
+
+There is some improvements to be made, specifically there's a small window between
+running the nodes and disabling them again that another run can start, end of the
+day though it works out, all the daemons are idle when the status is fetched and
+this is definitely for a run started after the one we needed.  So the end out come
+is the same
+
 Status?
 -------
 
 The basic feature work and it works with the Open Source PuppetServer too.
-
-There is some more to do around ensuring that the status reports this tool base it's success
-or fail on are actually ones produced by Puppet Runs it started, Puppet now supports a per
-run unique report file, but the MCollective Puppet Agent is unaware of this.

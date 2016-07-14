@@ -134,10 +134,11 @@ EOU
 
       puppet.discover(:nodes => nodes)
 
-      enable_nodes(group_nodes)
+      enable_nodes(nodes)
       puppet.runonce(:splay => false, :use_cached_catalog => false, :force => true)
-
       wait_till_nodes_start(nodes)
+      wait_till_nodes_idle(nodes)
+      disable_nodes(nodes)
     end
 
     # Determines if all the given nodes have Puppet enabled
@@ -154,10 +155,10 @@ EOU
     # Disables Puppet on the given nodes with a message
     #
     # @param nodes [Array<String>] nodes to disable
-    # @param msg [String] the message to disable the node with
     # @return [void]
-    def disable_nodes(nodes, msg)
-      log("Disabling Puppet on %s nodes: %s" % [bold(nodes.size), msg])
+    def disable_nodes(nodes)
+      msg = "Disabled during orchastration job initiated by %s at %s" % [choria.certname, Time.now]
+      log("Disabling Puppet on %s nodes" % [bold(nodes.size)])
 
       puppet.discover(:nodes => nodes)
       puppet.disable(:message => msg)
@@ -246,10 +247,11 @@ EOU
     #
     #   - fail if all the nodes in the plan are not enabled
     #   - disable all nodes so that manual and scheduled runs are not happening
+    #   - wait for all nodes to idle
     #   - for every group
-    #     - wait for the nodes in the group to be idle
     #     - enable and run them
     #     - wait for them to become idle
+    #     - disable them
     #     - fail if any nodes had failed resources
     #   - enable all nodes back to normal operation
     #
@@ -264,7 +266,8 @@ EOU
         abort(red("Not all nodes in the plan are enabled, cannot continue"))
       end
 
-      disable_nodes(env.nodes, "Disabled during orchastration job initiated by %s at %s" % [choria.certname, Time.now])
+      disable_nodes(env.nodes)
+      wait_till_nodes_idle(env.nodes)
 
       env.each_node_group do |group|
         start_time = Time.now
@@ -278,11 +281,7 @@ EOU
         end
 
         group.in_groups_of(batch_size) do |group_nodes|
-          group_nodes.compact!
-
-          wait_till_nodes_idle(group_nodes)
-          run_nodes(group_nodes)
-          wait_till_nodes_idle(group_nodes)
+          run_nodes(group_nodes.compact)
         end
 
         if !(failed = failed_nodes(group)).empty?
