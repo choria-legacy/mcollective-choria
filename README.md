@@ -1,6 +1,8 @@
 What?
 =====
 
+**NOTE:** This is a WIP, once ready it will integrate with forge module `ripienaar/mcollective`
+
 A Orchastrator compatible with the Puppet Site catalog system that allows you to describe
 a multi node deployment.
 
