@@ -4,11 +4,11 @@ require "net/http"
 module MCollective
   module Util
     class Choria
-      def initialize(environment)
+      def initialize(environment, check_ssl=true)
         @environment = environment
         @config = Config.instance
 
-        check_ssl_setup
+        check_ssl_setup if check_ssl
       end
 
       # Wrapper around site data
@@ -46,7 +46,7 @@ module MCollective
       # @param path [String]
       # @return [Net::HTTP::Get]
       def http_get(path)
-        Net::HTTP::Get.new(path, "accept" => "application/json")
+        Net::HTTP::Get.new(path, "Accept" => "application/json")
       end
 
       # Fetch the environment data from `/puppet/v3/environment`
@@ -63,25 +63,30 @@ module MCollective
 
       # Checks all the required SSL files exist
       #
-      # @return [void]
+      # @return [boolean]
       # @raise [StandardError] on failure
       def check_ssl_setup
         valid = [client_public_cert, client_private_key, ca_path].map do |path|
           Log.debug("Checking for SSL file %s" % path)
 
-          unless File.exist?(path)
-            STDERR.puts("Cannot find SSL file %s" % path)
+          if File.exist?(path)
+            true
+          else
+            say("Cannot find SSL file %s" % path)
             false
           end
-        end.none?
+        end.all?
 
-        abort("Client SSL is not correctly setup, please use 'mco request_cert'") unless valid
+        raise("Client SSL is not correctly setup, please use 'mco request_cert'") unless valid
+
+        true
       end
 
       # The Puppet server to connect to
       #
       # Configurable using puppet.host, defaults to puppet
       #
+      # @todo also support SRV
       # @return [String]
       def puppet_server
         get_option("puppet.host", "puppet")
@@ -95,23 +100,6 @@ module MCollective
       # @return [String]
       def puppet_port
         get_option("puppet.port", "8140")
-      end
-
-      # The directory where SSL related files live
-      #
-      # This differs between root (usually the daemon) and non root
-      # (usually the client) and follow the conventions of Puppet AIO
-      # packages
-      #
-      # @return [String]
-      def ssl_dir
-        if Util.windows?
-          'C:\ProgramData\PuppetLabs\puppet\etc\ssl'
-        elsif Process.uid == 0
-          "/etc/puppetlabs/puppet/ssl"
-        else
-          File.expand_path("~/.puppetlabs/etc/puppet/ssl")
-        end
       end
 
       # The certname of the current context
@@ -129,10 +117,27 @@ module MCollective
         if Process.uid == 0
           certname = @config.identity
         else
-          certname = "%s.mcollective" % [env_fetch("USER") || @config.identity]
+          certname = "%s.mcollective" % [env_fetch("USER", @config.identity)]
         end
 
-        env_fetch("MCOLLECTIVE_CERTNAME") || certname
+        env_fetch("MCOLLECTIVE_CERTNAME", certname)
+      end
+
+      # The directory where SSL related files live
+      #
+      # This differs between root (usually the daemon) and non root
+      # (usually the client) and follow the conventions of Puppet AIO
+      # packages
+      #
+      # @return [String]
+      def ssl_dir
+        if Util.windows?
+          'C:\ProgramData\PuppetLabs\puppet\etc\ssl'
+        elsif Process.uid == 0
+          "/etc/puppetlabs/puppet/ssl"
+        else
+          File.expand_path("~/.puppetlabs/etc/puppet/ssl")
+        end
       end
 
       # The path to a client public certificate
@@ -173,6 +178,10 @@ module MCollective
 
       def env_fetch(key, default=nil)
         ENV.fetch(key, default)
+      end
+
+      def say(msg)
+        STDERR.puts msg
       end
     end
   end

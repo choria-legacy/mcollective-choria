@@ -10,4 +10,5 @@ group :development, :test do
   gem "mocha"
   gem "rspec"
   gem "listen", "~> 3.0.0"
+  gem "webmock"
 end
