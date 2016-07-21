@@ -19,11 +19,11 @@ module MCollective
         def application_nodes(application)
           raise("Unknown application %s" % application) unless applications.include?(application)
 
-          nodes = site_nodes.select do |node, props|
+          nodes = site_nodes.select do |_, props|
             props[:applications].include?(application)
           end
 
-          nodes.map{|n, _| n}
+          nodes.map {|n, _| n}
         end
 
         # The environment this app site represents
@@ -128,9 +128,9 @@ module MCollective
         # @note this will modify the supplied node list removing any that can be run
         # @return [Array<Array<String>>]
         def extract_runable_nodes!(nodes)
-          runable = nodes.map{|name, props| name if props[:consumes].empty?}.compact
+          runable = nodes.map {|name, props| name if props[:consumes].empty?}.compact
 
-          nodes.reject!{|name, _| runable.include?(name)}
+          nodes.reject! {|name, _| runable.include?(name)}
 
           [runable]
         end
