@@ -3,103 +3,154 @@ require "mcollective/util/choria"
 
 module MCollective
   module Util
-    class Choria
-      describe PuppetV3Environment do
-        let(:site) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
-        let(:env) { PuppetV3Environment.new(site) }
+    describe Choria do
+      let(:choria) { Choria.new("production", nil, false) }
+      let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
-        describe "#satisfy_dependencies!" do
-          it "should satisfy the dependencies" do
-            nv = env.node_view
+      before(:each) do
+        choria.stubs(:say)
+      end
 
-            expect(nv["dev2.devco.net"][:consumes]).to eq(["Sql[app2]", "Sql[app1]"])
-            expect(nv["dev3.devco.net"][:consumes]).to eq(["Sql[app2]", "Sql[app1]"])
-            expect(nv["dev4.devco.net"][:consumes]).to eq(["Sql[app2]", "Sql[app1]"])
+      describe "#ca_path" do
+        it "should get the right path in ssl_dir" do
+          choria.expects(:ssl_dir).returns("/ssl")
+          expect(choria.ca_path).to eq("/ssl/certs/ca.pem")
+        end
+      end
 
-            env.satisfy_dependencies!(nv, ["dev1.devco.net"])
+      describe "#client_public_cert" do
+        it "should get the right path in ssl_dir" do
+          choria.expects(:ssl_dir).returns("/ssl")
+          choria.expects(:certname).returns("rspec")
+          expect(choria.client_public_cert).to eq("/ssl/certs/rspec.pem")
+        end
+      end
 
-            expect(nv["dev2.devco.net"][:consumes]).to eq([])
-            expect(nv["dev3.devco.net"][:consumes]).to eq([])
-            expect(nv["dev4.devco.net"][:consumes]).to eq([])
-          end
+      describe "#client_private_key" do
+        it "should get the right path in ssl_dir" do
+          choria.expects(:ssl_dir).returns("/ssl")
+          choria.expects(:certname).returns("rspec")
+          expect(choria.client_private_key).to eq("/ssl/private_keys/rspec.pem")
+        end
+      end
+
+      describe "#certname" do
+        it "should take identity for root" do
+          Process.expects(:uid).returns(0)
+          expect(choria.certname).to eq("rspec_identity")
         end
 
-        describe "#extract_runable_nodes!" do
-          it "should extract the correct nodes" do
-            nv = env.node_view
-
-            expect(nv).to include("dev1.devco.net")
-            expect(env.extract_runable_nodes!(nv)).to eq([["dev1.devco.net"]])
-            expect(nv).to_not include("dev1.devco.net")
-
-            env.satisfy_dependencies!(nv, ["dev1.devco.net"])
-            expect(env.extract_runable_nodes!(nv)).to eq([["dev2.devco.net", "dev3.devco.net", "dev4.devco.net"]])
-
-            expect(nv).to be_empty
-          end
+        it "should support USER environment" do
+          choria.expects(:env_fetch).with("USER", "rspec_identity").returns("rip")
+          choria.expects(:env_fetch).with("MCOLLECTIVE_CERTNAME", "rip.mcollective").returns("rip.mcollective")
+          expect(choria.certname).to eq("rip.mcollective")
         end
 
-        describe "#node_groups" do
-          it "should produce a sorted list of nodes" do
-            expect(env.node_groups).to eq([["dev1.devco.net"], ["dev2.devco.net", "dev3.devco.net", "dev4.devco.net"]])
-          end
+        it "should be overridable by MCOLLECTIVE_CERTNAME" do
+          choria.expects(:env_fetch).with("USER", "rspec_identity").returns("rspec_identity")
+          choria.expects(:env_fetch).with("MCOLLECTIVE_CERTNAME", "rspec_identity.mcollective").returns("rip.mcollective")
+          expect(choria.certname).to eq("rip.mcollective")
+        end
+      end
+
+      describe "#ssl_dir" do
+        it "should support windows" do
+          Util.expects(:windows?).returns(true)
+          expect(choria.ssl_dir).to eq('C:\ProgramData\PuppetLabs\puppet\etc\ssl')
         end
 
-        describe "#application_nodes" do
-          it "should extract the right nodes" do
-            expect(env.application_nodes("Lamp[app1]")).to eq(["dev1.devco.net", "dev2.devco.net", "dev3.devco.net", "dev4.devco.net"])
-          end
+        it "should support root on unix" do
+          Util.expects(:windows?).returns(false)
+          Process.expects(:uid).returns(0)
+          expect(choria.ssl_dir).to eq("/etc/puppetlabs/puppet/ssl")
         end
 
-        describe "#nodes" do
-          it "should retrieve the right node list" do
-            expect(env.nodes).to eq(["dev1.devco.net", "dev2.devco.net", "dev3.devco.net", "dev4.devco.net"])
-          end
+        it "should support users" do
+          Util.expects(:windows?).returns(false)
+          Process.expects(:uid).returns(500)
+          File.expects(:expand_path).with("~/.puppetlabs/etc/puppet/ssl").returns("/rspec/.puppetlabs/etc/puppet/ssl")
+          expect(choria.ssl_dir).to eq("/rspec/.puppetlabs/etc/puppet/ssl")
+        end
+      end
+
+      describe "#puppet_port" do
+        it "should get the option from config, default to 8140" do
+          Config.instance.stubs(:pluginconf).returns("puppet.port" => "8141")
+          expect(choria.puppet_port).to eq("8141")
+
+          Config.instance.stubs(:pluginconf).returns({})
+          expect(choria.puppet_port).to eq("8140")
+        end
+      end
+
+      describe "#puppet_server" do
+        it "should ge the option from config, defualting to puppet" do
+          Config.instance.stubs(:pluginconf).returns("puppet.host" => "rspec.puppet")
+          expect(choria.puppet_server).to eq("rspec.puppet")
+
+          Config.instance.stubs(:pluginconf).returns({})
+          expect(choria.puppet_server).to eq("puppet")
+        end
+      end
+
+      describe "check_ssl_setup" do
+        before(:each) do
+          choria.stubs(:client_public_cert).returns(File.expand_path("spec/fixtures/rip.mcollective.pem"))
+          choria.stubs(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key"))
+          choria.stubs(:ca_path).returns(File.expand_path("spec/fixtures/ca_crt.pem"))
         end
 
-        describe "#node" do
-          it "should retrieve the correct node" do
-            expect(env.node("dev1.devco.net")).to be(env.site_nodes["dev1.devco.net"])
-          end
+        it "should by default find all files" do
+          expect(choria.check_ssl_setup).to be_truthy
         end
 
-        describe "#applications" do
-          it "should fetch the valid apps" do
-            expect(env.applications).to eq(["Lamp[app1]", "Lamp[app2]"])
-          end
+        it "fail if any files are missing" do
+          choria.expects(:client_public_cert).returns("/nonexisting")
+
+          expect {
+            choria.check_ssl_setup
+          }.to raise_error("Client SSL is not correctly setup, please use 'mco request_cert'")
+        end
+      end
+
+      describe "#fetch_environment" do
+        before(:each) do
+          choria.stubs(:client_public_cert).returns(File.expand_path("spec/fixtures/rip.mcollective.pem"))
+          choria.stubs(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key"))
+          choria.stubs(:ca_path).returns(File.expand_path("spec/fixtures/ca_crt.pem"))
         end
 
-        describe "#environment" do
-          it "should report the site environment" do
-            expect(env.environment).to eq("production")
-          end
+        it "should fetch the right environment over https expecting JSON" do
+          stub_request(:get, "https://puppet:8140/puppet/v3/environment/production")
+            .with(:headers => {"Accept" => "application/json"})
+            .to_return(:status => [500, "Internal Server Error"], :body => "failed")
+
+          expect {
+            choria.fetch_environment
+          }.to raise_error("Failed to make request to Puppet: 500: Internal Server Error: failed")
         end
 
-        describe "#node_view" do
-          it "should produce a valid node view" do
-            nodes = env.node_view
+        it "should report error for non 200 replies" do
+          stub_request(:get, "https://puppet:8140/puppet/v3/environment/production")
+            .to_return(:status => 200, :body => File.read("spec/fixtures/sample_app.json"))
 
-            expect(nodes.keys).to eq(["dev1.devco.net", "dev2.devco.net", "dev3.devco.net", "dev4.devco.net"])
+          expect(choria.fetch_environment).to eq(parsed_app)
+        end
+      end
 
-            expect(nodes["dev1.devco.net"][:produces]).to eq(["Sql[app2]", "Sql[app1]"])
-            expect(nodes["dev2.devco.net"][:produces]).to eq([])
-            expect(nodes["dev3.devco.net"][:produces]).to eq([])
-            expect(nodes["dev4.devco.net"][:produces]).to eq([])
+      describe "#https" do
+        it "should create a valid http client" do
+          choria.stubs(:client_public_cert).returns(File.expand_path("spec/fixtures/rip.mcollective.pem"))
+          choria.stubs(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key"))
+          choria.stubs(:ca_path).returns(File.expand_path("spec/fixtures/ca_crt.pem"))
 
-            expect(nodes["dev1.devco.net"][:consumes]).to eq([])
-            expect(nodes["dev2.devco.net"][:consumes]).to eq(["Sql[app2]", "Sql[app1]"])
-            expect(nodes["dev3.devco.net"][:consumes]).to eq(["Sql[app2]", "Sql[app1]"])
-            expect(nodes["dev4.devco.net"][:consumes]).to eq(["Sql[app2]", "Sql[app1]"])
+          h = choria.https
 
-            expect(nodes["dev1.devco.net"][:resources]).to eq(["Lamp::Mysql[app2]", "Lamp::Mysql[app1]"])
-            expect(nodes["dev2.devco.net"][:resources]).to eq(["Lamp::Webapp[app2-1]", "Lamp::Webapp[app1-1]"])
-            expect(nodes["dev3.devco.net"][:resources]).to eq(["Lamp::Webapp[app2-2]", "Lamp::Webapp[app1-2]"])
-            expect(nodes["dev4.devco.net"][:resources]).to eq(["Lamp::Webapp[app2-3]", "Lamp::Webapp[app1-3]"])
-
-            nodes.each do |_, data|
-              expect(data[:applications]).to eq(["Lamp[app2]", "Lamp[app1]"])
-            end
-          end
+          expect(h.use_ssl?).to be_truthy
+          expect(h.verify_mode).to be(OpenSSL::SSL::VERIFY_PEER)
+          expect(h.cert.subject.to_s).to eq("/CN=rip.mcollective")
+          expect(h.ca_file).to eq(choria.ca_path)
+          expect(h.key.to_pem).to eq(File.read(choria.client_private_key))
         end
       end
     end

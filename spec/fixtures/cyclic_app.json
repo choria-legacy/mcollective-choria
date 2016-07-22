@@ -1,0 +1,73 @@
+{
+    "environment": "production",
+    "applications": {
+        "Lamp[app2]": {
+            "Lamp::Mysql[app2]": {
+                "produces": [
+                    "Sql[app2]"
+                ],
+                "consumes": [
+
+                ],
+                "node": "dev1.devco.net"
+            },
+            "Lamp::Webapp[app2-1]": {
+                "produces": [
+
+                ],
+                "consumes": [
+                    "Sql[app2]"
+                ],
+                "node": "dev2.devco.net"
+            },
+            "Lamp::Webapp[app2-2]": {
+                "produces": [
+
+                ],
+                "consumes": [
+                    "Sql[app2]"
+                ],
+                "node": "dev3.devco.net"
+            },
+            "Lamp::Webapp[app2-3]": {
+                "produces": [
+
+                ],
+                "consumes": [
+                    "Sql[app2]"
+                ],
+                "node": "dev4.devco.net"
+            }
+        },
+        "Lamp[app1]": {
+            "Lamp::Mysql[app1]": {
+                "produces": [
+                    "Sql[app1]"
+                ],
+                "consumes": [
+
+                ],
+                "node": "dev3.devco.net"
+            },
+            "Lamp::Webapp[app1-1]": {
+                "produces": [
+
+                ],
+                "consumes": [
+                    "Sql[app1]"
+                ],
+                "node": "dev2.devco.net"
+            },
+            "Lamp::Webapp[app1-2]": {
+                "produces": [
+
+                ],
+                "consumes": [
+                    "Sql[app1]"
+                ],
+                "node": "dev1.devco.net"
+            }
+        }
+    },
+    "code_id": null
+}

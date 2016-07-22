@@ -3,12 +3,26 @@ module MCollective
     class Choria
       # Represents the result from the Puppet `/puppet/v3/environment` endpoint
       class PuppetV3Environment
-        attr_reader :site, :site_nodes
+        attr_reader :application, :site, :site_nodes
 
         # @param site [Hash] a JSON parsed result from `/puppet/v3/environment`
-        def initialize(site)
+        def initialize(site, application=nil)
           @site = site
+          @application = application
           @site_nodes = node_view
+
+          unless has_runable_nodes?(node_view(false))
+            raise(UserError, "Impossible to resolve site catalog found, cannot continue with any instances")
+          end
+        end
+
+        # Determines if an application is a known one
+        #
+        # @param application [nil, String] application name
+        # @return [Boolean]
+        def valid_application?(application)
+          return true if application.nil?
+          applications.include?(application)
         end
 
         # List of nodes involved in a specific application
@@ -17,7 +31,7 @@ module MCollective
         # @return [Array<String>] list of nodes involved in the application
         # @raise [StandardError] when an unknown application is requested
         def application_nodes(application)
-          raise("Unknown application %s" % application) unless applications.include?(application)
+          raise(UserError, "Unknown application %s" % application) unless applications.include?(application)
 
           nodes = site_nodes.select do |_, props|
             props[:applications].include?(application)
@@ -84,6 +98,10 @@ module MCollective
           run_order = []
 
           until pending_nodes.empty?
+            unless has_runable_nodes?(pending_nodes)
+              raise(UserError, "Impossible to resolve site catalog found, cannot continue with any instances")
+            end
+
             run_order += extract_runable_nodes!(pending_nodes)
             satisfy_dependencies!(pending_nodes, run_order)
           end
@@ -95,10 +113,12 @@ module MCollective
         #
         # @api private
         # @return [Hash]
-        def node_view
+        def node_view(filter=true)
           nodes = {}
 
           site["applications"].each do |appname, components|
+            next if @application && filter && appname != @application
+
             components.each do |component, props|
               node_name = props["node"]
 
@@ -120,6 +140,15 @@ module MCollective
           end
 
           nodes
+        end
+
+        # Determines if there are any runable nodes
+        #
+        # @api private
+        # @param nodes [Hash] as produced by node_view
+        # @return [Boolean]
+        def has_runable_nodes?(nodes)
+          !!nodes.find {|_, props| props[:consumes].empty?}
         end
 
         # Given a list of runnable nodes, extract ones that can be run now
