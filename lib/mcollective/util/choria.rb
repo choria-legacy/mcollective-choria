@@ -4,8 +4,11 @@ require "net/http"
 module MCollective
   module Util
     class Choria
-      def initialize(environment, check_ssl=true)
+      class UserError < StandardError; end
+
+      def initialize(environment, application=nil, check_ssl=true)
         @environment = environment
+        @application = application
         @config = Config.instance
 
         check_ssl_setup if check_ssl
@@ -21,7 +24,7 @@ module MCollective
         # wrapper class
         #
         # For now there is only only
-        PuppetV3Environment.new(fetch_environment)
+        PuppetV3Environment.new(fetch_environment, @application)
       end
 
       # Create a Net::HTTP instance set up with the Puppet certs

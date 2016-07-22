@@ -28,28 +28,27 @@ Usage
 
 Orchastrator for Puppet Applications
 
-Usage: mco choria [OPTIONS] [FILTERS] <ACTION>
+Usage:   mco choria [OPTIONS] <ACTION>
 
-The ACTION can be one of the following:
+  The ACTION can be one of the following:
 
-   plan  - view the plan for a specific environment
-   run   - run a the plan for a specific environment
+     plan  - view the plan for a specific environment
+     run   - run a the plan for a specific environment
 
-The environment is chosen using --environment and the concurrent
-runs may be limited using --batch.
+  The environment is chosen using --environment and the concurrent
+  runs may be limited using --batch.
 
-The batching works a bit different than typical, it will only batch
-based on a sorted list of certificate names, this means the batches
-will always run in predictable order.
+  The batching works a bit different than typical, it will only batch
+  based on a sorted list of certificate names, this means the batches
+  will always run in predictable order.
 
 Application Options
+        --instance INSTANCE          Limit to a specific application instance
         --environment ENVIRONMENT    The environment to run, defaults to production
         --batch SIZE                 Run the nodes in each group in batches of a certain size
     -c, --config FILE                Load configuration from file rather than default
     -v, --verbose                    Be verbose
     -h, --help                       Display this screen
-
-The Marionette Collective 2.8.8
 ```
 
 Example
@@ -85,8 +84,7 @@ site {
 }
 ```
 
-This tool will ask Puppet for the catalog and view or deploy it:
-
+This tool will ask Puppet for the catalog, and after analysing it for cyclic dependencies, view or deploy it:
 
 ```
 [rip@dev3]% mco choria run

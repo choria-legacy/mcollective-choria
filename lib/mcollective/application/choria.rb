@@ -4,7 +4,7 @@ module MCollective
       description "Orchastrator for Puppet Applications"
 
       usage <<-EOU
-  mco choria [OPTIONS] [FILTERS] <ACTION>
+  mco choria [OPTIONS] <ACTION>
 
   The ACTION can be one of the following:
 
@@ -20,6 +20,11 @@ module MCollective
   EOU
 
       exclude_argument_sections "common", "filter", "rpc"
+
+      option :instance,
+             :arguments => ["--instance INSTANCE"],
+             :description => "Limit to a specific application instance",
+             :type => String
 
       option :environment,
              :arguments => ["--environment ENVIRONMENT"],
@@ -46,6 +51,8 @@ module MCollective
       def main
         Util.loadclass("MCollective::Util::Choria")
         send("%s_command" % configuration[:command])
+      rescue Util::Choria::UserError
+        STDERR.puts("Could not process site plan: %s" % red($!.to_s))
       end
 
       # Shows the execution plan
@@ -89,7 +96,7 @@ module MCollective
       #
       # @return [Util::Choria]
       def choria
-        @_choria ||= Util::Choria.new(configuration[:environment])
+        @_choria ||= Util::Choria.new(configuration[:environment], configuration[:instance])
       end
 
       # Shows the plan for a specific environment
@@ -216,12 +223,13 @@ module MCollective
       # @param sleep_time [Numeric] how long to wait between checks
       # @return [void]
       def wait_till_nodes_idle(nodes, count=40, sleep_time=5)
-        puppet.discover(:nodes => nodes)
-
         count.times do |i|
           log("Waiting for %s nodes to become idle" % bold(nodes.size)) if i % 4 == 0
 
+          puppet.discover(:nodes => nodes)
+
           return if puppet.status.map {|resp| resp.results[:data][:applying] }.none?
+
           sleep sleep_time
         end
 
