@@ -489,7 +489,7 @@ module MCollective
       # Creates a new CSR signed by the given key
       #
       # @param key [OpenSSL::PKey::RSA]
-      # @retrun [String] PEM encoded CSR
+      # @return [String] PEM encoded CSR
       def write_csr(key)
         raise("Refusing to overwrite existing CSR in %s" % csr_path) if has_csr?
 

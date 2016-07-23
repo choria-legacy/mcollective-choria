@@ -91,7 +91,7 @@ module MCollective
         # included, this represents the order nodes should be run in and are
         # made of up groups to run them in.
         #
-        # @see {#each_node_group}
+        # @see #each_node_group
         # @return [Array<Array<String>>]
         def node_groups
           pending_nodes = node_view

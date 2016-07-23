@@ -144,7 +144,7 @@ module MCollective
 
       # Subscribes to a message source
       #
-      # @param source [String]
+      # @param source_name [String]
       def subscribe(source_name)
         @subscription_mutex.synchronize do
           Log.debug("Subscribing to %s" % source_name)
