@@ -1,10 +1,12 @@
 require_relative "choria/puppet_v3_environment"
+require_relative "choria/orchestrator"
 require "net/http"
 
 module MCollective
   module Util
     class Choria
       class UserError < StandardError; end
+      class Abort < StandardError; end
 
       def initialize(environment, application=nil, check_ssl=true)
         @environment = environment
@@ -27,7 +29,21 @@ module MCollective
         PuppetV3Environment.new(fetch_environment, @application)
       end
 
-      # Create a Net::HTTP instance set up with the Puppet certs
+      # Orchastrator for Puppet Environment Data
+      #
+      # @param client [MCollective::RPC::Client] client set up for the puppet agent
+      # @param batch_size [Integer] batch size to run nodes in
+      # @return [Orchestrator]
+      def orchestrator(client, batch_size)
+        Orchestrator.new(self, client, batch_size)
+      end
+
+      # Create a Net::HTTP instance optionally set up with the Puppet certs
+      #
+      # If the client_private_key and client_public_cert both exist they will
+      # be used to validate the connection
+      #
+      # If the ca_path exist it will be used and full verification will be enabled
       #
       # @return [Net::HTTP]
       def https
@@ -36,10 +52,18 @@ module MCollective
         http = Net::HTTP.new(puppet_server, puppet_port)
 
         http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        http.cert = OpenSSL::X509::Certificate.new(File.read(client_public_cert))
-        http.ca_file = ca_path
-        http.key = OpenSSL::PKey::RSA.new(File.read(client_private_key))
+
+        if has_client_private_key? && has_client_public_cert?
+          http.cert = OpenSSL::X509::Certificate.new(File.read(client_public_cert))
+          http.key = OpenSSL::PKey::RSA.new(File.read(client_private_key))
+        end
+
+        if has_ca?
+          http.ca_file = ca_path
+          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+        else
+          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        end
 
         @_http = http
       end
@@ -59,7 +83,7 @@ module MCollective
         path = "/puppet/v3/environment/%s" % @environment
         resp, data = https.request(http_get(path))
 
-        raise("Failed to make request to Puppet: %s: %s: %s" % [resp.code, resp.message, resp.body]) unless resp.code == "200"
+        raise(UserError, "Failed to make request to Puppet: %s: %s: %s" % [resp.code, resp.message, resp.body]) unless resp.code == "200"
 
         JSON.parse(data || resp.body)
       end
@@ -80,7 +104,7 @@ module MCollective
           end
         end.all?
 
-        raise("Client SSL is not correctly setup, please use 'mco request_cert'") unless valid
+        raise(UserError, "Client SSL is not correctly setup, please use 'mco request_cert'") unless valid
 
         true
       end
@@ -151,6 +175,13 @@ module MCollective
         File.join(ssl_dir, "certs", "%s.pem" % certname)
       end
 
+      # Determines if teh client_public_cert exist
+      #
+      # @return [Boolean]
+      def has_client_public_cert?
+        File.exist?(client_public_cert)
+      end
+
       # The path to a client private key
       #
       # @note paths determined by Puppet AIO packages
@@ -159,11 +190,25 @@ module MCollective
         File.join(ssl_dir, "private_keys", "%s.pem" % certname)
       end
 
+      # Determines if the client_private_key exist
+      #
+      # @return [Boolean]
+      def has_client_private_key?
+        File.exist?(client_private_key)
+      end
+
       # The path to the CA
       #
       # @return [String]
       def ca_path
         File.join(ssl_dir, "certs", "ca.pem")
+      end
+
+      # Determines if the CA exist
+      #
+      # @return [Boolean]
+      def has_ca?
+        File.exist?(ca_path)
       end
 
       # Gets a config option
@@ -176,7 +221,7 @@ module MCollective
         return @config.pluginconf[opt] if @config.pluginconf.include?(opt)
         return default unless default == :_unset
 
-        raise("No plugin.%s configuration option given" % opt)
+        raise(UserError, "No plugin.%s configuration option given" % opt)
       end
 
       def env_fetch(key, default=nil)
