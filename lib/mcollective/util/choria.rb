@@ -99,44 +99,63 @@ module MCollective
           if File.exist?(path)
             true
           else
-            say("Cannot find SSL file %s" % path)
+            Log.warn("Cannot find SSL file %s" % path)
             false
           end
         end.all?
 
-        raise(UserError, "Client SSL is not correctly setup, please use 'mco request_cert'") unless valid
+        raise(UserError, "Client SSL is not correctly setup, please use 'mco choria request_cert'") unless valid
 
         true
       end
 
       # The Puppet server to connect to
       #
-      # Configurable using puppet.host, defaults to puppet
+      # Configurable using choria.puppetserver_host, defaults to puppet
       #
       # @todo also support SRV
       # @return [String]
       def puppet_server
-        get_option("puppet.master", "puppet")
-      end
-
-      # The Puppet server to connect to
-      #
-      # Configurable using puppet.host, defaults to puppet
-      #
-      # @todo also support SRV
-      # @return [String]
-      def puppetca_server
-        @ca || get_option("puppet.ca", "puppet")
+        get_option("choria.puppetserver_host", "puppet")
       end
 
       # The Puppet server port to connect to
       #
-      # Configurable using puppet.port, defaults to 8140
+      # Configurable using choria.puppetserver_port, defaults to 8140
       #
       # @note this has to be a the SSL port, plain text is not supported
       # @return [String]
       def puppet_port
-        get_option("puppet.port", "8140")
+        get_option("choria.puppetserver_port", "8140")
+      end
+
+      # The Puppet server to connect to
+      #
+      # Configurable using choria.puppetca_host, defaults to puppet
+      #
+      # @todo also support SRV
+      # @return [String]
+      def puppetca_server
+        @ca || get_option("choria.puppetca_host", "puppet")
+      end
+
+      # The PuppetDB server to connect to
+      #
+      # Configurable using choria.puppetdb_host, defaults to puppet
+      #
+      # @return [String]
+      def puppetdb_server
+        get_option("choria.puppetdb_host", "puppet")
+      end
+
+      # The PuppetDB server port to connect to
+      #
+      # Configurable using choria.puppetdb_port, defaults to 8081
+      #
+      # @note this has to be a the SSL port, plain text is not supported
+      # @return [String]
+      def puppetdb_port
+        get_option("choria.puppetdb_port", "8081")
       end
 
       # The certname of the current context
@@ -386,10 +405,6 @@ module MCollective
 
       def env_fetch(key, default=nil)
         ENV.fetch(key, default)
-      end
-
-      def say(msg)
-        STDERR.puts msg
       end
     end
   end
