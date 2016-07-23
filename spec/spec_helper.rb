@@ -5,9 +5,11 @@ require "mcollective"
 require "rspec/mocks"
 require "mocha"
 require "webmock/rspec"
+require "json-schema-rspec"
 
 RSpec.configure do |config|
   config.mock_with(:mocha)
+  config.include(JSON::SchemaMatchers)
 
   config.before :each do
     MCollective::Config.instance.set_config_defaults("")
