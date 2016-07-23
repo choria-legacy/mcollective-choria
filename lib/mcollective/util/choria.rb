@@ -18,6 +18,119 @@ module MCollective
         check_ssl_setup if check_ssl
       end
 
+      # Retrieves a DNS resolver
+      #
+      # @note mainly used for testing
+      # @return [Resolv::DNS]
+      def resolver
+        Resolv::DNS.new
+      end
+
+      # Retrieves the domain from facter networking.domain if facter is found
+      #
+      # Potentially we could use the local facts in mcollective but that's a chicken
+      # and egg and sometimes its only set after initial connection if something like
+      # a cron job generates the yaml cache file
+      #
+      # @return [String,nil]
+      def facter_domain
+        if path = facter_cmd
+          `#{path} networking.domain`.chomp
+        end
+      end
+
+      # Determines the domain to do SRV lookups in
+      #
+      # This is settable using choria.srv_domain and defaults
+      # to the domain as reported by facter
+      #
+      # @return [String]
+      def srv_domain
+        get_option("choria.srv_domain", nil) || facter_domain
+      end
+
+      # Determines the SRV records to look up
+      #
+      # If an option choria.srv_domain is set that will be used else facter will be consulted,
+      # if neither of those provide a domain name a empty list is returned
+      #
+      # @param keys [Array<String>] list of keys to lookup
+      # @return [Array<String>] list of SRV records
+      def srv_records(keys)
+        domain = srv_domain
+
+        if domain.nil? || domain.empty?
+          Log.warn("Cannot look up SRV records, facter is not functional and choria.srv_domain was not supplied")
+          return []
+        end
+
+        keys.map do |key|
+          "%s.%s" % [key, domain]
+        end
+      end
+
+      # Query DNS for a series of records
+      #
+      # The given records will be passed through {#srv_records} to figure out the domain to query in
+      #
+      # @yield [Hash] each record for modification by the caller
+      # @param records [Array<String>] the records to query without their domain parts
+      # @return [Array<Hash>] with keys :port, :priority, :weight and :target
+      def query_srv_records(records)
+        answers = Array(srv_records(records)).map do |record|
+          answers = resolver.getresources(record, Resolv::DNS::Resource::IN::SRV)
+          Log.debug("Found %d SRV records for %s" % [answers.size, record])
+          answers
+        end.flatten
+
+        answers = answers.sort_by(&:priority).chunk(&:priority).sort
+        answers = sort_srv_answers(answers)
+
+        answers.map do |result|
+          Log.debug("Found %s:%s with priority %s and weight %s" % [result.target, result.port, result.priority, result.weight])
+
+          ans = {
+            :port => result.port,
+            :priority => result.priority,
+            :weight => result.weight,
+            :target => result.target
+          }
+
+          yield(ans) if block_given?
+
+          ans
+        end
+      end
+
+      # Sorts SRV records according to rfc2782
+      #
+      # @note this is probably still not correct :( so horrible
+      # @param answers [Array<Resolv::DNS::Resource::IN::SRV>]
+      # @return [Array<Resolv::DNS::Resource::IN::SRV>] sorted records
+      def sort_srv_answers(answers)
+        sorted_answers = []
+
+        # this is roughly based on the resolv-srv and supposedly mostly rfc2782 compliant
+        answers.each do |_, available|
+          total_weight = available.inject(0) {|a, e| a + e.weight + 1 }
+
+          until available.empty?
+            selector = Integer(rand * total_weight) + 1
+            selected_idx = available.find_index do |e|
+              selector -= e.weight + 1
+              selector <= 0
+            end
+            selected = available.delete_at(selected_idx)
+
+            total_weight -= selected.weight + 1
+
+            sorted_answers << selected
+          end
+        end
+
+        sorted_answers
+      end
+
       # Wrapper around site data
       #
       # @return [PuppetV3Environment]
@@ -109,6 +222,42 @@ module MCollective
         true
       end
 
+      # Finds the middleware hosts in config or DNS
+      #
+      # Attempts to find servers in the following order:
+      #
+      #  * Configured hosts in choria.middleware_hosts
+      #  * SRV lookups in _mcollective-server._tcp and _x-puppet-mcollective._tcp
+      #  * Supplied defaults
+      #
+      # Eventually it's intended that other middleware might be supported
+      # this would provide a single way to configure them all
+      #
+      # @param default_host [String] default hostname
+      # @param default_port [String] default port
+      # @return [Array<Array<String, String>>] groups of host and port
+      def middleware_servers(default_host, default_port)
+        if servers = get_option("choria.middleware_hosts", nil)
+          hosts = servers.split(",").map do |server|
+            server.split(":")
+          end
+
+          return hosts
+        end
+
+        srv_answers = query_srv_records(["_mcollective-server._tcp", "_x-puppet-mcollective._tcp"])
+
+        unless srv_answers.empty?
+          hosts = srv_answers.map do |answer|
+            [answer[:target], answer[:port]]
+          end
+
+          return hosts
+        end
+
+        [[default_host, default_port]]
+      end
+
       # The Puppet server to connect to
       #
       # Configurable using choria.puppetserver_host, defaults to puppet
@@ -124,6 +273,7 @@ module MCollective
       # Configurable using choria.puppetserver_port, defaults to 8140
       #
       # @note this has to be a the SSL port, plain text is not supported
+      # @todo also support SRV
       # @return [String]
       def puppet_port
         get_option("choria.puppetserver_port", "8140")
@@ -143,6 +293,7 @@ module MCollective
       #
       # Configurable using choria.puppetdb_host, defaults to puppet
       #
+      # @todo also support SRV
       # @return [String]
       def puppetdb_server
         get_option("choria.puppetdb_host", "puppet")
@@ -153,6 +304,7 @@ module MCollective
       # Configurable using choria.puppetdb_port, defaults to 8081
       #
       # @note this has to be a the SSL port, plain text is not supported
+      # @todo also support SRV
       # @return [String]
       def puppetdb_port
         get_option("choria.puppetdb_port", "8081")
@@ -252,6 +404,28 @@ module MCollective
       # @return [Boolean]
       def has_csr?
         File.exist?(csr_path)
+      end
+
+      # Searches the machine for a working facter
+      #
+      # It checks AIO path first and then attempts to find it in PATH and supports both
+      # unix and windows
+      #
+      # @return [String,nil]
+      def facter_cmd
+        return "/opt/puppetlabs/bin/facter" if File.executable?("/opt/puppetlabs/bin/facter")
+
+        exts = Array(env_fetch("PATHEXT", "").split(";"))
+        exts << "" if exts.empty?
+
+        env_fetch("PATH", "").split(File::PATH_SEPARATOR).each do |path|
+          exts.each do |ext|
+            exe = File.join(path, "%s%s" % ["facter", ext])
+            return exe if File.executable?(exe) && !File.directory?(exe)
+          end
+        end
+
+        nil
       end
 
       # Creates any missing SSL directories

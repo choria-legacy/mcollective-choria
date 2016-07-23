@@ -7,6 +7,101 @@ module MCollective
       let(:choria) { Choria.new("production", nil, false) }
       let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
+      describe "#middleware_servers" do
+        it "should support config" do
+          Config.instance.stubs(:pluginconf).returns("choria.middleware_hosts" => "1.net:4222,2.net:4223")
+          expect(choria.middleware_servers("h", "1")).to eq(
+            [
+              ["1.net", "4222"],
+              ["2.net", "4223"]
+            ]
+          )
+        end
+
+        it "should support dns" do
+          Config.instance.stubs(:pluginconf).returns({})
+          choria.expects(:query_srv_records).with(
+            ["_mcollective-server._tcp", "_x-puppet-mcollective._tcp"]
+          ).returns(
+            [{:target => "1.net", :port => "4222"}, {:target => "2.net", :port => "4223"}]
+          )
+
+          expect(choria.middleware_servers("h", "1")).to eq(
+            [
+              ["1.net", "4222"],
+              ["2.net", "4223"]
+            ]
+          )
+        end
+
+        it "should default" do
+          Config.instance.stubs(:pluginconf).returns({})
+          choria.stubs(:query_srv_records).returns([])
+          expect(choria.middleware_servers("1.net", "4222")).to eq(
+            [["1.net", "4222"]]
+          )
+        end
+      end
+
+      describe "#srv_domain" do
+        it "should support a configurable domain" do
+          Config.instance.stubs(:pluginconf).returns("choria.srv_domain" => "r.net")
+          choria.expects(:facter_domain).never
+          expect(choria.srv_domain).to eq("r.net")
+        end
+
+        it "should support querying facter" do
+          Config.instance.stubs(:pluginconf).returns({})
+          choria.expects(:facter_domain).returns("r.net")
+          expect(choria.srv_domain).to eq("r.net")
+        end
+      end
+
+      describe "#srv_records" do
+        it "should calcualte the right records" do
+          choria.stubs(:srv_domain).returns("example.net")
+          expect(choria.srv_records(["_1._tcp", "_2._tcp"]))
+            .to eq(["_1._tcp.example.net", "_2._tcp.example.net"])
+        end
+      end
+
+      describe "#query_srv_records" do
+        it "should query the records and return answers" do
+          resolver = stub
+          choria.stubs(:resolver).returns(resolver)
+          choria.stubs(:srv_domain).returns("example.net")
+
+          answer1 = stub(:port => 1, :priority => 1, :weight => 1, :target => "one.example.net")
+          result1 = {:port => 1, :priority => 1, :weight => 1, :target => "one.example.net"}
+          answer2 = stub(:port => 2, :priority => 2, :weight => 1, :target => "two.example.net")
+          result2 = {:port => 2, :priority => 2, :weight => 1, :target => "two.example.net"}
+
+          resolver.expects(:getresources).with("_mcollective-server._tcp.example.net", Resolv::DNS::Resource::IN::SRV).returns([answer1])
+          resolver.expects(:getresources).with("_x-puppet-mcollective._tcp.example.net", Resolv::DNS::Resource::IN::SRV).returns([answer2])
+
+          expect(choria.query_srv_records(["_mcollective-server._tcp", "_x-puppet-mcollective._tcp"])).to eq([result1, result2])
+        end
+      end
+
+      describe "#facter_cmd" do
+        it "should check AIO path" do
+          File.expects(:executable?).with("/opt/puppetlabs/bin/facter").returns(true)
+          expect(choria.facter_cmd).to eq("/opt/puppetlabs/bin/facter")
+        end
+
+        it "should check the system PATH if not AIO" do
+          File.expects(:executable?).with("/opt/puppetlabs/bin/facter").returns(false)
+          File.expects(:executable?).with("/bin/facter").returns(false)
+          File.expects(:executable?).with("/usr/bin/facter").returns(true)
+          File.expects(:directory?).with("/usr/bin/facter").returns(false)
+
+          choria.stubs(:env_fetch).with("PATHEXT", "").returns("")
+          choria.stubs(:env_fetch).with("PATH", "").returns("/bin:/usr/bin")
+
+          expect(choria.facter_cmd).to eq("/usr/bin/facter")
+        end
+      end
+
       context "when making certificates" do
         before(:each) do
           choria.stubs(:certname).returns("rspec.cert")

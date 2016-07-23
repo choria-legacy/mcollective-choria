@@ -2,6 +2,9 @@ AllCops:
   DisplayCopNames: true
   DisplayStyleGuide: true
 
+Style/TrailingUnderscoreVariable:
+  Enabled: false
+
 Lint/NonLocalExitFromIterator:
   Enabled: false
 
