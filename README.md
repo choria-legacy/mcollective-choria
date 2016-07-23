@@ -15,6 +15,7 @@ Includes:
    * A Connector using [NATS.io](https://nats.io)
    * A Discovery plugin for PuppetDB
    * An Orchestrator for the [Puppet Multi Node Applications](https://docs.puppet.com/pe/latest/app_orchestration_overview.html)
+   * A packaging system using Puppet 4 modules for plugins
    * Shared configuration of SSL and other properties
    * Support for SRV records for configuration to atain a zero config setup
 
@@ -24,4 +25,4 @@ See [the Wiki](https://github.com/ripienaar/mcollective-choria/wiki) for further
 
 ## Contact?
 
-R.I.Pienaar / rip@devco.net / @ripienaar / http://devco.net
+R.I.Pienaar / rip@devco.net / [@ripienaar](https://twitter.com/ripienaar) / https://devco.net
