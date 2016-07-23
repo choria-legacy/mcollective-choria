@@ -1,5 +1,7 @@
 source "https://rubygems.org"
 
+gem "nats", "0.7.1"
+
 group :development, :test do
   gem "json-schema-rspec"
   gem "mcollective-client"

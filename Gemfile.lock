@@ -7,6 +7,7 @@ GEM
     crack (0.4.3)
       safe_yaml (~> 1.0.0)
     diff-lcs (1.2.5)
+    eventmachine (1.2.0.1)
     ffi (1.9.14)
     formatador (0.2.5)
     guard (2.14.0)
@@ -45,6 +46,8 @@ GEM
     method_source (0.8.2)
     mocha (1.1.0)
       metaclass (~> 0.0.1)
+    nats (0.7.1)
+      eventmachine (~> 1.2, >= 1.2.0)
     nenv (0.3.0)
     notiffany (0.1.0)
       nenv (~> 0.1)
@@ -104,6 +107,7 @@ DEPENDENCIES
   listen (~> 3.0.0)
   mcollective-client
   mocha
+  nats (= 0.7.1)
   rake
   rspec
   rubocop (= 0.41.1)
