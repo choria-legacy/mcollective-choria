@@ -7,10 +7,6 @@ module MCollective
       let(:choria) { Choria.new("production", nil, false) }
       let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
-      before(:each) do
-        choria.stubs(:say)
-      end
-
       context "when making certificates" do
         before(:each) do
           choria.stubs(:certname).returns("rspec.cert")
@@ -234,7 +230,7 @@ module MCollective
 
       describe "#puppet_port" do
         it "should get the option from config, default to 8140" do
-          Config.instance.stubs(:pluginconf).returns("puppet.port" => "8141")
+          Config.instance.stubs(:pluginconf).returns("choria.puppetserver_port" => "8141")
           expect(choria.puppet_port).to eq("8141")
 
           Config.instance.stubs(:pluginconf).returns({})
@@ -244,7 +240,7 @@ module MCollective
 
       describe "#puppetca_server" do
         it "should ge the option from config, defualting to puppet" do
-          Config.instance.stubs(:pluginconf).returns("puppet.ca" => "rspec.puppetca")
+          Config.instance.stubs(:pluginconf).returns("choria.puppetca_host" => "rspec.puppetca")
           expect(choria.puppetca_server).to eq("rspec.puppetca")
 
           Config.instance.stubs(:pluginconf).returns({})
@@ -254,7 +250,7 @@ module MCollective
 
       describe "#puppet_server" do
         it "should ge the option from config, defualting to puppet" do
-          Config.instance.stubs(:pluginconf).returns("puppet.master" => "rspec.puppet")
+          Config.instance.stubs(:pluginconf).returns("choria.puppetserver_host" => "rspec.puppet")
           expect(choria.puppet_server).to eq("rspec.puppet")
 
           Config.instance.stubs(:pluginconf).returns({})
@@ -278,7 +274,7 @@ module MCollective
 
           expect {
             choria.check_ssl_setup
-          }.to raise_error("Client SSL is not correctly setup, please use 'mco request_cert'")
+          }.to raise_error("Client SSL is not correctly setup, please use 'mco choria request_cert'")
         end
       end
 
