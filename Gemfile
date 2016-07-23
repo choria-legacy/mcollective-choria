@@ -1,6 +1,7 @@
 source "https://rubygems.org"
 
 group :development, :test do
+  gem "json-schema-rspec"
   gem "mcollective-client"
   gem "rake"
   gem "yard"
