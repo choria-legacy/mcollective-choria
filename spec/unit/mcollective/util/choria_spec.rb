@@ -7,6 +7,18 @@ module MCollective
       let(:choria) { Choria.new("production", nil, false) }
       let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
+      describe "#try_srv" do
+        it "should query for the correct names" do
+          choria.expects(:query_srv_records).with(["rspec1", "rspec2"]).returns([:target => "rspec.host", :port => "8080"])
+          expect(choria.try_srv(["rspec1", "rspec2"], "h", "1")).to eq(:target => "rspec.host", :port => "8080")
+        end
+
+        it "should support defaults" do
+          choria.expects(:query_srv_records).with(["rspec1", "rspec2"]).returns([])
+          expect(choria.try_srv(["rspec1", "rspec2"], "rspec.host", "8080")).to eq(:target => "rspec.host", :port => "8080")
+        end
+      end
+
       describe "#middleware_servers" do
         it "should support config" do
           Config.instance.stubs(:pluginconf).returns("choria.middleware_hosts" => "1.net:4222,2.net:4223")
@@ -106,7 +118,7 @@ module MCollective
         before(:each) do
           choria.stubs(:certname).returns("rspec.cert")
           choria.stubs(:ssl_dir).returns("/ssl")
-          choria.stubs(:puppetca_server).returns("puppetca")
+          choria.stubs(:puppetca_server).returns(:target => "puppetca", :port => 8140)
         end
 
         describe "#waiting_for_cert?" do
@@ -181,7 +193,7 @@ module MCollective
 
             expect {
               choria.request_cert
-            }.to raise_error("Failed to request certificate from puppetca: 500: Internal Server Error: rspec fail")
+            }.to raise_error("Failed to request certificate from puppetca:8140: 500: Internal Server Error: rspec fail")
           end
         end
 
@@ -323,33 +335,29 @@ module MCollective
         end
       end
 
-      describe "#puppet_port" do
-        it "should get the option from config, default to 8140" do
-          Config.instance.stubs(:pluginconf).returns("choria.puppetserver_port" => "8141")
-          expect(choria.puppet_port).to eq("8141")
-
-          Config.instance.stubs(:pluginconf).returns({})
-          expect(choria.puppet_port).to eq("8140")
-        end
-      end
-
       describe "#puppetca_server" do
-        it "should ge the option from config, defualting to puppet" do
-          Config.instance.stubs(:pluginconf).returns("choria.puppetca_host" => "rspec.puppetca")
-          expect(choria.puppetca_server).to eq("rspec.puppetca")
+        it "should query SRV" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.puppetca_host" => "rspec.puppetca",
+            "choria.puppetca_port" => "8140"
+          )
+          resolved = {:target => "rspec.puppetca", :port => 8144}
+          choria.expects(:try_srv).with(["_x-puppet-ca._tcp", "_x-puppet._tcp"], "rspec.puppetca", "8140").returns(resolved)
 
-          Config.instance.stubs(:pluginconf).returns({})
-          expect(choria.puppet_server).to eq("puppet")
+          expect(choria.puppetca_server).to eq(resolved)
         end
       end
 
       describe "#puppet_server" do
-        it "should ge the option from config, defualting to puppet" do
-          Config.instance.stubs(:pluginconf).returns("choria.puppetserver_host" => "rspec.puppet")
-          expect(choria.puppet_server).to eq("rspec.puppet")
+        it "should query SRV" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.puppetserver_host" => "rspec.puppet",
+            "choria.puppetserver_port" => "8140"
+          )
+          resolved = {:target => "rspec.puppet", :port => 8144}
+          choria.expects(:try_srv).with(["_x-puppet._tcp"], "rspec.puppet", "8140").returns(resolved)
 
-          Config.instance.stubs(:pluginconf).returns({})
-          expect(choria.puppet_server).to eq("puppet")
+          expect(choria.puppet_server).to eq(resolved)
         end
       end
 
@@ -378,6 +386,7 @@ module MCollective
           choria.stubs(:client_public_cert).returns(File.expand_path("spec/fixtures/rip.mcollective.pem"))
           choria.stubs(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key"))
           choria.stubs(:ca_path).returns(File.expand_path("spec/fixtures/ca_crt.pem"))
+          choria.stubs(:puppet_server).returns(:target => "puppet", :port => "8140")
         end
 
         it "should fetch the right environment over https expecting JSON" do
@@ -404,7 +413,7 @@ module MCollective
           choria.stubs(:has_client_private_key?).returns(false)
           choria.stubs(:ca_path).returns(File.expand_path("spec/fixtures/ca_crt.pem"))
 
-          h = choria.https
+          h = choria.https(:target => "puppet", :port => "8140")
 
           expect(h.use_ssl?).to be_truthy
           expect(h.verify_mode).to be(OpenSSL::SSL::VERIFY_PEER)
@@ -418,7 +427,7 @@ module MCollective
           choria.stubs(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key"))
           choria.stubs(:has_ca?).returns(false)
 
-          h = choria.https
+          h = choria.https(:target => "puppet", :port => "8140")
 
           expect(h.use_ssl?).to be_truthy
           expect(h.verify_mode).to be(OpenSSL::SSL::VERIFY_NONE)
@@ -431,7 +440,7 @@ module MCollective
           choria.stubs(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key"))
           choria.stubs(:ca_path).returns(File.expand_path("spec/fixtures/ca_crt.pem"))
 
-          h = choria.https
+          h = choria.https(:target => "puppet", :port => "8140")
 
           expect(h.use_ssl?).to be_truthy
           expect(h.verify_mode).to be(OpenSSL::SSL::VERIFY_PEER)

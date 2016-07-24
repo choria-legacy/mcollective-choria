@@ -216,18 +216,8 @@ module MCollective
       def https
         @_https ||= begin
                       choria.check_ssl_setup
-                      choria.https
+                      choria.https(choria.puppetdb_server)
                     end
-      end
-
-      # (see Util::Choria#puppetdb_server)
-      def puppetdb_server
-        choria.puppetdb_server
-      end
-
-      # (see Util::Choria#puppetdb_port)
-      def puppetdb_port
-        choria.puppetdb_port
       end
     end
   end
