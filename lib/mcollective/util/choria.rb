@@ -160,9 +160,10 @@ module MCollective
       #
       # If the ca_path exist it will be used and full verification will be enabled
       #
+      # @param server [Hash] as returned by {#try_srv}
       # @return [Net::HTTP]
-      def https(server=puppet_server, port=puppet_port)
-        http = Net::HTTP.new(server, port)
+      def https(server)
+        http = Net::HTTP.new(server[:target], server[:port])
 
         http.use_ssl = true
 
@@ -194,7 +195,7 @@ module MCollective
       # @return [Hash] site data
       def fetch_environment
         path = "/puppet/v3/environment/%s" % @environment
-        resp, data = https.request(http_get(path))
+        resp, data = https(puppet_server).request(http_get(path))
 
         raise(UserError, "Failed to make request to Puppet: %s: %s: %s" % [resp.code, resp.message, resp.body]) unless resp.code == "200"
 
@@ -258,56 +259,71 @@ module MCollective
         [[default_host, default_port]]
       end
 
+      # Attempts to look up some SRV records falling back to defaults
+      #
+      # This is a pretty naive implementation that right now just returns
+      # the first result, the correct behaviour needs to be determined but
+      # for now this gets us going with easily iterable code.
+      #
+      # These names are mainly being used by {#https} so in theory it would
+      # be quite easy to support multiple results with fall back etc, but
+      # I am not really sure what would be the best behaviour here
+      #
+      # @param names [Array<String>] list of names to lookup without the domain
+      # @param default_target [String] default for the returned :target
+      # @param default_port [String] default for the returned :port
+      # @return [Hash] with :target and :port
+      def try_srv(names, default_target, default_port)
+        srv_answers = query_srv_records(names)
+
+        if srv_answers.empty?
+          {:target => default_target, :port => default_port}
+        else
+          {:target => srv_answers[0][:target].to_s, :port => srv_answers[0][:port]}
+        end
+      end
+
       # The Puppet server to connect to
       #
-      # Configurable using choria.puppetserver_host, defaults to puppet
+      # Will consult SRV records for _x-puppet._tcp.example.net first then
+      # configurable using choria.puppetserver_host and choria.puppetserver_port
+      # defaults to puppet:8140.
       #
-      # @todo also support SRV
-      # @return [String]
+      # @return [Hash] with :target and :port
       def puppet_server
-        get_option("choria.puppetserver_host", "puppet")
-      end
+        d_host = get_option("choria.puppetserver_host", "puppet")
+        d_port = get_option("choria.puppetserver_port", "8140")
 
-      # The Puppet server port to connect to
-      #
-      # Configurable using choria.puppetserver_port, defaults to 8140
-      #
-      # @note this has to be a the SSL port, plain text is not supported
-      # @todo also support SRV
-      # @return [String]
-      def puppet_port
-        get_option("choria.puppetserver_port", "8140")
+        try_srv(["_x-puppet._tcp"], d_host, d_port)
       end
 
       # The Puppet server to connect to
       #
-      # Configurable using choria.puppetca_host, defaults to puppet
+      # Will consult _x-puppet-ca._tcp.example.net then _x-puppet._tcp.example.net
+      # then configurable using choria.puppetca_host, defaults to puppet:8140
       #
-      # @todo also support SRV
-      # @return [String]
+      # @return [Hash] with :target and :port
       def puppetca_server
-        @ca || get_option("choria.puppetca_host", "puppet")
+        if @ca
+          {:target => @ca, :port => "8140"}
+        else
+          d_host = get_option("choria.puppetca_host", "puppet")
+          try_srv(["_x-puppet-ca._tcp", "_x-puppet._tcp"], d_host, "8140")
+        end
       end
 
       # The PuppetDB server to connect to
       #
-      # Configurable using choria.puppetdb_host, defaults to puppet
+      # Will consult _x-puppet-db._tcp.example.net then _x-puppet._tcp.example.net
+      # then configurable using choria.puppetdb_host and choria.puppetdb_port, defaults
+      # to puppet:8081
       #
-      # @todo also support SRV
-      # @return [String]
+      # @return [Hash] with :target and :port
       def puppetdb_server
-        get_option("choria.puppetdb_host", "puppet")
-      end
+        d_host = get_option("choria.puppetdb_host", "puppet")
+        d_port = get_option("choria.puppetdb_port", "8081")
 
-      # The PuppetDB server port to connect to
-      #
-      # Configurable using choria.puppetdb_port, defaults to 8081
-      #
-      # @note this has to be a the SSL port, plain text is not supported
-      # @todo also support SRV
-      # @return [String]
-      def puppetdb_port
-        get_option("choria.puppetdb_port", "8081")
+        try_srv(["_x-puppet-db._tcp", "_x-puppet._tcp"], d_host, d_port)
       end
 
       # The certname of the current context
@@ -506,13 +522,15 @@ module MCollective
       def fetch_ca
         return true if has_ca?
 
+        server = puppetca_server
+
         req = Net::HTTP::Get.new("/puppet-ca/v1/certificate/ca", "Content-Type" => "text/plain")
-        resp, _ = https(puppetca_server).request(req)
+        resp, _ = https(server).request(req)
 
         if resp.code == "200"
           File.open(ca_path, "w", 0o0644) {|f| f.write(resp.body)}
         else
-          raise(UserError, "Failed to fetch CA from %s: %s: %s" % [puppetca_server, resp.code, resp.message])
+          raise(UserError, "Failed to fetch CA from %s:%s: %s: %s" % [server[:target], server[:port], resp.code, resp.message])
         end
 
         has_ca?
@@ -529,14 +547,16 @@ module MCollective
         key = write_key
         csr = write_csr(key)
 
+        server = puppetca_server
+
         req = Net::HTTP::Put.new("/puppet-ca/v1/certificate_request/%s?environment=production" % certname, "Content-Type" => "text/plain")
         req.body = csr
-        resp, _ = https(puppetca_server).request(req)
+        resp, _ = https(server).request(req)
 
         if resp.code == "200"
           true
         else
-          raise(UserError, "Failed to request certificate from %s: %s: %s: %s" % [puppetca_server, resp.code, resp.message, resp.body])
+          raise(UserError, "Failed to request certificate from %s:%s: %s: %s: %s" % [server[:target], server[:port], resp.code, resp.message, resp.body])
         end
       end
 
