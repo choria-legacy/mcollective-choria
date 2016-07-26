@@ -65,6 +65,12 @@ module MCollective
       #
       # @param options [Hash] Options as per {#NATS.start}
       def start(options={})
+        # Client connects pretty much soon as it's initialized which is very early
+        # and some applications like 'request_cert' just doesnt need/want a client
+        # since for example there won't be SSL stuff yet, so if a application calls
+        # disconnect very early on this should avoid that chicken and egg
+        return if @force_Stop
+
         @started = true
         @nats = nil
 
@@ -82,12 +88,12 @@ module MCollective
               Log.info("NATS is connected to %s" % c.connected_server)
 
               c.on_reconnect do |connection|
-                Log.info("Reconnected after connection failure: %s" % connection.connected_server)
+                Log.warn("Reconnected after connection failure: %s" % connection.connected_server)
                 @backoffcount = 1
               end
 
               c.on_disconnect do |reason|
-                Log.info("Disconnected from NATS: %s" % reason)
+                Log.warn("Disconnected from NATS: %s" % reason)
               end
 
               c.on_close do
@@ -113,6 +119,7 @@ module MCollective
 
       # Stops the NATS connection
       def stop
+        @force_stop = true
         NATS.stop
       end
 

@@ -163,6 +163,8 @@ module MCollective
       # @param server [Hash] as returned by {#try_srv}
       # @return [Net::HTTP]
       def https(server)
+        Log.debug("Creating new HTTPS connection to %s:%s" % [server[:target], server[:port]])
+
         http = Net::HTTP.new(server[:target], server[:port])
 
         http.use_ssl = true
@@ -323,7 +325,13 @@ module MCollective
         d_host = get_option("choria.puppetdb_host", "puppet")
         d_port = get_option("choria.puppetdb_port", "8081")
 
-        try_srv(["_x-puppet-db._tcp", "_x-puppet._tcp"], d_host, d_port)
+        answer = try_srv(["_x-puppet-db._tcp", "_x-puppet._tcp"], d_host, d_port)
+
+        # In the case where we take _x-puppet._tcp SRV records we unfortunately have
+        # to force the port else it uses the one from Puppet which will 404
+        answer[:port] = d_port
+
+        answer
       end
 
       # The certname of the current context

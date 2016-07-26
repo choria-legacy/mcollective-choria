@@ -20,3 +20,13 @@ namespace :doc do
     system("yard doc --markup markdown --output-dir %s" % ENV.fetch("YARD_OUT", "doc"))
   end
 end
+
+desc "Prepare and build the Puppet module"
+task :release do
+  sh("rm -rf module/files/mcollective/*")
+  sh("cp -rv lib/mcollective module/files/")
+  Dir.chdir("module") do
+    sh("/opt/puppetlabs/bin/puppet module build")
+  end
+  sh("rm -rf modules/files/mcollective/*")
+end

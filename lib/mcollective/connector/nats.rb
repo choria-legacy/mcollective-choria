@@ -35,7 +35,7 @@ module MCollective
         servers = server_list
 
         unless servers.empty?
-          Log.debug("Connecting to servers: %s" % servers)
+          Log.debug("Connecting to servers: %s" % servers.join(", "))
           parameters[:servers] = servers
         end
 
@@ -44,6 +44,11 @@ module MCollective
         connection.start(parameters)
 
         nil
+      end
+
+      # Disconnects from NATS
+      def disconnect
+        connection.stop
       end
 
       # Determines the ssl parameters passed to NATS
