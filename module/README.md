@@ -1,4 +1,4 @@
-# mcollective_security_puppet
+# mcollective_choria
 
 #### Table of Contents
 

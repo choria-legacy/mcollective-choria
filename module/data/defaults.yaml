@@ -1,16 +1,16 @@
 lookup_options:
-  mcollective_agent_puppet::gem_dependencies:
+  mcollective_choria::gem_dependencies:
     merge:
       strategy: deep
-  mcollective_agent_puppet::package_dependencies:
+  mcollective_choria::package_dependencies:
     merge:
       strategy: deep
-  mcollective_agent_puppet::config:
+  mcollective_choria::config:
     merge:
       strategy: deep
-  mcollective_agent_puppet::client_config:
+  mcollective_choria::client_config:
     merge:
       strategy: deep
-  mcollective_agent_puppet::server_config:
+  mcollective_choria::server_config:
     merge:
       strategy: deep
