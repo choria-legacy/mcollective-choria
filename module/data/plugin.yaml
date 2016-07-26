@@ -1,6 +1,6 @@
 ---
 mcollective_choria::config_name: choria
-mcollective_choria:gem_dependencies:
+mcollective_choria::gem_dependencies:
     nats: "0.7.1"
 
 mcollective_choria::common_directories:
