@@ -1,0 +1,18 @@
+---
+mcollective_choria::config_name: choria
+mcollective_choria:gem_dependencies:
+    nats: "0.7.1"
+
+mcollective_choria::common_directories:
+  - util/choria
+mcollective_choria::common_files:
+ - discovery/choria.ddl
+ - discovery/choria.rb
+ - security/choria.rb
+ - connector/nats.ddl
+ - connector/nats.rb
+ - util/choria/orchestrator.rb
+ - util/choria/puppet_v3_environment.rb
+ - util/choria.rb
+ - util/natswrapper.rb
+ - application/choria.rb

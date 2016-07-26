@@ -69,7 +69,7 @@ module MCollective
           abort("Unknown command %s, valid commands are: %s" % [configuration[:command], valid_commands.join(", ")])
         end
 
-        unless choria.has_client_public_cert? && configuration[:command] != "request_cert"
+        if !choria.has_client_public_cert? && configuration[:command] != "request_cert"
           abort("A certificate is needed from the Puppet CA for `%s`, please use the `request_cert` command" % choria.certname)
         end
       end
@@ -88,6 +88,8 @@ module MCollective
       #
       # @return [void]
       def request_cert_command
+        disconnect
+
         if choria.has_client_public_cert?
           raise(Util::Choria::UserError, "Already have a certificate '%s', cannot request a new one" % choria.client_public_cert)
         end
