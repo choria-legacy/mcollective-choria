@@ -1,7 +1,7 @@
 Choria Orchestrator
 ===================
 
-**NOTE:** This is a WIP, once ready it will be released as a module on the forge
+**NOTE:** This is now in early Beta, a deployment guide can be found in the wiki
 
 A distribution of plugins for MCollective designed to give a very smooth and streamlined experience
 in getting started when using the Puppet 4 AIO connected to a Puppet Server.
@@ -20,7 +20,7 @@ Includes:
 
 Every component uses strong SSL encryption that cannot be disabled.
 
-See [the Wiki](https://github.com/ripienaar/mcollective-choria/wiki) for further information
+See [the Wiki](https://github.com/ripienaar/mcollective-choria/wiki) for a deployment guide.
 
 ## Contact?
 
