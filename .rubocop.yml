@@ -1,6 +1,10 @@
 AllCops:
   DisplayCopNames: true
   DisplayStyleGuide: true
+  Exclude:
+    - "module/**/*"
+    - "vendor/**/*"
+
 
 Style/TrailingUnderscoreVariable:
   Enabled: false

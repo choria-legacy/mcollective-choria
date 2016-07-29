@@ -96,7 +96,7 @@ module MCollective
         # @param count [Integer] how many times to try them
         # @param sleep_time [Numeric] how long to wait between checks
         # @return [Boolean]
-        # @raise [Abort] on failure
+        # @raise [UserError] on failure
         def wait_till_nodes_start(nodes, count=40, sleep_time=5)
           count.times do |i|
             log("Waiting for %s nodes to start a run" % bold(nodes.size)) if i % 4 == 0
@@ -110,7 +110,7 @@ module MCollective
             puts("\t%s" % bold(node))
           end
 
-          raise(Abort)
+          raise(UserError, "Timeout while waiting for nodes to start. This might be due to stuck daemons or very long running Puppet runs")
         end
 
         # Waits for nodes that are applying to become idle
@@ -122,7 +122,7 @@ module MCollective
         # @param count [Integer] how many times to try them
         # @param sleep_time [Numeric] how long to wait between checks
         # @return [void]
-        # @raise [Abort] on failure
+        # @raise [UserError] on failure
         def wait_till_nodes_idle(nodes, count=40, sleep_time=5)
           count.times do |i|
             log("Waiting for %s nodes to become idle" % bold(nodes.size)) if i % 4 == 0
@@ -138,7 +138,7 @@ module MCollective
             puts("\t%s" % bold(node))
           end
 
-          raise(Abort)
+          raise(UserError, "Timeout while waiting for nodes to idle in order to start the next step. This might be due to stuck daemons or very long running Puppet runs")
         end
 
         # Checks on the given nodes if any had failed resources and returns the failed list
@@ -165,7 +165,7 @@ module MCollective
         #
         # @return [void]
         # @raise [UserError] when node status prevents plan from being run
-        # @raise [Abort, StandardError] on other failure
+        # @raise [UserError, StandardError] on other failure
         def run_plan
           gc = 1
 
@@ -196,13 +196,13 @@ module MCollective
               run_nodes(group_nodes)
 
               unless (failed = failed_nodes(group_nodes)).empty?
-                puts("Puppet failed to run on %s / %s nodes, cannot continue" % [red(failed.size), red(group_nodes.size)])
+                puts("Puppet failed to run without any failed resources on %s / %s nodes, cannot continue" % [red(failed.size), red(group_nodes.size)])
 
                 failed.each do |node|
                   puts("\t%s" % bold(node))
                 end
 
-                raise(Abort)
+                raise(UserError, "Puppet failed to run without any failed resources on %s / %s nodes, cannot continue" % [failed.size, group_nodes.size])
               end
             end
 
@@ -212,13 +212,20 @@ module MCollective
 
             gc += 1
           end
-        rescue UserError
-          log("Encountered an error that might result in nodes being in an unknown state, disabling Puppet for user investigation")
-          disable_nodes(environment.nodes)
-          raise
+        rescue UserError => original
+          log(red("Encountered an error that might result in nodes being in an unknown state, attempting to disable Puppet for user investigation"))
+
+          begin
+            disable_nodes(environment.nodes)
+          rescue
+            log(red("While attempting to disable Puppet additional failures were encountered: %s" % $!.to_s))
+          end
+
+          raise(original)
         ensure
           puts
-          enable_nodes(environment.nodes) unless $!.is_a?(UserError)
+
+          enable_nodes(environment.nodes) unless $!
         end
 
         # Determines if all the given nodes have Puppet enabled
