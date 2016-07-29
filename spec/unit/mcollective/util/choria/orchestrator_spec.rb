@@ -43,9 +43,23 @@ module MCollective
           orc.environment.stubs(:nodes).returns(["1", "2", "3"])
         end
 
+        describe "#check_result" do
+          it "should detect good results" do
+            expect(orc.check_result(:body => {:statuscode => 0})).to be_truthy
+          end
+
+          it "should detect bad results" do
+            expect(orc.check_result({:senderid => "rspec.node", :senderagent => "rspec_agent", :body => {:statuscode => 1}}, false)).to be_falsey
+            expect {
+              orc.check_result(:senderid => "rspec.node", :senderagent => "rspec_agent", :body => {:statuscode => 1, :statusmsg => "fail message"})
+            }.to raise_error(UserError, "Failed response from node rspec.node agent rspec_agent: fail message")
+          end
+        end
+
         describe "#run_plan" do
           it "should fail when all nodes arent enabled" do
             orc.expects(:all_nodes_enabled?).with(["1", "2", "3"]).returns(false)
+            orc.expects(:disable_nodes).with(["1", "2", "3"])
             expect {
               orc.run_plan
             }.to raise_error(UserError, "Not all nodes in the plan are enabled, cannot continue")
@@ -121,8 +135,7 @@ module MCollective
             seq = sequence(:run)
 
             orc.expects(:enable_nodes).with(nodes).in_sequence(seq)
-            puppet.expects(:discover).with(:nodes => nodes).in_sequence(seq)
-            puppet.expects(:runonce).with(:splay => false, :use_cached_catalog => false, :force => true).in_sequence(seq)
+            orc.expects(:rpc_and_check).with(:runonce, nodes, :splay => false, :use_cached_catalog => false, :force => true).in_sequence(seq)
             orc.expects(:wait_till_nodes_start).with(nodes).in_sequence(seq)
             orc.expects(:wait_till_nodes_idle).with(nodes).in_sequence(seq)
             orc.expects(:disable_nodes).with(nodes).in_sequence(seq)
@@ -133,23 +146,21 @@ module MCollective
 
         describe "#all_nodes_enabled?" do
           it "should correctly detect disabled nodes" do
-            puppet.expects(:discover).with(:nodes => [1, 2, 3]).twice
-
             r = results_maker(3) do |c, result|
               result[:enabled] = (c == 3)
             end
 
-            puppet.stubs(:status).returns(r)
+            orc.expects(:rpc_and_check).with(:status, ["1", "2", "3"]).returns(r)
 
-            expect(orc.all_nodes_enabled?([1, 2, 3])).to be_falsey
+            expect(orc.all_nodes_enabled?(["1", "2", "3"])).to be_falsey
 
             r = results_maker(3) do |_, result|
               result[:enabled] = true
             end
 
-            puppet.stubs(:status).returns(r)
+            orc.expects(:rpc_and_check).with(:status, ["1", "2", "3"]).returns(r)
 
-            expect(orc.all_nodes_enabled?([1, 2, 3])).to be_truthy
+            expect(orc.all_nodes_enabled?(["1", "2", "3"])).to be_truthy
           end
         end
 
@@ -159,8 +170,7 @@ module MCollective
               result[:failed_resources] = (c == 3 ? 1 : 0)
             end
 
-            puppet.stubs(:last_run_summary).returns(r)
-            puppet.expects(:discover).with(:nodes => ["1", "2", "3"])
+            orc.stubs(:rpc_and_check).with(:last_run_summary, ["1", "2", "3"]).returns(r)
             expect(orc.failed_nodes(["1", "2", "3"])).to eq(["sender3"])
           end
 
@@ -169,31 +179,28 @@ module MCollective
               result[:failed_resources] = 0
             end
 
-            puppet.stubs(:last_run_summary).returns(r)
-            puppet.expects(:discover).with(:nodes => ["1", "2", "3"])
+            orc.stubs(:rpc_and_check).with(:last_run_summary, ["1", "2", "3"]).returns(r)
             expect(orc.failed_nodes(["1", "2", "3"])).to eq([])
           end
         end
 
         describe "#wait_till_nodes_idle" do
           it "should try up to specified times and pass on success" do
-            puppet.expects(:discover).with(:nodes => ["1", "2", "3"]).times(3)
             orc.expects(:sleep).with(1).times(2)
-            puppet.expects(:status).returns(all_applying)
-                  .then.returns(last_applying)
-                  .then.returns(none_applying)
-                  .times(3)
+            orc.expects(:rpc_and_check).with(:status, ["1", "2", "3"]).returns(all_applying)
+               .then.returns(last_applying)
+               .then.returns(none_applying)
+               .times(3)
 
             orc.wait_till_nodes_idle(["1", "2", "3"], 3, 1)
           end
 
           it "should timeout correctly" do
-            puppet.expects(:discover).with(:nodes => ["1", "2", "3"]).times(3)
             orc.expects(:sleep).with(1).times(3)
-            puppet.expects(:status).returns(all_applying)
-                  .then.returns(last_applying)
-                  .then.returns(last_applying)
-                  .times(3)
+            orc.expects(:rpc_and_check).with(:status, ["1", "2", "3"]).returns(all_applying)
+               .then.returns(last_applying)
+               .then.returns(last_applying)
+               .times(3)
 
             expect {
               orc.wait_till_nodes_idle(["1", "2", "3"], 3, 1)
@@ -203,23 +210,21 @@ module MCollective
 
         describe "#wait_till_nodes_start" do
           it "should try up to specified times and pass on success" do
-            puppet.expects(:discover).with(:nodes => ["1", "2", "3"]).times(3)
             orc.expects(:sleep).with(1).times(2)
-            puppet.expects(:status).returns(last_applying)
-                  .then.returns(last_applying)
-                  .then.returns(all_applying)
-                  .times(3)
+            orc.expects(:rpc_and_check).with(:status, ["1", "2", "3"]).returns(last_applying)
+               .then.returns(last_applying)
+               .then.returns(all_applying)
+               .times(3)
 
             orc.wait_till_nodes_start(["1", "2", "3"], 3, 1)
           end
 
           it "should timeout correctly" do
-            puppet.expects(:discover).with(:nodes => ["1", "2", "3"]).times(3)
             orc.expects(:sleep).with(1).times(3)
-            puppet.expects(:status).returns(last_applying)
-                  .then.returns(last_applying)
-                  .then.returns(last_applying)
-                  .times(3)
+            orc.expects(:rpc_and_check).with(:status, ["1", "2", "3"]).returns(last_applying)
+               .then.returns(last_applying)
+               .then.returns(last_applying)
+               .times(3)
 
             expect {
               orc.wait_till_nodes_start(["1", "2", "3"], 3, 1)
@@ -229,16 +234,14 @@ module MCollective
 
         describe "#enable_nodes" do
           it "should enable the provided nodes" do
-            puppet.expects(:discover).with(:nodes => ["1", "2"])
-            puppet.expects(:enable)
+            orc.expects(:rpc_and_check).with(:enable, ["1", "2"])
             orc.enable_nodes(["1", "2"])
           end
         end
 
         describe "#disable_nodes" do
           it "should disable the provided nodes" do
-            puppet.expects(:discover).with(:nodes => ["1", "2"])
-            puppet.expects(:disable).with(:message => "Disabled during orchastration job initiated by rspec.cert at %s" % orc.time)
+            orc.expects(:rpc_and_check).with(:disable, ["1", "2"], :message => "Disabled during orchastration job initiated by rspec.cert at %s" % orc.time)
             orc.disable_nodes(["1", "2"])
           end
         end
