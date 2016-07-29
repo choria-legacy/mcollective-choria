@@ -29,8 +29,7 @@ module MCollective
 
           msg = "Disabled during orchastration job initiated by %s at %s" % [certname, time_stamp]
 
-          puppet.discover(:nodes => nodes)
-          puppet.disable(:message => msg)
+          rpc_and_check(:disable, nodes, :message => msg)
         end
 
         # Enables Puppet on the given nodes
@@ -40,8 +39,51 @@ module MCollective
         def enable_nodes(nodes)
           log("Enabling Puppet on %s nodes" % [bold(nodes.size)])
 
+          rpc_and_check(:enable, nodes)
+        end
+
+        # Checks the result set from a mcollective request and log/raise on error
+        #
+        # @param result [Hash] the extended block based result from mcollective
+        # @param raise_on_fail [Boolean] raise a UserError on any failures
+        # @raise [UserError] on detected failure in results when raise_on_fail is true
+        # @return [Boolean]
+        def check_result(result, raise_on_fail=true)
+          return true if result[:body][:statuscode] == 0
+
+          msg = "Failed response from node %s agent %s: %s" % [result[:senderid], result[:senderagent], result[:body][:statusmsg]]
+
+          if raise_on_fail
+            raise(UserError, msg)
+          else
+            log(msg)
+
+            false
+          end
+        end
+
+        # Performs an RPC action check results and return them
+        #
+        # This will run a action on a set of nodes with specific arguments
+        # the results will be checked and any nodes that failed - like when
+        # maybe actionpolicy prevents something - this will raise a UserError
+        # otherwise the SimpleRPC style results are returned as a array
+        #
+        # @param action [Symbol] action to execute
+        # @param nodes [Array<String>] node identities
+        # @param args [Hash] arguments for the RPC request
+        # @return [Array<Hash>] SimpleRPC results
+        # @raise [UserError] when results fail
+        def rpc_and_check(action, nodes, args={})
+          results = []
+
           puppet.discover(:nodes => nodes)
-          puppet.enable
+          puppet.send(action, args) do |result, s_result|
+            check_result(result, true)
+            results << s_result
+          end
+
+          results
         end
 
         # Waits for Puppet to start running on a list of nodes
@@ -59,9 +101,7 @@ module MCollective
           count.times do |i|
             log("Waiting for %s nodes to start a run" % bold(nodes.size)) if i % 4 == 0
 
-            puppet.discover(:nodes => nodes)
-
-            return true if puppet.status.map {|resp| resp.results[:data][:applying] }.all?
+            return true if rpc_and_check(:status, nodes).map {|resp| resp.results[:data][:applying] }.all?
             sleep sleep_time
           end
 
@@ -87,9 +127,7 @@ module MCollective
           count.times do |i|
             log("Waiting for %s nodes to become idle" % bold(nodes.size)) if i % 4 == 0
 
-            puppet.discover(:nodes => nodes)
-
-            return if puppet.status.map {|resp| resp.results[:data][:applying] }.none?
+            return if rpc_and_check(:status, nodes).map {|resp| resp.results[:data][:applying] }.none?
 
             sleep sleep_time
           end
@@ -108,9 +146,7 @@ module MCollective
         # @param nodes [Array<String>] the nodes to check
         # @return [Array<String>] nodes that had resource failures
         def failed_nodes(nodes)
-          puppet.discover(:nodes => nodes)
-
-          puppet.last_run_summary.select {|resp| resp.results[:data][:failed_resources] > 0}.map {|r| r.results[:sender]}.compact
+          rpc_and_check(:last_run_summary, nodes).select {|resp| resp.results[:data][:failed_resources] > 0}.map {|r| r.results[:sender]}.compact
         end
 
         # Runs the environment plan
@@ -131,7 +167,6 @@ module MCollective
         # @raise [UserError] when node status prevents plan from being run
         # @raise [Abort, StandardError] on other failure
         def run_plan
-          batch = batch_size || environment.nodes.size
           gc = 1
 
           unless all_nodes_enabled?(environment.nodes)
@@ -146,6 +181,8 @@ module MCollective
             start_time = time_stamp
 
             puts
+
+            batch = batch_size || group.size
 
             if batch
               puts("Running node %s with %s nodes batched %s a time" % [bold("Group %s" % gc), bold(group.size), bold(batch)])
@@ -175,6 +212,10 @@ module MCollective
 
             gc += 1
           end
+        rescue UserError
+          log("Encountered an error that might result in nodes being in an unknown state, disabling Puppet for user investigation")
+          disable_nodes(environment.nodes)
+          raise
         ensure
           puts
           enable_nodes(environment.nodes) unless $!.is_a?(UserError)
@@ -187,8 +228,7 @@ module MCollective
         def all_nodes_enabled?(nodes)
           log("Checking if %s nodes are enabled" % bold(nodes.size))
 
-          puppet.discover(:nodes => nodes)
-          puppet.status.map {|resp| resp.results[:data][:enabled]}.all?
+          rpc_and_check(:status, nodes).map {|resp| resp.results[:data][:enabled]}.all?
         end
 
         # Enables and Runs Puppet on a list of nodes
@@ -199,8 +239,7 @@ module MCollective
 
           enable_nodes(nodes)
 
-          puppet.discover(:nodes => nodes)
-          puppet.runonce(:splay => false, :use_cached_catalog => false, :force => true)
+          rpc_and_check(:runonce, nodes, :splay => false, :use_cached_catalog => false, :force => true)
 
           wait_till_nodes_start(nodes)
           wait_till_nodes_idle(nodes)
