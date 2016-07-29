@@ -28,5 +28,5 @@ task :release do
   Dir.chdir("module") do
     sh("/opt/puppetlabs/bin/puppet module build")
   end
-  sh("rm -rf modules/files/mcollective/*")
+  sh("rm -rf module/files/mcollective/*")
 end

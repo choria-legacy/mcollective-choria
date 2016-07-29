@@ -106,25 +106,24 @@ module MCollective
           end
 
           it "should fail on any failues" do
+            seq = sequence(:run)
             nodes = ["1", "2", "3"]
             orc.batch_size = 1
 
             orc.environment.stubs(:each_node_group).multiple_yields([["1"]], [["2", "3"]])
 
-            orc.expects(:all_nodes_enabled?).with(nodes).returns(true)
-            orc.expects(:disable_nodes).with(["1", "2", "3"])
-            orc.expects(:wait_till_nodes_idle).with(["1", "2", "3"])
-            orc.expects(:run_nodes).with(["1"])
-            orc.expects(:failed_nodes).with(["1"]).returns([])
-            orc.expects(:run_nodes).with(["2"])
-            orc.expects(:failed_nodes).with(["2"]).returns(["2"])
-            orc.expects(:run_nodes).with(["3"]).never
-            orc.expects(:failed_nodes).with(["3"]).never
-            orc.expects(:enable_nodes).with(["1", "2", "3"])
+            orc.expects(:all_nodes_enabled?).with(nodes).returns(true).in_sequence(seq)
+            orc.expects(:disable_nodes).with(["1", "2", "3"]).in_sequence(seq)
+            orc.expects(:wait_till_nodes_idle).with(["1", "2", "3"]).in_sequence(seq)
+            orc.expects(:run_nodes).with(["1"]).in_sequence(seq)
+            orc.expects(:failed_nodes).with(["1"]).returns([]).in_sequence(seq)
+            orc.expects(:run_nodes).with(["2"]).in_sequence(seq)
+            orc.expects(:failed_nodes).with(["2"]).returns(["2"]).in_sequence(seq)
+            orc.expects(:disable_nodes).in_sequence(seq)
 
             expect {
               orc.run_plan
-            }.to raise_error(Abort)
+            }.to raise_error(UserError)
           end
         end
 
@@ -204,7 +203,7 @@ module MCollective
 
             expect {
               orc.wait_till_nodes_idle(["1", "2", "3"], 3, 1)
-            }.to raise_error(Abort)
+            }.to raise_error(UserError)
           end
         end
 
@@ -228,7 +227,7 @@ module MCollective
 
             expect {
               orc.wait_till_nodes_start(["1", "2", "3"], 3, 1)
-            }.to raise_error(Abort)
+            }.to raise_error(UserError)
           end
         end
 
