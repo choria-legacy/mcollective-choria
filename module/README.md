@@ -30,38 +30,7 @@ Includes:
 This module is automatically set up for you when you use the [ripienaar-mcollective](https://forge.puppet.com/ripienaar/mcollective)
 module.
 
-## Configuration
-
-This module will be automatically installed by the `ripienaar-mcollective` module, the only optional configuration
-you might want to set is to enable PuppetDB for discovery source:
-
-```yaml
-mcollective::common_config:
-  default_discovery_method: choria
-```
-
-You must have compilers on your machine as the NATS connector will need these, if you wish to configure a different
-connector you can set that using the `ripienaar-mcollective` module:
-
-```yaml
-mcollective::common_config:
-  connector: activemq
-```
-
-Server and Client configuration can be added via Hiera and managed through tiers in your site Hiera, they
-will be merged with any included in this module
-
-```yaml
-mcollective_security_puppet::config:
-   example: value
-```
-
-This will be added to both the `client.cfg` and `server.cfg`, you can likewise configure server and client
-specific settings using `mcollective_choria::client_config` and `mcollective_choria::server_config`.
-
-These settings will be added to the `/etc/puppetlabs/mcollective/plugin.d/` directory in individual files.
-
-For a full list of possible configuration settings see the module [wiki documentation](https://github.com/ripienaar/mcollective-choria/wiki).
+A deployment guide can be found at the [wiki](https://github.com/ripienaar/mcollective-choria/wiki)
 
 ## Data Reference
 
