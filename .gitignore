@@ -3,4 +3,6 @@
 doc
 module/files/mcollective
 module/pkg
+module/CHANGELOG.md
+module/COPYING
 tmp
