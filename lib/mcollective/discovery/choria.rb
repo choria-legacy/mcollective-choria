@@ -66,7 +66,7 @@ module MCollective
           end
         end
 
-        pql.join(" or ") unless pql.empty?
+        pql.join(" and ") unless pql.empty?
       end
 
       # Turns a string into a case insensitive regex string
@@ -83,6 +83,16 @@ module MCollective
             char
           end
         end.join
+      end
+
+      # Capitalize a Puppet Resource
+      #
+      # foo::bar => Foo::Bar
+      #
+      # @param resource [String] a resource title
+      # @return [String]
+      def capitalize_resource(resource)
+        resource.split("::").map(&:capitalize).join("::")
       end
 
       # Searches for facts
@@ -130,7 +140,7 @@ module MCollective
           if klass =~ /^\/(.+)\/$/
             'resources {type = "Class" and title ~ "%s"}' % [string_regexi($1)]
           else
-            'resources {type = "Class" and title = "%s"}' % [klass.capitalize]
+            'resources {type = "Class" and title = "%s"}' % [capitalize_resource(klass)]
           end
         end
 

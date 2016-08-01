@@ -6,6 +6,15 @@ module MCollective
   describe Discovery::Choria do
     let(:discovery) { Discovery::Choria.new({}, 10, 1, stub) }
 
+    describe "#capitalize_resource" do
+      it "should correctly capitalize resources" do
+        expect(discovery.capitalize_resource("foo")).to eq("Foo")
+        expect(discovery.capitalize_resource("Foo")).to eq("Foo")
+        expect(discovery.capitalize_resource("foo::bar")).to eq("Foo::Bar")
+        expect(discovery.capitalize_resource("Foo::Bar")).to eq("Foo::Bar")
+      end
+    end
+
     describe "#query" do
       it "should query and parse" do
         discovery.choria.expects(:check_ssl_setup)
@@ -104,7 +113,7 @@ module MCollective
         # rubocop:disable Metrics/LineLength
         expect(
           discovery.discover_agents(["rpcutil", "rspec1", "/rs/"])
-        ).to eq('resources {type = "Class" and title = "Mcollective::service"} or resources {type = "File" and tag = "mcollective_agent_rspec1_server"} or resources {type = "File" and tag ~ "mcollective_agent_.*?[rR][sS].*?_server"}')
+        ).to eq('resources {type = "Class" and title = "Mcollective::Service"} and resources {type = "File" and tag = "mcollective_agent_rspec1_server"} and resources {type = "File" and tag ~ "mcollective_agent_.*?[rR][sS].*?_server"}')
         # rubocop:enable Metrics/LineLength
       end
     end
