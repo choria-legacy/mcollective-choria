@@ -1,7 +1,7 @@
 module MCollective
   class Application
     class Choria < Application
-      description "Orchastrator for Puppet Applications"
+      description "Orchestrator for Puppet Applications"
 
       usage <<-EOU
   mco choria [OPTIONS] <ACTION>
