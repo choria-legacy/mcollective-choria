@@ -56,15 +56,17 @@ module MCollective
       # @param filter [Array<String>] agent names
       # @return [Array<String>] list of nodes found
       def discover_agents(filter)
-        agent_classes = filter.map do |agent|
-          if agent.downcase == "rpcutil"
-            "Mcollective"
+        pql = filter.map do |agent|
+          if agent == "rpcutil"
+            discover_classes(["mcollective::service"])
+          elsif agent =~ /^\/(.+)\/$/
+            'resources {type = "File" and tag ~ "mcollective_agent_.*?%s.*?_server"}' % [string_regexi($1)]
           else
-            "Mcollective_agent_%s" % agent.downcase
+            'resources {type = "File" and tag = "mcollective_agent_%s_server"}' % [agent]
           end
         end
 
-        discover_classes(agent_classes)
+        pql.join(" or ") unless pql.empty?
       end
 
       # Turns a string into a case insensitive regex string
@@ -126,9 +128,9 @@ module MCollective
       def discover_classes(filter)
         pql = filter.map do |klass|
           if klass =~ /^\/(.+)\/$/
-            'resources {type = "Class" and title ~ "%s"}' % string_regexi($1)
+            'resources {type = "Class" and title ~ "%s"}' % [string_regexi($1)]
           else
-            'resources {type = "Class" and title = "%s"}' % klass.capitalize
+            'resources {type = "Class" and title = "%s"}' % [klass.capitalize]
           end
         end
 
