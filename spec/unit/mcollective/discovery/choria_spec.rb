@@ -101,11 +101,11 @@ module MCollective
 
     describe "#discover_agents" do
       it "should search for correct classes" do
-        discovery.expects(:discover_classes).with(["Mcollective", "Mcollective_agent_rspec1", "Mcollective_agent_rspec2"]).returns(["rspec1.example.net"])
-
+        # rubocop:disable Metrics/LineLength
         expect(
-          discovery.discover_agents(["rpcutil", "rspec1", "rspec2"])
-        ).to eq(["rspec1.example.net"])
+          discovery.discover_agents(["rpcutil", "rspec1", "/rs/"])
+        ).to eq('resources {type = "Class" and title = "Mcollective::service"} or resources {type = "File" and tag = "mcollective_agent_rspec1_server"} or resources {type = "File" and tag ~ "mcollective_agent_.*?[rR][sS].*?_server"}')
+        # rubocop:enable Metrics/LineLength
       end
     end
 

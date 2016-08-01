@@ -8,7 +8,7 @@
   "project_page": "https://github.com/ripienaar/mcollective-choria/wiki",
   "issues_url": "https://github.com/ripienaar/mcollective-choria/issues",
   "dependencies": [
-    {"name":"ripienaar/mcollective","version_requirement":">= 0.0.16 < 2.0.0"}
+    {"name":"ripienaar/mcollective","version_requirement":">= 0.0.17 < 2.0.0"}
   ],
   "data_provider": "hiera"
 }
