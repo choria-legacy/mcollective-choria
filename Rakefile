@@ -24,7 +24,7 @@ end
 desc "Prepare and build the Puppet module"
 task :release do
   sh("rm -rf module/files/mcollective/*")
-  sh("cp -rv lib/mcollective module/files/")
+  sh("cp -rv lib/mcollective/* module/files/mcollective/")
   sh("cp CHANGELOG.md COPYING module")
   Dir.chdir("module") do
     sh("/opt/puppetlabs/bin/puppet module build")

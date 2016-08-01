@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/08/01|      |Release 0.0.4                                                                                            |
 |2016/08/01|27    |Install client files only on clients and not everywhere                                                  |
 |2016/08/01|27    |Improve discovery of agents in cases where there are client only installs                                |
 |2016/07/29|22    |Improve handling of errors from the nodes                                                                |
