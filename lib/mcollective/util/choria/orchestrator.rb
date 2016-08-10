@@ -16,6 +16,10 @@ module MCollective
           @batch_size = batch_size
         end
 
+        def empty?
+          environment.applications.empty?
+        end
+
         def time_stamp
           Time.now
         end
@@ -258,6 +262,12 @@ module MCollective
 
           plan.puts("Puppet Site Plan for the %s Environment" % bold(environment.environment))
           plan.puts
+
+          if empty?
+            plan.puts("No site applications were found in the Puppet environment")
+            return(plan.string)
+          end
+
           plan.puts("%s applications on %s managed nodes:" % [bold(environment.applications.size), bold(environment.nodes.size)])
           plan.puts
 
