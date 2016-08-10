@@ -1,5 +1,7 @@
 require_relative "choria/puppet_v3_environment"
 require_relative "choria/orchestrator"
+#require_relative "choria/playbook"
+
 require "net/http"
 
 module MCollective
