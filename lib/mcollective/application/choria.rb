@@ -139,11 +139,13 @@ module MCollective
       def run_command
         puts orchestrator.to_s
 
-        confirm("Are you sure you wish to run this plan?")
+        unless orchestrator.empty?
+          confirm("Are you sure you wish to run this plan?")
 
-        puts
+          puts
 
-        orchestrator.run_plan
+          orchestrator.run_plan
+        end
       end
 
       # Creates and cache a client to the Puppet RPC Agent

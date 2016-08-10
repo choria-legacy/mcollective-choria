@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/08/10|37    |Improve errors when a empty site catalog is found                                                        |
 |2016/08/01|      |Release 0.0.5                                                                                            |
 |2016/08/01|29    |Fix discovery of rpcutil and subclasses                                                                  |
 |2016/08/01|      |Release 0.0.4                                                                                            |

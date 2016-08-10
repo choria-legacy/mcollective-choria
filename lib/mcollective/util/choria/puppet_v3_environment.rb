@@ -10,6 +10,15 @@ module MCollective
           @site = site
           @application = application
           @site_nodes = node_view
+        end
+
+        # Ensures the site catalog is resolvable
+        #
+        # When the catalog is empty this is a noop
+        #
+        # @raize [StandardError] on invalid catalog
+        def validate_site_catalog!
+          return if site_nodes.empty?
 
           unless has_runable_nodes?(node_view(false))
             raise(UserError, "Impossible to resolve site catalog found, cannot continue with any instances")

@@ -8,11 +8,30 @@ module MCollective
         let(:site) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
         let(:env) { PuppetV3Environment.new(site) }
 
+        describe "#validate_site_catalog!" do
+          it "should be a noop on an empty catalog" do
+            env = PuppetV3Environment.new(
+              "environment" => "production",
+              "applications" => {},
+              "code_id" => nil
+            )
+
+            expect(env.validate_site_catalog!).to be_nil
+          end
+
+          it "should raise on invalid catalogs" do
+            env = PuppetV3Environment.new(JSON.parse(File.read("spec/fixtures/cyclic_app.json")))
+
+            expect {
+              env.validate_site_catalog!
+            }.to raise_error("Impossible to resolve site catalog found, cannot continue with any instances")
+          end
+        end
+
         describe "#has_runable_nodes?" do
           it "should detect cyclic catalogs" do
-            expect {
-              PuppetV3Environment.new(JSON.parse(File.read("spec/fixtures/cyclic_app.json")))
-            }.to raise_error("Impossible to resolve site catalog found, cannot continue with any instances")
+            env = PuppetV3Environment.new(JSON.parse(File.read("spec/fixtures/cyclic_app.json")))
+            expect(env.has_runable_nodes?(env.node_view(false))).to be_falsey
           end
         end
 
