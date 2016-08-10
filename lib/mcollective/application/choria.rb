@@ -78,7 +78,7 @@ module MCollective
         send("%s_command" % configuration[:command])
 
       rescue Util::Choria::UserError
-        STDERR.puts("Could not process site plan: %s" % orchestrator.red($!.to_s))
+        STDERR.puts("Encountered a critical error: %s" % Util.colorize(:red, $!.to_s))
 
       rescue Util::Choria::Abort
         exit(1)
