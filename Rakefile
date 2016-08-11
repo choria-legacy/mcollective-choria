@@ -23,6 +23,9 @@ end
 
 desc "Prepare and build the Puppet module"
 task :release do
+  Rake::Task[:spec].execute
+  Rake::Task[:rubocop].execute
+
   sh("mkdir -p module/files/mcollective")
   sh("rm -rf module/files/mcollective/*")
   sh("cp -rv lib/mcollective/* module/files/mcollective/")

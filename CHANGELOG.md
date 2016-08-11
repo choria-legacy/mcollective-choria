@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/08/11|      |Release 0.0.6                                                                                            |
 |2016/08/10|34    |Correctly declare Apache-2.0 licence                                                                     |
 |2016/08/10|37    |Improve errors when a empty site catalog is found                                                        |
 |2016/08/01|      |Release 0.0.5                                                                                            |
