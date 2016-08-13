@@ -1,6 +1,6 @@
 {
   "name": "ripienaar-mcollective_choria",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "author": "R.I.Pienaar <rip@devco.net>",
   "summary": "A suite of MCollective Plugins for AIO Puppet",
   "license": "Apache-2.0",
