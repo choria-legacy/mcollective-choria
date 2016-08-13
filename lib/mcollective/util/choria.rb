@@ -36,7 +36,7 @@ module MCollective
       # @return [String,nil]
       def facter_domain
         if path = facter_cmd
-          `#{path} networking.domain`.chomp
+          `"#{path}" networking.domain`.chomp
         end
       end
 
