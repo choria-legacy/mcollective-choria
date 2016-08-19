@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/08/19|49    |Set the connection name                                                                                  |
 |2016/08/19|42    |Support NATS gem 0.8.0 and log connected clients                                                         |
 |2016/08/13|      |Release 0.0.7                                                                                            |
 |2016/08/13|45    |Fix calling facter on windows                                                                            |
