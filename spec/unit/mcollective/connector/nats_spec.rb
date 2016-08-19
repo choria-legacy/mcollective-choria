@@ -58,6 +58,7 @@ module MCollective
           :max_reconnect_attempts => -1,
           :reconnect_time_wait => 1,
           :dont_randomize_servers => true,
+          :name => "rspec_identity",
           :tls => {
             :cert_chain_file => "/ssl/certs/rspec_identity.pem",
             :private_key_file => "/ssl/private_keys/rspec_identity.pem",

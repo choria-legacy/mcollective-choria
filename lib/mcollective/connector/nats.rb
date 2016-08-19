@@ -29,7 +29,8 @@ module MCollective
           :max_reconnect_attempts => -1,
           :reconnect_time_wait => 1,
           :dont_randomize_servers => true,
-          :tls => ssl_parameters
+          :tls => ssl_parameters,
+          :name => @config.identity
         }
 
         servers = server_list
