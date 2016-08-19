@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem "nats", "0.7.1"
+gem "nats", "0.8.0"
 
 group :development, :test do
   gem "json-schema-rspec"

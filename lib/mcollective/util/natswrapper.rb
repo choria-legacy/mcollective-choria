@@ -61,6 +61,25 @@ module MCollective
         @backoffcount += 1
       end
 
+      # Logs the NATS server pool for gem version 0.8.0 and newer
+      #
+      # The current server pool is dynamic as the NATS servers can announce
+      # new cluster members as they join the pool, little helper for logging
+      # the pool on major events
+      #
+      # @return [void]
+      def log_nats_pool
+        return unless NATS.client
+
+        servers = NATS.client.server_pool.map do |server|
+          server[:uri].to_s
+        end
+
+        Log.info("Current server pool: %s" % servers.join(", "))
+      rescue # rubocop:disable Lint/HandleExceptions
+        # surpress issues with older nats gems
+      end
+
       # Starts the EM based NATS connection
       #
       # @param options [Hash] Options as per {#NATS.start}
@@ -86,9 +105,11 @@ module MCollective
 
             NATS.start(options) do |c|
               Log.info("NATS is connected to %s" % c.connected_server)
+              log_nats_pool
 
               c.on_reconnect do |connection|
                 Log.warn("Reconnected after connection failure: %s" % connection.connected_server)
+                log_nats_pool
                 @backoffcount = 1
               end
 

@@ -38,7 +38,7 @@ GEM
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
     lumberjack (1.0.10)
-    mcollective-client (2.8.4)
+    mcollective-client (2.9.0)
       json
       stomp
       systemu
@@ -46,7 +46,7 @@ GEM
     method_source (0.8.2)
     mocha (1.1.0)
       metaclass (~> 0.0.1)
-    nats (0.7.1)
+    nats (0.8.0)
       eventmachine (~> 1.2, >= 1.2.0)
     nenv (0.3.0)
     notiffany (0.1.1)
@@ -107,7 +107,7 @@ DEPENDENCIES
   listen (~> 3.0.0)
   mcollective-client
   mocha
-  nats (= 0.7.1)
+  nats (= 0.8.0)
   rake
   rspec
   rubocop (= 0.41.1)
