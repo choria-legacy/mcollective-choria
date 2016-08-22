@@ -42,7 +42,7 @@ module MCollective
       # @param filter [String] a collective name
       # @return [String] a query string
       def discover_collective(filter)
-        'certname in fact_contents[certname] {path ~> ["mcollective", "server", "collectives", "\\\\d"] and value = "%s"}' % filter
+        'certname in inventory[certname] { facts.mcollective.server.collectives.match("\d+") = "%s" }' % filter
       end
 
       # Searches for facts

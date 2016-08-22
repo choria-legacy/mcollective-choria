@@ -121,7 +121,7 @@ module MCollective
     describe "#discover_collective" do
       it "should search in facts" do
         expect(discovery.discover_collective("rspec_collective")).to eq(
-          'certname in fact_contents[certname] {path ~> ["mcollective", "server", "collectives", "\\\\d"] and value = "rspec_collective"}'
+          'certname in inventory[certname] { facts.mcollective.server.collectives.match("\d+") = "rspec_collective" }'
         )
       end
     end
