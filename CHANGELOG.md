@@ -1,8 +1,9 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/08/22|35    |Simplify facts queries using latest PuppetDB PQL                                                         |
 |2016/08/20|52    |Release 0.0.8                                                                                            |
 |2016/08/19|49    |Set the connection name                                                                                  |
-|2016/08/19|42    |Support NATS gem 0.8.0 and log connected clients                                                         |
+|2016/08/19|42    |Support NATS gem 0.8.0 and log connected NATS brokers                                                    |
 |2016/08/13|      |Release 0.0.7                                                                                            |
 |2016/08/13|45    |Fix calling facter on windows                                                                            |
 |2016/08/11|      |Release 0.0.6                                                                                            |
