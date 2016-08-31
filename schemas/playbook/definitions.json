@@ -1,0 +1,23 @@
+{
+  "mcollective_username": {
+    "type": "string",
+    "pattern": "^[a-zA-Z0-9\\-\\_\\.]+$",
+    "minLength": 1,
+    "maxLength": 64
+  },
+  "generic_name": {
+    "type": "string",
+    "pattern": "^[a-zA-Z0-9\\-\\_]+$",
+    "minLength": 1,
+    "maxLength": 64
+  },
+  "generic_description": {
+    "type": "string",
+    "minLength": 1,
+    "maxLength": 256
+  },
+  "semver": {
+    "type": "string",
+    "pattern": "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:(\\-[0-9A-Za-z\\-]+(?:\\.[0-9A-Za-z\\-]+)*))?(?:\\+[0-9A-Za-z\\-\\.]+)?$"
+  }
+}

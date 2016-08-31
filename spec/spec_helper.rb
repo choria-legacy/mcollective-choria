@@ -1,7 +1,9 @@
 require "rubygems"
 
-require "coveralls"
-Coveralls.wear!
+if ENV["CI"] == "true"
+  require "coveralls"
+  Coveralls.wear!
+end
 
 require "rspec"
 require "mcollective"
