@@ -1,7 +1,7 @@
 Choria Orchestrator
 ===================
 
-**NOTE:** This is now in early Beta, a deployment guide can be found in the wiki
+**NOTE:** This is now in more or less Release Candidate state on Unix, on Windows you cannot use NATS yet, a deployment guide can be found in the wiki
 
 A distribution of plugins for MCollective designed to give a very smooth and streamlined experience
 in getting started when using the Puppet 4 AIO connected to a Puppet Server.
