@@ -46,6 +46,12 @@ module MCollective
           discovery.extract_certs([{"certname" => "one"}, {"certname" => "two"}, {"x" => "rspec"}])
         ).to eq(["one", "two"])
       end
+
+      it "should ignore deacivated nodes" do
+        expect(
+          discovery.extract_certs([{"certname" => "one", "deactivated" => "2016-09-12T18:57:51.700Z"}, {"certname" => "two"}])
+        ).to eq(["two"])
+      end
     end
 
     describe "#discover_nodes" do

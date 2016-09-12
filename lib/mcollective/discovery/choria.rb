@@ -174,7 +174,7 @@ module MCollective
       # @param nodes [Array] nodes list as produced by PuppetDB
       # @return [Array<String>] list of certificate names
       def extract_certs(nodes)
-        nodes.map {|n| n["certname"]}.compact
+        nodes.reject {|n| n["deactivated"]}.map {|n| n["certname"]}.compact
       end
 
       # Produce a nodes query with the supplied sub query included

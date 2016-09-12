@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/09/12|56    |Filter out deactivated nodes from discovery results                                                      |
 |2016/08/22|35    |Simplify facts queries using latest PuppetDB PQL                                                         |
 |2016/08/20|52    |Release 0.0.8                                                                                            |
 |2016/08/19|49    |Set the connection name                                                                                  |
