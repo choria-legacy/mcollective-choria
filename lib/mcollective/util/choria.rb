@@ -2,6 +2,7 @@ require_relative "choria/puppet_v3_environment"
 require_relative "choria/orchestrator"
 
 require "net/http"
+require "resolv"
 
 module MCollective
   module Util
