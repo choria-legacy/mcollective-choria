@@ -57,8 +57,8 @@ module MCollective
     describe "#discover_nodes" do
       it "should discover nodes correctly" do
         expect(
-          discovery.discover_nodes(["/x/", "y"])
-        ).to eq('certname ~ "[xX]" or certname = "y"')
+          discovery.discover_nodes(["/x/", "y", 'pql: nodes[certname] { facts_environment = "production" }'])
+        ).to eq('certname ~ "[xX]" or certname = "y" or certname in nodes[certname] { facts_environment = "production" }')
       end
     end
 
