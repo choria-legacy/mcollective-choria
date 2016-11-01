@@ -1,5 +1,8 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/11/01|      |Release 0.0.9                                                                                            |
+|2016/10/20|61    |Support PQL queries on the CLI for node discovery                                                        |
+|2016/10/07|59    |Reqiure missing resolv dependency                                                                        |
 |2016/09/12|56    |Filter out deactivated nodes from discovery results                                                      |
 |2016/08/22|35    |Simplify facts queries using latest PuppetDB PQL                                                         |
 |2016/08/20|52    |Release 0.0.8                                                                                            |
