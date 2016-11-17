@@ -17,9 +17,11 @@ module MCollective
 
     describe "#query" do
       it "should query and parse" do
+        discovery.choria.stubs(:facter_domain).returns("example.net")
         discovery.choria.expects(:check_ssl_setup)
         discovery.expects(:http_get).with("/pdb/query/v4?query=nodes+%7B+%7D").returns(get = stub)
         discovery.https.expects(:request).with(get).returns([stub(:code => "200"), '{"rspec":1}'])
+
         expect(discovery.query("nodes { }")).to eq("rspec" => 1)
       end
     end
