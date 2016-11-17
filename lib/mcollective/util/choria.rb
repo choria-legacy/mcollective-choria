@@ -357,21 +357,41 @@ module MCollective
         env_fetch("MCOLLECTIVE_CERTNAME", certname)
       end
 
+      # Initialises Puppet if needed and retrieve a config setting
+      #
+      # @param setting [Symbol] a Puppet setting name
+      # @return [String]
+      def puppet_setting(setting)
+        require "puppet"
+
+        unless Puppet.settings.app_defaults_initialized?
+          Puppet.settings.preferred_run_mode = :agent
+
+          Puppet.settings.initialize_global_settings([])
+          Puppet.settings.initialize_app_defaults(Puppet::Settings.app_defaults_for_run_mode(Puppet.run_mode))
+        end
+
+        Puppet.settings[setting]
+      end
+
       # The directory where SSL related files live
       #
-      # This differs between root (usually the daemon) and non root
-      # (usually the client) and follow the conventions of Puppet AIO
-      # packages
+      # This is configurable using choria.ssldir which should be a
+      # path expandable using {File.expand_path}
+      #
+      # On Windows or when running as root Puppet settings will be consulted
+      # but when running as a normal user it will default to the AIO path
+      # when not configured
       #
       # @return [String]
       def ssl_dir
-        if Util.windows?
-          'C:\ProgramData\PuppetLabs\puppet\etc\ssl'
-        elsif Process.uid == 0
-          "/etc/puppetlabs/puppet/ssl"
-        else
-          File.expand_path("~/.puppetlabs/etc/puppet/ssl")
-        end
+        @__ssl_dir ||= if has_option?("choria.ssldir")
+                         File.expand_path(get_option("choria.ssldir"))
+                       elsif Util.windows? || Process.uid == 0
+                         puppet_setting(:ssldir)
+                       else
+                         File.expand_path("~/.puppetlabs/etc/puppet/ssl")
+                       end
       end
 
       # The path to a client public certificate
@@ -598,13 +618,28 @@ module MCollective
       #
       # @param opt [String] config option to look up
       # @param default [Object] default to return when not found
-      # @return [Object] the found data or default
+      # @return [Object, Proc] the found data or default. When it's a proc the proc will be called only when needed
       # @raise [StandardError] when no default is given and option is not found
       def get_option(opt, default=:_unset)
-        return @config.pluginconf[opt] if @config.pluginconf.include?(opt)
-        return default unless default == :_unset
+        return @config.pluginconf[opt] if has_option?(opt)
+
+        unless default == :_unset
+          if default.is_a?(Proc)
+            return default.call
+          else
+            return default
+          end
+        end
 
         raise(UserError, "No plugin.%s configuration option given" % opt)
+      end
+
+      # Determines if a config option is set
+      #
+      # @param opt [String] config option to look up
+      # @return [Boolean]
+      def has_option?(opt)
+        @config.pluginconf.include?(opt)
       end
 
       def env_fetch(key, default=nil)

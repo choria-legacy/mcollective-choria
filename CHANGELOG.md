@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/11/19|55    |When root consult Puppet configuration to find the SSL dir, make ssl dir configurable                    |
 |2016/11/19|68    |Update eventmachine to 1.2.1 and install that by default, improve logging of EM mode and version         |
 |2016/11/01|      |Release 0.0.9                                                                                            |
 |2016/10/20|61    |Support PQL queries on the CLI for node discovery                                                        |
