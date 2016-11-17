@@ -5,6 +5,18 @@ AllCops:
     - "module/**/*"
     - "vendor/**/*"
 
+# restore pre 0.45 behaviour
+Style/SingleLineBlockParams:
+  Methods:
+    - reduce:
+        - a
+        - e
+    - inject:
+        - a
+        - e
+
+Style/NumericPredicate:
+  EnforcedStyle: comparison
 
 Style/TrailingUnderscoreVariable:
   Enabled: false
@@ -118,6 +130,9 @@ Metrics/ClassLength:
   Enabled: false
 
 Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/BlockLength:
   Enabled: false
 
 Performance/Casecmp:
