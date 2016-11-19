@@ -9,7 +9,7 @@ GEM
     crack (0.4.3)
       safe_yaml (~> 1.0.0)
     diff-lcs (1.2.5)
-    eventmachine (1.2.0.1)
+    eventmachine (1.2.1)
     facter (2.4.6)
       CFPropertyList (~> 2.2.6)
     ffi (1.9.14)
