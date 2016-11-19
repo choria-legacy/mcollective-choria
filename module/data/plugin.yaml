@@ -1,6 +1,7 @@
 ---
 mcollective_choria::config_name: choria
 mcollective_choria::gem_dependencies:
+    eventmachine: "1.2.1"
     nats: "0.8.0"
 
 mcollective_choria::client_files:

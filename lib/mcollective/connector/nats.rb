@@ -12,7 +12,7 @@ module MCollective
         @subscriptions = []
         @connection = Util::NatsWrapper.new
 
-        Log.info("Choria NATS.io connector initialized.  Using nats/client %s" % NATS::VERSION)
+        Log.info("Choria NATS.io connector using nats/client %s and %s mode eventmachine %s" % [NATS::VERSION, EM.library_type, EM::VERSION])
       end
 
       # Attempts to connect to the middleware, noop when already connected
