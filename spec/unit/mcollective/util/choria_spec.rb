@@ -7,6 +7,36 @@ module MCollective
       let(:choria) { Choria.new("production", nil, false) }
       let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
+      describe "#has_option?" do
+        it "should correctly detect available options" do
+          Config.instance.stubs(:pluginconf).returns("choria.middleware_hosts" => "1.net:4222,2.net:4223")
+          expect(choria.has_option?("choria.middleware_hosts")).to be(true)
+          expect(choria.has_option?("choria.rspec")).to be(false)
+        end
+      end
+
+      describe "#get_option" do
+        before(:each) do
+          Config.instance.stubs(:pluginconf).returns("choria.rspec" => "result")
+        end
+
+        it "should return the option verbatim if it exist" do
+          expect(choria.get_option("choria.rspec")).to eq("result")
+        end
+
+        it "should support proc defaults" do
+          expect(choria.get_option("choria.fail", ->() { "lambda result" })).to eq("lambda result")
+        end
+
+        it "should support normal defaults" do
+          expect(choria.get_option("choria.fail", "default result")).to eq("default result")
+        end
+
+        it "should raise without a default or option" do
+          expect { choria.get_option("choria.fail") }.to raise_error("No plugin.choria.fail configuration option given")
+        end
+      end
+
       describe "#try_srv" do
         it "should query for the correct names" do
           choria.expects(:query_srv_records).with(["rspec1", "rspec2"]).returns([:target => "rspec.host", :port => "8080"])
@@ -318,12 +348,14 @@ module MCollective
       describe "#ssl_dir" do
         it "should support windows" do
           Util.expects(:windows?).returns(true)
+          choria.expects(:puppet_setting).with(:ssldir).returns('C:\ProgramData\PuppetLabs\puppet\etc\ssl')
           expect(choria.ssl_dir).to eq('C:\ProgramData\PuppetLabs\puppet\etc\ssl')
         end
 
         it "should support root on unix" do
           Util.expects(:windows?).returns(false)
           Process.expects(:uid).returns(0)
+          choria.expects(:puppet_setting).with(:ssldir).returns("/etc/puppetlabs/puppet/ssl")
           expect(choria.ssl_dir).to eq("/etc/puppetlabs/puppet/ssl")
         end
 
@@ -332,6 +364,23 @@ module MCollective
           Process.expects(:uid).returns(500)
           File.expects(:expand_path).with("~/.puppetlabs/etc/puppet/ssl").returns("/rspec/.puppetlabs/etc/puppet/ssl")
           expect(choria.ssl_dir).to eq("/rspec/.puppetlabs/etc/puppet/ssl")
+        end
+
+        it "should be configurable" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.ssldir" => "/nonexisting/ssl"
+          )
+
+          choria.expects(:puppet_setting).never
+
+          expect(choria.ssl_dir).to eq("/nonexisting/ssl")
+        end
+
+        it "should memoize the result" do
+          Util.expects(:windows?).returns(true).once
+          choria.expects(:puppet_setting).with(:ssldir).returns('C:\ProgramData\PuppetLabs\puppet\etc\ssl').once
+          expect(choria.ssl_dir).to eq('C:\ProgramData\PuppetLabs\puppet\etc\ssl')
+          expect(choria.ssl_dir).to eq('C:\ProgramData\PuppetLabs\puppet\etc\ssl')
         end
       end
 
