@@ -1,18 +1,18 @@
 source "https://rubygems.org"
 
-gem "nats", "0.8.0"
+gem "nats-pure", "~> 0.1.2"
 
 group :development, :test do
+  gem "guard-rspec"
+  gem "guard-shell"
   gem "json-schema-rspec"
+  gem "listen", "~> 3.0.0"
   gem "mcollective-client"
+  gem "mocha"
   gem "puppet", "~> 4"
   gem "rake"
-  gem "yard"
-  gem "guard-shell"
-  gem "guard-rspec"
-  gem "rubocop", "~> 0.45.0"
-  gem "mocha"
   gem "rspec"
-  gem "listen", "~> 3.0.0"
+  gem "rubocop", "~> 0.46.0"
   gem "webmock"
+  gem "yard"
 end

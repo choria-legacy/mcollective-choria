@@ -1,20 +1,17 @@
-require "nats/client"
+require "nats/io/client"
 
 module MCollective
   module Util
-    # A wrapper class around the EM based NATS gem
+    # A wrapper class around the Pure Ruby NATS gem
     #
-    # MCollective has some non EM compatible expectations about how
+    # MCollective has some non compatible expectations about how
     # message flow works such as having a blocking receive and publish
-    # method it calls when it likes, while typical EM flow is to pass
+    # method it calls when it likes, while typical flow is to pass
     # a block and then callbacks will be called.
     #
     # This wrapper bridges the 2 worlds using ruby Queues to simulate the
     # blocking receive expectation MCollective has thanks to its initial
     # design around the Stomp gem.
-    #
-    # The EM code is run in a Thread and all EM stuff is done there, this will
-    # hopefully sufficiently isolate the competing threading models.
     class NatsWrapper
       attr_reader :subscriptions, :received_queue
 
@@ -23,6 +20,7 @@ module MCollective
         @subscriptions = {}
         @subscription_mutex = Mutex.new
         @started = false
+        @client = NATS::IO::Client.new
       end
 
       # Has the NATS connection started
@@ -36,14 +34,14 @@ module MCollective
       #
       # @return [Boolean]
       def has_client?
-        !!NATS.client
+        !!@client
       end
 
       # Is NATS connected
       #
       # @return [Boolean]
       def connected?
-        has_client? && NATS.connected?
+        has_client? && @client.connected?
       end
 
       # Does a backoff sleep up to 2 seconds
@@ -61,7 +59,7 @@ module MCollective
         @backoffcount += 1
       end
 
-      # Logs the NATS server pool for gem version 0.8.0 and newer
+      # Logs the NATS server pool for nats-pure
       #
       # The current server pool is dynamic as the NATS servers can announce
       # new cluster members as they join the pool, little helper for logging
@@ -69,15 +67,13 @@ module MCollective
       #
       # @return [void]
       def log_nats_pool
-        return unless NATS.client
+        return unless has_client?
 
-        servers = NATS.client.server_pool.map do |server|
+        servers = @client.server_pool.map do |server|
           server[:uri].to_s
         end
 
         Log.info("Current server pool: %s" % servers.join(", "))
-      rescue # rubocop:disable Lint/HandleExceptions
-        # surpress issues with older nats gems
       end
 
       # Starts the EM based NATS connection
@@ -90,58 +86,52 @@ module MCollective
         # disconnect very early on this should avoid that chicken and egg
         return if @force_Stop
 
-        @started = true
-        @nats = nil
+        @client.on_reconnect do
+          Log.warn("Reconnected after connection failure: %s" % @client.connected_server)
+          log_nats_pool
+          @backoffcount = 1
+        end
 
-        @em_thread = Thread.new do
-          begin
-            NATS.on_error do |e|
-              Log.error("Error in NATS connection: %s: %s" % [e.class, e.to_s])
-
-              backoff_sleep
-
-              raise(e)
-            end
-
-            NATS.start(options) do |c|
-              Log.info("NATS is connected to %s" % c.connected_server)
-              log_nats_pool
-
-              c.on_reconnect do |connection|
-                Log.warn("Reconnected after connection failure: %s" % connection.connected_server)
-                log_nats_pool
-                @backoffcount = 1
-              end
-
-              c.on_disconnect do |reason|
-                Log.warn("Disconnected from NATS: %s" % reason)
-              end
-
-              c.on_close do
-                Log.info("Connection to NATS server closed")
-              end
-            end
-
-            sleep(0.01) until has_client?
-          rescue
-            Log.error("Error during initial NATS setup: %s: %s" % [$!.class, $!.message])
-            Log.debug($!.backtrace.join("\n\t"))
-
-            sleep 1
-
-            Log.error("Retrying NATS initial setup")
-
-            retry
+        @client.on_disconnect do |error|
+          if error
+            Log.warn("Disconnected from NATS: %s: %s" % [error.class, error.to_s])
+          else
+            Log.info("Disconnected from NATS for an unknown reason")
           end
         end
 
+        @client.on_error do |error|
+          Log.error("Error in NATS connection: %s: %s" % [error.class, error.to_s])
+        end
+
+        @client.on_close do
+          Log.info("Connection to NATS server closed")
+        end
+
+        begin
+          @client.connect(options)
+        rescue
+          Log.error("Error during initial NATS setup: %s: %s" % [$!.class, $!.message])
+          Log.debug($!.backtrace.join("\n\t"))
+
+          sleep 1
+
+          Log.error("Retrying NATS initial setup")
+
+          retry
+        end
+
         sleep(0.01) until connected?
+
+        @started = true
+
+        nil
       end
 
       # Stops the NATS connection
       def stop
         @force_stop = true
-        NATS.stop
+        @client.close
       end
 
       # Receives a message from the receive queue
@@ -159,7 +149,7 @@ module MCollective
       # @param payload [String] the string to publish
       # @param reply [String] a reply destination
       def publish(destination, payload, reply=nil)
-        server_state = "%s %s" % [NATS.connected? ? "connected" : "disconnected", NATS.connected_server]
+        server_state = "%s %s" % [connected? ? "connected" : "disconnected", @client.connected_server]
 
         if reply
           Log.debug("Publishing to %s reply to %s via %s" % [destination, reply, server_state])
@@ -167,7 +157,7 @@ module MCollective
           Log.debug("Publishing to %s via %s" % [destination, server_state])
         end
 
-        NATS.publish(destination, payload, reply)
+        @client.publish(destination, payload, reply)
       end
 
       # Subscribes to a message source
@@ -178,7 +168,7 @@ module MCollective
           Log.debug("Subscribing to %s" % source_name)
 
           unless @subscriptions.include?(source_name)
-            @subscriptions[source_name] = NATS.subscribe(source_name) do |msg, _, sub|
+            @subscriptions[source_name] = @client.subscribe(source_name) do |msg, _, sub|
               Log.debug("Received a message on %s" % [sub])
               @received_queue << msg
             end
@@ -192,10 +182,17 @@ module MCollective
       def unsubscribe(source_name)
         @subscription_mutex.synchronize do
           if @subscriptions.include?(source_name)
-            NATS.unsubscribe(@subscriptions[source_name])
+            @client.unsubscribe(@subscriptions[source_name])
             @subscriptions.delete(source_name)
           end
         end
+      end
+
+      # Test helper
+      #
+      # @private
+      def stub_client(client)
+        @client = client
       end
     end
   end

@@ -20,22 +20,26 @@ module MCollective
       msg.collective = "mcollective"
     end
 
+    describe "#ssl_context" do
+      it "should create a valid ssl context" do
+        choria.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
+        choria.stubs(:client_public_cert).returns("spec/fixtures/rip.mcollective.pem")
+        choria.stubs(:client_private_key).returns("spec/fixtures/rip.mcollective.key")
+
+        context = connector.ssl_context
+
+        expect(context.verify_mode).to be(OpenSSL::SSL::VERIFY_PEER)
+        expect(context.ca_file).to eq("spec/fixtures/ca_crt.pem")
+        expect(context.cert.subject.to_s).to eq("/CN=rip.mcollective")
+        expect(context.key.to_pem).to eq(File.read("spec/fixtures/rip.mcollective.key"))
+      end
+    end
+
     describe "#server_list" do
       it "should create uris and credentials servers" do
         Config.instance.stubs(:pluginconf).returns("nats.user" => "rspec_user", "nats.pass" => "rspec_pass")
         choria.stubs(:middleware_servers).returns([["config", "1"], ["config", "2"]])
         expect(connector.server_list).to eq(["nats://rspec_user:rspec_pass@config:1", "nats://rspec_user:rspec_pass@config:2"])
-      end
-    end
-
-    describe "#ssl_parameters" do
-      it "should use the right dir for root" do
-        expect(connector.ssl_parameters).to eq(
-          :cert_chain_file => "/ssl/certs/rspec_identity.pem",
-          :private_key_file => "/ssl/private_keys/rspec_identity.pem",
-          :ca_file => "/ssl/certs/ca.pem",
-          :verify_peer => true
-        )
       end
     end
 
@@ -54,16 +58,16 @@ module MCollective
       end
 
       it "should connect" do
+        mock_context = OpenSSL::SSL::SSLContext.new
+        connector.stubs(:ssl_context).returns(mock_context)
+
         connector.connection.expects(:start).with(
           :max_reconnect_attempts => -1,
           :reconnect_time_wait => 1,
           :dont_randomize_servers => true,
           :name => "rspec_identity",
           :tls => {
-            :cert_chain_file => "/ssl/certs/rspec_identity.pem",
-            :private_key_file => "/ssl/private_keys/rspec_identity.pem",
-            :ca_file => "/ssl/certs/ca.pem",
-            :verify_peer => true
+            :context => mock_context
           },
           :servers => ["nats://puppet:4222"]
         )

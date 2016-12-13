@@ -5,6 +5,11 @@ require "mcollective/util/natswrapper"
 module MCollective
   describe Util::NatsWrapper do
     let(:wrapper) { Util::NatsWrapper.new }
+    let(:client) { stub(:connected? => true, :connected_server => "rspec.example.net:1234") }
+
+    before(:each) do
+      wrapper.stub_client(client)
+    end
 
     describe "#start" do
       it "should have tests"
@@ -12,7 +17,7 @@ module MCollective
 
     describe "#stop" do
       it "should stop NATS" do
-        NATS.expects(:stop)
+        client.expects(:close)
         wrapper.stop
       end
     end
@@ -28,14 +33,14 @@ module MCollective
 
     describe "#publish" do
       it "should publish to NATS" do
-        NATS.expects(:publish).with("rspec.dest", "msg", "rspec.reply")
+        client.expects(:publish).with("rspec.dest", "msg", "rspec.reply")
         wrapper.publish("rspec.dest", "msg", "rspec.reply")
       end
     end
 
     describe "#subscribe" do
       it "should subscribe only once" do
-        NATS.stubs(:subscribe).yields("msg", "x", "sub").returns(1).once
+        client.stubs(:subscribe).yields("msg", "x", "sub").returns(1).once
 
         wrapper.subscribe("rspec.dest")
         expect(wrapper.subscriptions).to have_key("rspec.dest")
@@ -46,11 +51,11 @@ module MCollective
 
     describe "#unsubscribe" do
       it "should unsubscribe only once" do
-        NATS.stubs(:subscribe).yields("msg", "x", "sub").returns(1)
+        client.stubs(:subscribe).yields("msg", "x", "sub").returns(1)
 
         wrapper.subscribe("rspec.dest")
 
-        NATS.expects(:unsubscribe).with(1).once
+        client.expects(:unsubscribe).with(1).once
 
         wrapper.unsubscribe("rspec.dest")
         wrapper.unsubscribe("rspec.dest")

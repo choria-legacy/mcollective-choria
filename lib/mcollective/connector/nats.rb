@@ -12,7 +12,7 @@ module MCollective
         @subscriptions = []
         @connection = Util::NatsWrapper.new
 
-        Log.info("Choria NATS.io connector using nats/client %s and %s mode eventmachine %s" % [NATS::VERSION, EM.library_type, EM::VERSION])
+        Log.info("Choria NATS.io connector using pure ruby nats/io/client %s with protocol version %s" % [NATS::IO::VERSION, NATS::IO::PROTOCOL])
       end
 
       # Attempts to connect to the middleware, noop when already connected
@@ -29,7 +29,9 @@ module MCollective
           :max_reconnect_attempts => -1,
           :reconnect_time_wait => 1,
           :dont_randomize_servers => true,
-          :tls => ssl_parameters,
+          :tls => {
+            :context => ssl_context
+          },
           :name => @config.identity
         }
 
@@ -52,19 +54,17 @@ module MCollective
         connection.stop
       end
 
-      # Determines the ssl parameters passed to NATS
+      # Creates a SSL Context for the NATS gem to use which includes the AIO SSL files
       #
-      # Certificate paths are based on Puppet AIO locations
-      # use `mco choria request_cert` to set them up
-      #
-      # @return [Hash]
-      def ssl_parameters
-        {
-          :cert_chain_file => choria.client_public_cert,
-          :private_key_file => choria.client_private_key,
-          :ca_file => choria.ca_path,
-          :verify_peer => true
-        }
+      # @return [OpenSSL::SSL::SSLContext]
+      def ssl_context
+        context = OpenSSL::SSL::SSLContext.new
+        context.ca_file = choria.ca_path
+        context.cert = OpenSSL::X509::Certificate.new(File.read(choria.client_public_cert))
+        context.key = OpenSSL::PKey::RSA.new(File.read(choria.client_private_key))
+        context.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+        context
       end
 
       # Creates the middleware headers needed for a given message
