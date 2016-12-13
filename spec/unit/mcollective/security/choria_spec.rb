@@ -8,8 +8,8 @@ module MCollective
 
     before(:each) do
       security.stubs(:current_timestamp).returns(1464002319)
-      RSpec.configuration.json_schemas["mcollective::security::choria:request:1"] = "schemas/mcollective::security::choria:request:1.json"
-      RSpec.configuration.json_schemas["mcollective::security::choria:reply:1"] = "schemas/mcollective::security::choria:reply:1.json"
+      RSpec.configuration.json_schemas["mcollective::security::choria:request:1"] = "schemas/mcollective__security__choria_request_1.json"
+      RSpec.configuration.json_schemas["mcollective::security::choria:reply:1"] = "schemas/mcollective__security__choria_reply_1.json"
     end
 
     describe "#client_pubcert_metadata" do
