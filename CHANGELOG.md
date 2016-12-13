@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/12/13|      |Release 0.0.10                                                                                           |
 |2016/12/11|48    |Use the new Pure Ruby NATS gem and remove EM                                                             |
 |2016/11/19|55    |When root consult Puppet configuration to find the SSL dir, make ssl dir configurable                    |
 |2016/11/19|68    |Update eventmachine to 1.2.1 and install that by default, improve logging of EM mode and version         |
