@@ -1,0 +1,9 @@
+baseurl = "http://dev3.devco.net:9292"
+contentdir = "content"
+theme = "hugo-theme-learn"
+title = "Choria Orchestrator"
+
+[params]
+  description = "Documentation for the Choria Orchestrator"
+  author = "R.I.Pienaar <rip@devco.net>"
+  menu = [ "about", "deployment", "configuration", "reference", "development"]
