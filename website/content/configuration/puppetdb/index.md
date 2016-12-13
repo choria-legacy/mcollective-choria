@@ -57,6 +57,14 @@ Your queries **MUST** return the data as above - just the certname property.
 
 ## Configuring MCollective
 
+You do not have to configure this to be the default discovery method, instead you can use it just when you need or want:
+
+```bash
+$ mco puppet status --dm=choria
+```
+
+By passing _--dm=choria_ to MCollective commands you enable this discovery method just for the duration of that command.  This is a good way to test the feature before enabling it by default.
+
 You can set this discovery method to be your default by adding the following hiera data:
 
 ```yaml

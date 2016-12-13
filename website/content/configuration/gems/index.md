@@ -8,13 +8,13 @@ Many sites have policies prohibiting their nodes from accessing dependencies via
 
 You can package the [nats-pure](https://rubygems.org/gems/nats-pure) dependency yourself, perhaps using [fpm](https://fpm.readthedocs.io/en/latest/), and distribute it using your own packages.
 
-You can configure Choria to use this package instead via _Hiera_:
+You can configure Choria to not install any gem dependencies via _Hiera_:
 
 ```yaml
 mcollective_choria::manage_gem_dependencies: false
 ```
 
-You can then configure Choria to install these for you via the system packager, lets say you called the package _aio-nats-pure_:
+You can then configure Choria to install these for you via the system packager, lets say you called the package _aio-nats-pure_, again via _Hiera_:
 
 ```yaml
 mcollective_choria::package_dependencies:

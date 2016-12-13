@@ -27,5 +27,5 @@ There are very few requirements, a typical up to date Puppet installation follow
 
 ### Optional
 
-  * An optional PuppetDB integration exist to use PuppetDB as the source of truth.
-  * Puppet Applications are supported and deployment can be done using Choria, it requires specific setup of your _puppetserver_
+  * An optional PuppetDB integration exist to use PuppetDB as the source of truth.  This requires PuppetDB and extra configuration.
+  * Puppet Applications are supported and deployment can be done using Choria, it requires specific setup of your _puppetserver_.

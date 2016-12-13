@@ -31,9 +31,9 @@ mcollective::site_policies:
     classes: "*"
 ```
 
-You'll note this is an array so you can have many policies, site policies are applied to **ALL AGENTS**.
+You'll note this is an array so you can have many policies, site policies are applied to **all agents**.
 
-Per agent policies can be configured as here:
+### Agent specific policies
 
 This will allow a specific certificate to only _block_ ip addresses on my firewall but nothing else:
 
@@ -50,7 +50,7 @@ For full details see the [Action Policy](https://github.com/puppetlabs/mcollecti
 
 ### Per plugin default override
 
-As mentioned by default all actions are denied, you can change a specific agent to default allow via hiera:
+As mentioned by default all actions are denied across all agents, you can change a specific agent to default allow via hiera:
 
 ```yaml
 mcollective_agent_puppet::policy_default: allow
@@ -58,7 +58,11 @@ mcollective_agent_puppet::policy_default: allow
 
 ### Site wide default policy
 
-By default all actions are denied, while it's not recommended to change this to allow you can do this if desired - like in a Lab environment, via _Hiera_:
+By default all actions are denied, if like in a Lab environment you want to simplify things and all all actions across all agents, you can set this in _Hiera_:
+
+{{% notice warning %}}
+Enabling this will allow anyone with a signed mcollective cert to perform any action on any node, please consider carefully before changing this setting.
+{{% /notice %}}
 
 ```yaml
 mcollective::policy_default: allow

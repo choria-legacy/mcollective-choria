@@ -10,7 +10,7 @@ Choria is a distribution of plugins and utilities that enhances [The Marionette 
 
 MCollective is notoriously hard to install, the official installation guide takes you through pages and pages of information and expect you to make very important decisions that affects the security of your platform before you even know the system.
 
-Choria exists to provide a distribution of plugins designed to be secure by default, easy to install and with no prior knowledge required to get to a point of having a secure production ready deployment of MCollective. Even a clustered steup of MCollective using Chorio should take less than 1 hour.
+Choria exists to provide a distribution of plugins designed to be secure by default, easy to install and with no prior knowledge required to get to a point of having a secure production ready deployment of MCollective. Even a clustered steup of MCollective using Choria should take less than 1 hour.
 
 After installing MCollective using Choria you can be sure that the security decisions taken are robust and the full Authentication, Authorization and Auditing feature set that sets MCollective apart from others have been configured for you.  Choria was written by the original architect of The Marionette Collective and represents current thinking on deployment and security of the system.
 
