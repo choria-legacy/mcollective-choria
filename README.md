@@ -23,7 +23,7 @@ Every component uses strong SSL encryption that cannot be disabled.
 See [the Wiki](https://github.com/ripienaar/mcollective-choria/wiki) for a deployment guide.
 
 
-[![Dependency Status](https://dependencyci.com/github/ripienaar/mcollective-choria/badge)](https://dependencyci.com/github/ripienaar/mcollective-choria) [![Code Climate](https://codeclimate.com/github/ripienaar/mcollective-choria/badges/gpa.svg)](https://codeclimate.com/github/ripienaar/mcollective-choria) [![Build Status](https://travis-ci.org/ripienaar/mcollective-choria.svg?branch=master)](https://travis-ci.org/ripienaar/mcollective-choria)
+[![Dependency Status](https://dependencyci.com/github/ripienaar/mcollective-choria/badge)](https://dependencyci.com/github/ripienaar/mcollective-choria) [![Code Climate](https://codeclimate.com/github/ripienaar/mcollective-choria/badges/gpa.svg)](https://codeclimate.com/github/ripienaar/mcollective-choria) [![Build Status](https://travis-ci.org/ripienaar/mcollective-choria.svg?branch=master)](https://travis-ci.org/ripienaar/mcollective-choria) [![Coverage Status](https://coveralls.io/repos/github/ripienaar/mcollective-choria/badge.svg?branch=master)](https://coveralls.io/github/ripienaar/mcollective-choria?branch=master)
 
 ## Contact?
 

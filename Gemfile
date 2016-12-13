@@ -3,6 +3,7 @@ source "https://rubygems.org"
 gem "nats-pure", "~> 0.1.2"
 
 group :development, :test do
+  gem "coveralls"
   gem "guard-rspec"
   gem "guard-shell"
   gem "json-schema-rspec"
