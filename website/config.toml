@@ -2,6 +2,7 @@ baseurl = "http://dev3.devco.net:9292"
 contentdir = "content"
 theme = "hugo-theme-learn"
 title = "Choria Orchestrator"
+googleAnalytics = "UA-10152852-12"
 
 [params]
   description = "Documentation for the Choria Orchestrator"
