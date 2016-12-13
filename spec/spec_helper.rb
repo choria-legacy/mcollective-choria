@@ -1,5 +1,8 @@
 require "rubygems"
 
+require "coveralls"
+Coveralls.wear!
+
 require "rspec"
 require "mcollective"
 require "rspec/mocks"
