@@ -1,6 +1,6 @@
 +++
 title = "NATS Middleware"
-weight = 120
+weight = 110
 toc = true
 +++
 
@@ -16,6 +16,12 @@ One NATS server has been shown to be able to host over 2000 MCollective nodes co
  * You need to ensure that port `4222` is reachable from all your Puppet nodes on all NATS servers
  * You need to ensure that in a clustered environment port `4223` is reachable by the NATS cluster hosts
  * If you wish to use the _collectd_ integration, port `8222` must be reachable from _localhost_
+
+## Single or multiple nodes
+
+The decision to run multiple nodes is about availability and scale.  As mentioned NATS can easily handle large numbers of nodes on a single broker, if this is your first deployment there is no reason right now to think about a cluster of brokers.  As you'll see configuring a cluster is very easy and easily done later.
+
+If you choose to do 1 only Keep it simple and install it on your Puppet Master.  This removes the need to configure DNS (the next section) and gets you going ready to explore the possibilities quickly, you can easily later add servers.
 
 ## Single node
 

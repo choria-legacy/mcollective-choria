@@ -1,6 +1,6 @@
 +++
 title = "DNS Setup"
-weight = 110
+weight = 120
 toc = true
 +++
 

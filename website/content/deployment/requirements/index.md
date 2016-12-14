@@ -4,7 +4,7 @@ weight = 105
 toc = true
 +++
 
-For MCollective to function we need a few pieces setup, this guide takes you through setting up all of these:
+For MCollective to function we need a few infrastructure components, this guide takes you through setting up all of these:
 
   * Set up a middleware broker using [NATS.io](https://nats.io/)
   * Configure server locations using DNS or manually if not using defaults
