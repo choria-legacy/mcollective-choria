@@ -41,7 +41,7 @@ Most other commands will not work due to the _default deny_ nature of the Choria
 
 ## Authorization
 
-As my user certificate is _rip.mcollective_ and I wish to be able to manage all aspects of my MCollective I am going to add a default allow rule here:
+As my user certificate is _rip.mcollective_ and I wish to be able to manage all aspects of my MCollective I am going to add a default allow rule to _Hiera_, add this to your common tier or whichever tier will select the nodes you wish to be able to manage:
 
 ```yaml
 mcollective::site_policies:
