@@ -369,6 +369,7 @@ module MCollective
 
           Puppet.settings.initialize_global_settings([])
           Puppet.settings.initialize_app_defaults(Puppet::Settings.app_defaults_for_run_mode(Puppet.run_mode))
+          Puppet.push_context(Puppet.base_context(Puppet.settings))
         end
 
         Puppet.settings[setting]
