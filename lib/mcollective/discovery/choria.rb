@@ -34,7 +34,7 @@ module MCollective
           queries << discover_agents(filter["agent"]) unless filter["agent"].empty?
         end
 
-        extract_certs(query(node_search_string(queries.compact)))
+        choria.pql_query(node_search_string(queries.compact), true)
       end
 
       # Discovers nodes in a specific collective
@@ -171,14 +171,6 @@ module MCollective
         end
       end
 
-      # Extracts the certname from any active nodes in the node list
-      #
-      # @param nodes [Array] nodes list as produced by PuppetDB
-      # @return [Array<String>] list of certificate names
-      def extract_certs(nodes)
-        nodes.reject {|n| n["deactivated"]}.map {|n| n["certname"]}.compact
-      end
-
       # Produce a nodes query with the supplied sub query included
       #
       # @param queries [Array<String>] PQL queries to be used as a sub query
@@ -197,41 +189,8 @@ module MCollective
         true if Float(string) rescue false
       end
 
-      # Creates a JSON accepting Net::HTTP::Get instance for a path
-      #
-      # @param path [String]
-      # @return [Net::HTTP::Get]
-      def http_get(path)
-        Net::HTTP::Get.new(path, "accept" => "application/json")
-      end
-
-      # Performs a PQL query against PuppetDB
-      #
-      # @param pql [String] PQL query
-      # @return [Hash,Array] JSON parsed result set from PuppetDB
-      # @raise [StandardError] when querying fails
-      def query(pql)
-        Log.debug("Performing PQL query: %s" % pql)
-
-        path = "/pdb/query/v4?%s" % URI.encode_www_form("query" => pql)
-
-        resp, data = https.request(http_get(path))
-
-        raise("Failed to make request to PuppetDB: %s: %s: %s" % [resp.code, resp.message, resp.body]) unless resp.code == "200"
-
-        JSON.parse(data || resp.body)
-      end
-
       def choria
         @_choria ||= Util::Choria.new("production", nil, false)
-      end
-
-      # (see Util::Choria#https)
-      def https
-        @_https ||= begin
-                      choria.check_ssl_setup
-                      choria.https(choria.puppetdb_server)
-                    end
       end
     end
   end

@@ -163,9 +163,12 @@ module MCollective
       # If the ca_path exist it will be used and full verification will be enabled
       #
       # @param server [Hash] as returned by {#try_srv}
+      # @param force_puppet_ssl [boolean] when true will call {#check_ssl_setup} and so force Puppet certs
       # @return [Net::HTTP]
-      def https(server)
+      def https(server, force_puppet_ssl=false)
         Log.debug("Creating new HTTPS connection to %s:%s" % [server[:target], server[:port]])
+
+        check_ssl_setup if force_puppet_ssl
 
         http = Net::HTTP.new(server[:target], server[:port])
 
@@ -192,6 +195,36 @@ module MCollective
       # @return [Net::HTTP::Get]
       def http_get(path)
         Net::HTTP::Get.new(path, "Accept" => "application/json")
+      end
+
+      # Extract certnames from PQL results, deactivated nodes are ignored
+      #
+      # @param results [Array]
+      # @return [Array<String>] list of certnames
+      def pql_extract_certnames(results)
+        results.reject {|n| n["deactivated"]}.map {|n| n["certname"]}.compact
+      end
+
+      # Performs a PQL query against the configured PuppetDB
+      #
+      # @param query [String] PQL Query
+      # @param only_certnames [Boolean] extract certnames from the results
+      # @return [Array] JSON parsed result set
+      # @raise [StandardError] on any failures
+      def pql_query(query, only_certnames=false)
+        Log.debug("Performing PQL query: %s" % query)
+
+        path = "/pdb/query/v4?%s" % URI.encode_www_form("query" => query)
+
+        resp, data = https(puppetdb_server, true).request(http_get(path))
+
+        raise("Failed to make request to PuppetDB: %s: %s: %s" % [resp.code, resp.message, resp.body]) unless resp.code == "200"
+
+        result = JSON.parse(data || resp.body)
+
+        Log.debug("Found %d records for query %s" % [result.size, query])
+
+        only_certnames ? pql_extract_certnames(result) : result
       end
 
       # Fetch the environment data from `/puppet/v3/environment`

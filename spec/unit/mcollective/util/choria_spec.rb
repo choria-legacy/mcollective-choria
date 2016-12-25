@@ -7,6 +7,31 @@ module MCollective
       let(:choria) { Choria.new("production", nil, false) }
       let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
+      describe "#pql_extract_certnames" do
+        it "should extract all certname fields" do
+          expect(
+            choria.pql_extract_certnames([{"certname" => "one"}, {"certname" => "two"}, {"x" => "rspec"}])
+          ).to eq(["one", "two"])
+        end
+
+        it "should ignore deacivated nodes" do
+          expect(
+            choria.pql_extract_certnames([{"certname" => "one", "deactivated" => "2016-09-12T18:57:51.700Z"}, {"certname" => "two"}])
+          ).to eq(["two"])
+        end
+      end
+
+      describe "#pql_query" do
+        it "should query and parse" do
+          choria.stubs(:facter_domain).returns("example.net")
+          choria.expects(:http_get).with("/pdb/query/v4?query=nodes+%7B+%7D").returns(get = stub)
+          choria.expects(:https).with({:target => "puppet", :port => "8081"}, true).returns(https = stub)
+          https.expects(:request).with(get).returns([stub(:code => "200"), '{"rspec":1}'])
+
+          expect(choria.pql_query("nodes { }")).to eq("rspec" => 1)
+        end
+      end
+
       describe "#has_option?" do
         it "should correctly detect available options" do
           Config.instance.stubs(:pluginconf).returns("choria.middleware_hosts" => "1.net:4222,2.net:4223")
@@ -496,6 +521,11 @@ module MCollective
           expect(h.cert.subject.to_s).to eq("/CN=rip.mcollective")
           expect(h.ca_file).to eq(choria.ca_path)
           expect(h.key.to_pem).to eq(File.read(choria.client_private_key))
+        end
+
+        it "should support forcing puppet ssl" do
+          choria.expects(:check_ssl_setup).returns(true)
+          choria.https({:target => "puppet", :port => "8140"}, true)
         end
       end
     end
