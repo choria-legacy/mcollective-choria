@@ -95,7 +95,7 @@ module MCollective
             end
           end
 
-          @playbook.validate_agents(agent_nodes)
+          @playbook.validate_agents(agent_nodes) unless agent_nodes.empty?
         end
 
         # Determines if a nodeset needs connectivity test
