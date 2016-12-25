@@ -61,7 +61,7 @@ module MCollective
                 [false, "Command failed with code %d" % [shell.status.exitstatus], options["stdout"]]
               end
             rescue
-              msg = "Could not create request for %s#%s: %s: %s" % [@agent, @action, $!.class, $!.to_s]
+              msg = "Could not run command %s: %s: %s" % [@command, $!.class, $!.to_s]
               Log.debug(msg)
               Log.debug($!.backtrace.join("\t\n"))
 
