@@ -20,6 +20,7 @@ mcollective_choria::client_files:
  - util/playbook/uses.rb
  - util/playbook/nodes
  - util/playbook/nodes/mcollective_nodes.rb
+ - util/playbook/nodes/pql_nodes.rb
  - util/playbook/inputs.rb
 mcollective_choria::common_directories:
   - util/choria

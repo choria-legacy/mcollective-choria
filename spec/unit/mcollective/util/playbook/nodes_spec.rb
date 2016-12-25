@@ -9,6 +9,15 @@ module MCollective
         let(:nodes) { Nodes.new(playbook) }
         let(:playbook_fixture) { YAML.load(File.read("spec/fixtures/playbooks/playbook.yaml")) }
 
+        describe "#resolver_for" do
+          it "should get the right resolver" do
+            expect(nodes.resolver_for("mcollective")).to be_a(Nodes::McollectiveNodes)
+            expect(nodes.resolver_for("pql")).to be_a(Nodes::PqlNodes)
+
+            expect { nodes.resolver_for("rspec") }.to raise_error("Cannot find a handler for Node Set type rspec")
+          end
+        end
+
         describe "#from_hash" do
           it "should set up resolvers for each node set" do
             resolver = stub

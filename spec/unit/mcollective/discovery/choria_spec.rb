@@ -15,17 +15,6 @@ module MCollective
       end
     end
 
-    describe "#query" do
-      it "should query and parse" do
-        discovery.choria.stubs(:facter_domain).returns("example.net")
-        discovery.choria.expects(:check_ssl_setup)
-        discovery.expects(:http_get).with("/pdb/query/v4?query=nodes+%7B+%7D").returns(get = stub)
-        discovery.https.expects(:request).with(get).returns([stub(:code => "200"), '{"rspec":1}'])
-
-        expect(discovery.query("nodes { }")).to eq("rspec" => 1)
-      end
-    end
-
     describe "#numeric?" do
       it "should correctly detect numbers" do
         expect(discovery.numeric?("100")).to be_truthy
@@ -39,20 +28,6 @@ module MCollective
         expect(
           discovery.node_search_string(["rspec1", "rspec2"])
         ).to eq("nodes[certname, deactivated] { (rspec1) and (rspec2) }")
-      end
-    end
-
-    describe "#extract_certs" do
-      it "should extract all certname fields" do
-        expect(
-          discovery.extract_certs([{"certname" => "one"}, {"certname" => "two"}, {"x" => "rspec"}])
-        ).to eq(["one", "two"])
-      end
-
-      it "should ignore deacivated nodes" do
-        expect(
-          discovery.extract_certs([{"certname" => "one", "deactivated" => "2016-09-12T18:57:51.700Z"}, {"certname" => "two"}])
-        ).to eq(["two"])
       end
     end
 

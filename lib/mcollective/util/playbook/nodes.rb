@@ -1,4 +1,5 @@
 require_relative "nodes/mcollective_nodes"
+require_relative "nodes/pql_nodes"
 
 module MCollective
   module Util
@@ -169,7 +170,11 @@ module MCollective
         #
         # @node only MCollective nodes supported right now
         def resolver_for(type)
-          Nodes::McollectiveNodes.new
+          klass_name = "%sNodes" % type.capitalize
+
+          Nodes.const_get(klass_name).new
+        rescue NameError
+          raise("Cannot find a handler for Node Set type %s" % type)
         end
 
         def from_hash(data)
