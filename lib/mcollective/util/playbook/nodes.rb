@@ -1,5 +1,6 @@
 require_relative "nodes/mcollective_nodes"
 require_relative "nodes/pql_nodes"
+require_relative "nodes/yaml_nodes"
 
 module MCollective
   module Util

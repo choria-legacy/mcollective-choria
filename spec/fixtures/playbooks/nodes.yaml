@@ -1,0 +1,6 @@
+uk:
+  - node1.example.net
+  - node2.example.net
+  - node3.example.net
+non_array: foo
+empty_array: []
