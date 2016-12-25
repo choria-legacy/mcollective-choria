@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "$ref": "definitions.json#/generic_name"
+    },
+    "version": {
+      "$ref": "definitions.json#/semver"
+    },
+    "author": {
+      "type": "string"
+    },
+    "description": {
+      "$ref": "definitions.json#/generic_description"
+    },
+    "tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "definitions.json#/generic_name"
+      }
+    },
+    "on_fail": {
+      "type": "string",
+      "enum": ["fail", "continue"],
+      "default": "fail"
+    },
+    "loglevel": {
+      "type": "string",
+      "enum": ["debug", "info", "warn"],
+      "default": "info"
+    },
+    "run_as": {
+      "$ref": "definitions.json#/mcollective_username"
+    },
+    "uses": {
+      "$ref": "uses.json#"
+    },
+    "inputs": {
+      "$ref": "inputs.json#"
+    },
+    "nodes": {
+      "$ref": "nodes.json#"
+    },
+    "tasks": {
+      "$ref": "tasks.json#"
+    },
+    "hooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pre_task": {
+          "$ref": "tasks.json#"
+        },
+        "post_task": {
+          "$ref": "tasks.json#"
+        },
+        "on_fail": {
+          "$ref": "tasks.json#"
+        },
+        "on_success": {
+          "$ref": "tasks.json#"
+        },
+        "pre_book": {
+          "$ref": "tasks.json#"
+        },
+        "post_book": {
+          "$ref": "tasks.json#"
+        }
+      }
+    }
+  },
+  "required": [
+    "name",
+    "version",
+    "author",
+    "description",
+    "run_as",
+    "uses",
+    "nodes",
+    "tasks"
+  ]
+}

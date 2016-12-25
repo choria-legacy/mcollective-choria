@@ -14,6 +14,7 @@ group :development, :test do
   gem "rake"
   gem "rspec"
   gem "rubocop", "~> 0.46.0"
+  gem "semantic_puppet"
   gem "webmock"
   gem "yard"
 end

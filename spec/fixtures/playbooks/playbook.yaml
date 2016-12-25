@@ -1,0 +1,82 @@
+---
+name: test_playbook
+version: 1.1.2
+author: R.I.Pienaar <rip@devco.net>
+description: test description
+run_as: deployer.bob
+loglevel: debug
+
+tags:
+  - test
+
+uses:
+  rpcutil: "~1.0.0"
+  puppet: "~1.11.0"
+
+inputs:
+  cluster:
+    description: Cluster to deploy
+    type: String
+    required: false
+    validation: ":string"
+    default: alpha
+
+  two:
+    description: input 2 description
+    type: String
+    validation: ":string"
+
+nodes:
+  load_balancers:
+    type: mcollective
+    discovery_method: choria
+    agents:
+      - puppet
+    at_least: 1
+    limit: 1
+    when_empty: No load balancers found with class haproxy
+    test: true
+    uses:
+      - puppet
+      - rpcutil
+
+  web_servers:
+    type: mcollective
+    discovery_method: choria
+    agents:
+      - apache
+    at_least: 2
+    test: true
+    uses:
+      - puppet
+      - rpcutil
+
+tasks:
+  - mcollective:
+      description: Disable Puppet on load balancers
+      nodes: "{{{nodes.load_balancers}}}"
+      action: puppet.disable
+      fail_ok: false
+      tries: 2
+      try_sleep: 20
+      properties:
+        :message: hello world
+      post:
+        - summarize
+
+hooks:
+  on_success:
+    - mcollective:
+        description: Enable Puppet on load balancers
+        nodes: "{{{nodes.load_balancers}}}"
+        action: puppet.enable
+
+  pre_task:
+    - mcollective:
+        description: RPC Ping load balancers
+        nodes: "{{{nodes.load_balancers}}}"
+        action: rpcutil.ping
+        fail_ok: true
+        tries: 1
+        try_sleep: 30
+        silent: true

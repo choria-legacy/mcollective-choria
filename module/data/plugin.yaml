@@ -3,10 +3,24 @@ mcollective_choria::config_name: choria
 mcollective_choria::gem_dependencies:
   "nats-pure": "0.1.2"
 
+mcollective_choria::client_directories:
+ - util/playbook
 mcollective_choria::client_files:
  - discovery/choria.ddl
  - discovery/choria.rb
  - application/choria.rb
+ - application/playbook.rb
+ - util/playbook.rb
+ - util/playbook/playbook_logger.rb
+ - util/playbook/tasks
+ - util/playbook/tasks/mcollective_task.rb
+ - util/playbook/tasks.rb
+ - util/playbook/nodes.rb
+ - util/playbook/template_util.rb
+ - util/playbook/uses.rb
+ - util/playbook/nodes
+ - util/playbook/nodes/mcollective_nodes.rb
+ - util/playbook/inputs.rb
 mcollective_choria::common_directories:
   - util/choria
 mcollective_choria::common_files:
