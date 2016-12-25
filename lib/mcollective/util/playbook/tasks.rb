@@ -1,4 +1,5 @@
 require_relative "tasks/mcollective_task"
+require_relative "tasks/shell_task"
 
 module MCollective
   module Util
@@ -29,7 +30,11 @@ module MCollective
 
         # @todo support types of runner
         def runner_for(type)
-          Tasks::McollectiveTask.new
+          klass_name = "%sTask" % type.capitalize
+
+          Tasks.const_get(klass_name).new
+        rescue NameError
+          raise("Cannot find a handler for Task type %s" % type)
         end
 
         # Runs a specific task
