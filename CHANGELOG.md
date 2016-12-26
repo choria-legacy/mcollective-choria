@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/12/26|102   |Support arguments to commands ran by the shell node set in playbooks                                     |
 |2016/12/26|      |Release 0.0.12                                                                                           |
 |2016/12/26|104   |Support posting messages to slack as a task step                                                         |
 |2016/12/25|95    |Support running shell commands as task steps                                                             |

@@ -133,7 +133,7 @@ module MCollective
             seq = sequence(:nodes)
             resolver = nodes.nodes["load_balancers"][:resolver]
             resolver.expects(:prepare).in_sequence(seq)
-            resolver.expects(:discover).in_sequence(seq).returns(["rspec1", "rspec2"])
+            resolver.expects(:discover).in_sequence(seq).returns(["rspec1", "rspec2", "rspec1"])
 
             nodes.resolve_nodes("load_balancers")
 

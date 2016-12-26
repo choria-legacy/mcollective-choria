@@ -50,7 +50,15 @@ module MCollective
           describe "#data" do
             it "should detect corrupt data" do
               nodes.from_hash("script" => corrupt_fixture)
-              expect { nodes.data }.to raise_error("node1 example.net is not a valid certname")
+              expect { nodes.data }.to raise_error("node1 example.net is not a valid hostname")
+            end
+
+            it "should only accept outputs that exit with status 0" do
+              nodes.from_hash("script" => "echo 'example.net';exit 0")
+              expect(nodes.data).to eq(["example.net"])
+
+              nodes.from_hash("script" => "echo 'example.net';exit 1")
+              expect { nodes.data }.to raise_error("Could not disocver nodes via shell method, command exited with code 1")
             end
           end
 
