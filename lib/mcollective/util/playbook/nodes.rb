@@ -79,7 +79,7 @@ module MCollective
         def resolve_nodes(node_set)
           node_props = @nodes[node_set]
           node_props[:resolver].prepare
-          node_props[:discovered] = node_props[:resolver].discover
+          node_props[:discovered] = node_props[:resolver].discover.uniq
         end
 
         # Checks if the agents on the nodes matches the desired versions
