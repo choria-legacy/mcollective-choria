@@ -1,5 +1,12 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/12/26|      |Release 0.0.12                                                                                           |
+|2016/12/26|104   |Support posting messages to slack as a task step                                                         |
+|2016/12/25|95    |Support running shell commands as task steps                                                             |
+|2016/12/25|94    |Support YAML files as node set source in Playbooks                                                       |
+|2016/12/25|93    |Support shell commands as node set source in Playbooks                                                   |
+|2016/12/25|92    |Support PQL queries as node set source in Playbooks                                                      |
+|2016/12/25|32    |Add a Playbook system                                                                                    |
 |2016/12/16|      |Release 0.0.11                                                                                           |
 |2016/12/16|83    |Fix a bug introduced during #55 where Puppet was not correctly initialized                               |
 |2016/12/13|      |Release 0.0.10                                                                                           |
