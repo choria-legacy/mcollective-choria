@@ -17,6 +17,7 @@ module MCollective
 
           def from_hash(data)
             @script = data["script"]
+            @_data = nil
 
             self
           end
@@ -28,10 +29,17 @@ module MCollective
           def data
             return @_data if @_data
 
-            @_data = `#{@script}`.lines.map do |line|
+            shell = Shell.new(@script, "timeout" => 10)
+            shell.runcommand
+
+            exitcode = shell.status.exitstatus
+
+            raise("Could not disocver nodes via shell method, command exited with code %d" % [exitcode]) unless exitcode == 0
+
+            @_data = shell.stdout.lines.map do |line|
               line.chomp!
 
-              raise("%s is not a valid certname" % line) unless valid_hostname?(line)
+              raise("%s is not a valid hostname" % line) unless valid_hostname?(line)
 
               line
             end
