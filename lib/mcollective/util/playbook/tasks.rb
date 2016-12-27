@@ -1,4 +1,5 @@
 require_relative "tasks/mcollective_task"
+require_relative "tasks/mcollective_assert_task"
 require_relative "tasks/shell_task"
 require_relative "tasks/slack_task"
 
@@ -47,7 +48,7 @@ module MCollective
           properties = task[:properties]
           success = false
 
-          Log.info("About to run task: %s" % properties["description"])
+          Log.info("About to run task: %s" % properties["description"]) if properties["description"]
 
           if hooks && !run_set("pre_task")
             Log.warn("Failing task because a critical pre_task hook failed")

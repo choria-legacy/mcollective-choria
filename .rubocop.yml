@@ -137,3 +137,6 @@ Metrics/BlockLength:
 
 Performance/Casecmp:
   Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
