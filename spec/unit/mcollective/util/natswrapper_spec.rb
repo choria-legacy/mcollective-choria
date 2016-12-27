@@ -1,5 +1,4 @@
 require "spec_helper"
-
 require "mcollective/util/natswrapper"
 
 module MCollective
