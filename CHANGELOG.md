@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/12/28|96    |Add a webhook task used to GET and POST to other systems                                                 |
+|2016/12/27|109   |Add a mcollective_assert task used to check or wait for certain states                                   |
 |2016/12/26|102   |Support arguments to commands ran by the shell node set in playbooks                                     |
 |2016/12/26|      |Release 0.0.12                                                                                           |
 |2016/12/26|104   |Support posting messages to slack as a task step                                                         |

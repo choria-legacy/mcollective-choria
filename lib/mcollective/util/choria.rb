@@ -189,12 +189,14 @@ module MCollective
         http
       end
 
-      # Creates a JSON accepting Net::HTTP::Get instance for a path
+      # Creates a Net::HTTP::Get instance for a path that defaults to accepting JSON
       #
       # @param path [String]
       # @return [Net::HTTP::Get]
-      def http_get(path)
-        Net::HTTP::Get.new(path, "Accept" => "application/json")
+      def http_get(path, headers=nil)
+        headers ||= {"Accept" => "application/json"}
+
+        Net::HTTP::Get.new(path, headers)
       end
 
       # Extract certnames from PQL results, deactivated nodes are ignored
@@ -588,7 +590,7 @@ module MCollective
 
         server = puppetca_server
 
-        req = Net::HTTP::Get.new("/puppet-ca/v1/certificate/ca", "Content-Type" => "text/plain")
+        req = http_get("/puppet-ca/v1/certificate/ca", "Content-Type" => "text/plain")
         resp, _ = https(server).request(req)
 
         if resp.code == "200"
@@ -630,7 +632,7 @@ module MCollective
       def attempt_fetch_cert
         return true if has_client_public_cert?
 
-        req = Net::HTTP::Get.new("/puppet-ca/v1/certificate/%s" % certname, "Accept" => "text/plain")
+        req = http_get("/puppet-ca/v1/certificate/%s" % certname, "Accept" => "text/plain")
         resp, _ = https(puppetca_server).request(req)
 
         if resp.code == "200"
