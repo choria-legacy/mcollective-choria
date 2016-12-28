@@ -2,6 +2,7 @@ require_relative "tasks/mcollective_task"
 require_relative "tasks/mcollective_assert_task"
 require_relative "tasks/shell_task"
 require_relative "tasks/slack_task"
+require_relative "tasks/webhook_task"
 
 module MCollective
   module Util

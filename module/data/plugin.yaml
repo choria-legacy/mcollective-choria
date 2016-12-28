@@ -17,6 +17,7 @@ mcollective_choria::client_files:
  - util/playbook/tasks/shell_task.rb
  - util/playbook/tasks/slack_task.rb
  - util/playbook/tasks/mcollective_assert_task.rb
+ - util/playbook/tasks/webhook_task.rb
  - util/playbook/tasks.rb
  - util/playbook/nodes.rb
  - util/playbook/template_util.rb
