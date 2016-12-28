@@ -9,6 +9,9 @@ module MCollective
           let(:task) { WebhookTask.new }
 
           before(:each) do
+            uuid = MCollective::SSL.uuid("rspec")
+            MCollective::SSL.stubs(:uuid).returns(uuid)
+
             task.from_hash(
               "headers" => {"X-Header" => "x_value"},
               "data" => {"rspec1" => 1, "rspec2" => 2},
@@ -23,7 +26,13 @@ module MCollective
               choria.expects(:https).with(:target => "localhost", :port => 80).returns(http = stub)
               http.expects(:use_ssl=).with(false)
               http.expects(:request).returns(stub(:code => "200", :body => "ok"))
-              expect(task.run).to eq([true, "Successfully sent POST request to webhook http://localhost/rspec?foo=bar", ["ok"]])
+              expect(task.run).to eq(
+                [
+                  true,
+                  "Successfully sent POST request to webhook http://localhost/rspec?foo=bar with id 479d1982-120a-5ba8-8664-1f16a6504371",
+                  ["ok"]
+                ]
+              )
             end
 
             it "should handle !200 as failure" do
@@ -31,7 +40,13 @@ module MCollective
               choria.expects(:https).with(:target => "localhost", :port => 80).returns(http = stub)
               http.expects(:use_ssl=).with(false)
               http.expects(:request).returns(stub(:code => "404", :body => "not found"))
-              expect(task.run).to eq([false, "Failed to send POST request to webhook http://localhost/rspec?foo=bar: 404: not found", ["not found"]])
+              expect(task.run).to eq(
+                [
+                  false,
+                  "Failed to send POST request to webhook http://localhost/rspec?foo=bar with id 479d1982-120a-5ba8-8664-1f16a6504371: 404: not found",
+                  ["not found"]
+                ]
+              )
             end
           end
 
@@ -56,12 +71,15 @@ module MCollective
             it "should create the right request" do
               uri = task.create_uri
               post = stub(:https)
+              uuid = MCollective::SSL.uuid("rspec")
+              MCollective::SSL.stubs(:uuid).returns(uuid)
 
               Net::HTTP::Post.expects(:new).with(
                 uri.request_uri,
                 "User-Agent" => "Choria Playbooks http://choria.io",
                 "X-Header" => "x_value",
-                "Content-Type" => "application/json"
+                "Content-Type" => "application/json",
+                "X-Choria-Request-ID" => "479d1982-120a-5ba8-8664-1f16a6504371"
               ).returns(post)
               post.expects(:body=).with({"rspec1" => 1, "rspec2" => 2}.to_json)
 
@@ -74,7 +92,12 @@ module MCollective
               uri = task.create_uri
               get = stub(:https)
 
-              Net::HTTP::Get.expects(:new).with(uri.request_uri, "User-Agent" => "Choria Playbooks http://choria.io", "X-Header" => "x_value").returns(get)
+              Net::HTTP::Get.expects(:new).with(
+                uri.request_uri,
+                "User-Agent" => "Choria Playbooks http://choria.io",
+                "X-Header" => "x_value",
+                "X-Choria-Request-ID" => "479d1982-120a-5ba8-8664-1f16a6504371"
+              ).returns(get)
 
               expect(task.http_get_request(uri)).to be(get)
             end

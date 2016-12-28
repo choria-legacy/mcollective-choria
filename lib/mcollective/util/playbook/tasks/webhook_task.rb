@@ -18,6 +18,7 @@ module MCollective
             @data = data.fetch("data", {})
             @uri = data["uri"]
             @method = data.fetch("method", "POST").upcase
+            @request_id = SSL.uuid
 
             self
           end
@@ -40,7 +41,8 @@ module MCollective
 
           def http_get_request(uri)
             headers = {
-              "User-Agent" => USER_AGENT
+              "User-Agent" => USER_AGENT,
+              "X-Choria-Request-ID" => @request_id
             }.merge(@headers)
 
             Net::HTTP::Get.new(uri.request_uri, headers)
@@ -49,7 +51,8 @@ module MCollective
           def http_post_request(uri)
             headers = {
               "Content-Type" => "application/json",
-              "User-Agent" => USER_AGENT
+              "User-Agent" => USER_AGENT,
+              "X-Choria-Request-ID" => @request_id
             }.merge(@headers)
 
             req = Net::HTTP::Post.new(uri.request_uri, headers)
@@ -78,9 +81,9 @@ module MCollective
             Log.debug("%s request to %s returned code %s with body: %s" % [@method, uri.to_s, resp.code, resp.body])
 
             if resp.code == "200"
-              [true, "Successfully sent %s request to webhook %s" % [@method, @uri], [resp.body]]
+              [true, "Successfully sent %s request to webhook %s with id %s" % [@method, @uri, @request_id], [resp.body]]
             else
-              [false, "Failed to send %s request to webhook %s: %s: %s" % [@method, @uri, resp.code, resp.body], [resp.body]]
+              [false, "Failed to send %s request to webhook %s with id %s: %s: %s" % [@method, @uri, @request_id, resp.code, resp.body], [resp.body]]
             end
           rescue
             msg = "Could not send %s to webhook %s: %s: %s" % [@method, @uri, $!.class, $!.to_s]
