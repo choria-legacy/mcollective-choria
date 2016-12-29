@@ -2,6 +2,7 @@ require_relative "nodes/mcollective_nodes"
 require_relative "nodes/pql_nodes"
 require_relative "nodes/yaml_nodes"
 require_relative "nodes/shell_nodes"
+require_relative "nodes/terraform_nodes"
 
 module MCollective
   module Util
@@ -23,14 +24,14 @@ module MCollective
 
         # Nodes belonging to a specific node set
         #
-        # @param nodes [String] node set name
+        # @param nodeset [String] node set name
         # @return [Array<String>]
         # @raise [StandardError] when node set is unknown
-        def [](nodes)
-          if include?(nodes)
-            @nodes[nodes][:discovered]
+        def [](nodeset)
+          if include?(nodeset)
+            @nodes[nodeset][:discovered]
           else
-            raise("Unknown node set %s" % nodes)
+            raise("Unknown node set %s" % nodeset)
           end
         end
 
@@ -75,7 +76,7 @@ module MCollective
 
         # Resolve the node list using the resolver class
         #
-        # @param nodes [String] node set name
+        # @param node_set [String] node set name
         def resolve_nodes(node_set)
           node_props = @nodes[node_set]
           node_props[:resolver].prepare
@@ -170,7 +171,7 @@ module MCollective
 
         # Retrieves a new instance of the resolver for a certain type of discovery
         #
-        # @node only MCollective nodes supported right now
+        # @param type [String] finds classes called *Nodes::TypeNodes* based on this type
         def resolver_for(type)
           klass_name = "%sNodes" % type.capitalize
 

@@ -413,7 +413,7 @@ module MCollective
       # The directory where SSL related files live
       #
       # This is configurable using choria.ssldir which should be a
-      # path expandable using {File.expand_path}
+      # path expandable using File.expand_path
       #
       # On Windows or when running as root Puppet settings will be consulted
       # but when running as a normal user it will default to the AIO path
@@ -488,6 +488,24 @@ module MCollective
         File.exist?(csr_path)
       end
 
+      # Searches the PATH for an executable command
+      #
+      # @param command [String] a command to search for
+      # @return [String,nil] the path to the command or nil
+      def which(command)
+        exts = Array(env_fetch("PATHEXT", "").split(";"))
+        exts << "" if exts.empty?
+
+        env_fetch("PATH", "").split(File::PATH_SEPARATOR).each do |path|
+          exts.each do |ext|
+            exe = File.join(path, "%s%s" % [command, ext])
+            return exe if File.executable?(exe) && !File.directory?(exe)
+          end
+        end
+
+        nil
+      end
+
       # Searches the machine for a working facter
       #
       # It checks AIO path first and then attempts to find it in PATH and supports both
@@ -497,17 +515,7 @@ module MCollective
       def facter_cmd
         return "/opt/puppetlabs/bin/facter" if File.executable?("/opt/puppetlabs/bin/facter")
 
-        exts = Array(env_fetch("PATHEXT", "").split(";"))
-        exts << "" if exts.empty?
-
-        env_fetch("PATH", "").split(File::PATH_SEPARATOR).each do |path|
-          exts.each do |ext|
-            exe = File.join(path, "%s%s" % ["facter", ext])
-            return exe if File.executable?(exe) && !File.directory?(exe)
-          end
-        end
-
-        nil
+        which("facter")
       end
 
       # Creates any missing SSL directories
