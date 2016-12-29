@@ -64,12 +64,13 @@ module MCollective
 
       describe "#try_srv" do
         it "should query for the correct names" do
-          choria.expects(:query_srv_records).with(["rspec1", "rspec2"]).returns([:target => "rspec.host", :port => "8080"])
-          expect(choria.try_srv(["rspec1", "rspec2"], "h", "1")).to eq(:target => "rspec.host", :port => "8080")
+          choria.expects(:query_srv_records).with(["rspec1"]).returns([:target => "rspec.host1", :port => "8081"])
+          choria.expects(:query_srv_records).with(["rspec2"]).returns([:target => "rspec.host2", :port => "8082"])
+          expect(choria.try_srv(["rspec1", "rspec2"], "h", "1")).to eq(:target => "rspec.host1", :port => "8081")
         end
 
         it "should support defaults" do
-          choria.expects(:query_srv_records).with(["rspec1", "rspec2"]).returns([])
+          choria.expects(:query_srv_records).returns([]).twice
           expect(choria.try_srv(["rspec1", "rspec2"], "rspec.host", "8080")).to eq(:target => "rspec.host", :port => "8080")
         end
       end
