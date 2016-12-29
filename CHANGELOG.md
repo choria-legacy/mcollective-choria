@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/12/29|118   |Support UUID and time stamps in templates                                                                |
 |2016/12/29|      |Release 0.0.13                                                                                           |
 |2016/12/28|113   |Add a terraform node set                                                                                 |
 |2016/12/28|96    |Add a webhook task used to GET and POST to other systems                                                 |
