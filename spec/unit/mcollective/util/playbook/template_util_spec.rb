@@ -21,25 +21,44 @@ module MCollective
 
           it "should lookup inputs, metadata and nodes and preserve data type" do
             tu.expects(:__template_resolve).with("input", "x").returns(1)
+            tu.expects(:__template_resolve).with("inputs", "y").returns(1)
             tu.expects(:__template_resolve).with("nodes", "x").returns(["value1", "value2"])
             tu.expects(:__template_resolve).with("metadata", "x").returns(2)
 
             expect(tu.__template_process_string("{{{ input.x }}}")).to eq(1)
+            expect(tu.__template_process_string("{{{ inputs.y }}}")).to eq(1)
             expect(tu.__template_process_string("{{{ nodes.x}}}")).to eq(["value1", "value2"])
             expect(tu.__template_process_string("{{{metadata.x}}}")).to eq(2)
           end
 
+          it "should support dates" do
+            tu.expects(:__template_resolve).with("date", "%Y%m%dT%H%M%S%z").returns("20161229T134508+0100")
+            expect(tu.__template_process_string("{{{date(%Y%m%dT%H%M%S%z)}}}")).to eq("20161229T134508+0100")
+
+            tu.expects(:__template_resolve).with("utc_date", "%Y%m%dT%H%M%S%z").returns("20161229T124726+0000")
+            expect(tu.__template_process_string("{{{ utc_date('%Y%m%dT%H%M%S%z') }}}")).to eq("20161229T124726+0000")
+          end
+
+          it "should support uuids" do
+            tu.expects(:__template_resolve).with("uuid", "").returns(SSL.uuid("rspec"))
+            expect(tu.__template_process_string("{{{uuid}}}")).to eq("479d1982-120a-5ba8-8664-1f16a6504371")
+          end
+
           it "should process strings until just the template part is found" do
             tu.expects(:__template_resolve).with("nodes", "x").returns(["value1", "value2"])
+            tu.expects(:__template_resolve).with("input", "x").returns("value1" => "value2")
+            tu.expects(:__template_resolve).with("uuid", "").returns("479d1982-120a-5ba8-8664-1f16a6504371")
 
-            expect(tu.__template_process_string("nodes: {{{ nodes.x }}}")).to eq("nodes: [\"value1\", \"value2\"]")
+            expect(tu.__template_process_string("nodes: {{{ nodes.x }}} input: {{{ input.x }}} uuid: {{{ uuid }}}"))
+              .to eq("nodes: value1, value2 input: {\"value1\":\"value2\"} uuid: 479d1982-120a-5ba8-8664-1f16a6504371")
           end
         end
 
         describe "#__template_resolve" do
           it "should support inputs" do
-            playbook.expects(:input_value).with("rspec").returns("value")
+            playbook.expects(:input_value).with("rspec").returns("value").twice
             expect(tu.__template_resolve("input", "rspec")).to eq("value")
+            expect(tu.__template_resolve("inputs", "rspec")).to eq("value")
           end
 
           it "should support nodes" do
@@ -54,6 +73,23 @@ module MCollective
 
           it "should fail for unknown types of data" do
             expect { tu.__template_resolve("rspec", "rspec").to eq("value") }.to raise_error("Do not know how to process data of type rspec")
+          end
+
+          it "should support dates" do
+            now = Time.now
+            Time.expects(:now).returns(now)
+            expect(tu.__template_resolve("date", "%Y%m%dT%H%M%S%z")).to eq(now.strftime("%Y%m%dT%H%M%S%z"))
+          end
+
+          it "should support utc dates" do
+            now = Time.now
+            Time.expects(:now).returns(now)
+            expect(tu.__template_resolve("utc_date", "%Y%m%dT%H%M%S%z")).to eq(now.utc.strftime("%Y%m%dT%H%M%S%z"))
+          end
+
+          it "should support uuids" do
+            SSL.expects(:uuid).returns("479d1982-120a-5ba8-8664-1f16a6504371")
+            expect(tu.__template_resolve("uuid", "")).to eq("479d1982-120a-5ba8-8664-1f16a6504371")
           end
         end
 

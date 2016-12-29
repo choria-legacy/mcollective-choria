@@ -33,13 +33,21 @@ module MCollective
         end
 
         def __template_resolve(type, item)
+          Log.debug("Resolving template data for %s.%s" % [type, item])
+
           case type
-          when "input"
+          when "input", "inputs"
             @playbook.input_value(item)
           when "nodes"
             @playbook.discovered_nodes(item)
           when "metadata"
             @playbook.metadata_item(item)
+          when "date"
+            Time.now.strftime(item)
+          when "utc_date"
+            Time.now.utc.strftime(item)
+          when "uuid"
+            SSL.uuid
           else
             raise("Do not know how to process data of type %s" % type)
           end
@@ -48,15 +56,32 @@ module MCollective
         def __template_process_string(string)
           raise("Playbook is not accessible") unless @playbook
 
-          part_regex = '{{{\s*(?<type>input|metadata|nodes)\.(?<name>[a-zA-Z0-9\_\-]+)\s*}}}'
+          front = '{{{\s*'
+          back = '\s*}}}'
 
-          if req = string.match(/^#{part_regex}$/)
-            Log.debug("Resolving template data for %s.%s" % [req["type"], req["name"]])
+          data_regex = Regexp.new("%s%s%s" % [front, '(?<type>input(s*)|metadata|nodes)\.(?<item>[a-zA-Z0-9\_\-]+)', back])
+          date_regex = Regexp.new("%s%s%s" % [front, '(?<type>date|utc_date)\(\s*["\']*(?<format>.+?)["\']*\s*\)', back])
+          uuid_regex = Regexp.new("%s%s%s" % [front, "uuid", back])
 
-            __template_resolve(req["type"], req["name"])
+          combined_regex = Regexp.union(data_regex, date_regex, uuid_regex)
+
+          if req = string.match(/^#{data_regex}$/)
+            __template_resolve(req["type"], req["item"])
+          elsif req = string.match(/^#{date_regex}$/)
+            __template_resolve(req["type"], req["format"])
+          elsif string =~ /^#{uuid_regex}$/
+            __template_resolve("uuid", "")
           else
-            string.gsub(/#{part_regex}/) do |part|
-              __template_process_string(part)
+            string.gsub(/#{combined_regex}/) do |part|
+              value = __template_process_string(part)
+
+              if value.is_a?(Array)
+                value.join(", ")
+              elsif value.is_a?(Hash)
+                value.to_json
+              else
+                value
+              end
             end
           end
         end
