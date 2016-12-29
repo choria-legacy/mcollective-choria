@@ -16,7 +16,7 @@ module MCollective
         #
         # When the catalog is empty this is a noop
         #
-        # @raize [StandardError] on invalid catalog
+        # @raise [StandardError] on invalid catalog
         def validate_site_catalog!
           return if site_nodes.empty?
 

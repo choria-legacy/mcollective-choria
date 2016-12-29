@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2016/12/28|113   |Add a terraform node set                                                                                 |
 |2016/12/28|96    |Add a webhook task used to GET and POST to other systems                                                 |
 |2016/12/27|109   |Add a mcollective_assert task used to check or wait for certain states                                   |
 |2016/12/26|102   |Support arguments to commands ran by the shell node set in playbooks                                     |
