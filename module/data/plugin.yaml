@@ -27,6 +27,7 @@ mcollective_choria::client_files:
  - util/playbook/nodes/pql_nodes.rb
  - util/playbook/nodes/yaml_nodes.rb
  - util/playbook/nodes/shell_nodes.rb
+ - util/playbook/nodes/terraform_nodes.rb
  - util/playbook/inputs.rb
 mcollective_choria::common_directories:
   - util/choria

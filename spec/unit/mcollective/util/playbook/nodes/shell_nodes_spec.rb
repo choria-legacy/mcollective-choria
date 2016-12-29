@@ -40,7 +40,7 @@ module MCollective
             end
           end
 
-          describe "#valid_certname?" do
+          describe "#valid_hostname?" do
             it "should correctly detect certnames" do
               expect(nodes.valid_hostname?("example.net")).to be_truthy
               expect(nodes.valid_hostname?("node1 example.net")).to be_falsey

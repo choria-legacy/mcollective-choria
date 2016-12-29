@@ -18,7 +18,7 @@ module MCollective
         # Retrieves the agent inventory for a set of nodes
         #
         # @param nodes [Array<String>] list of nodes to retrieve it for
-        # @param [Boolean, String, Array] success, message and inventory results
+        # @return [Boolean, String, Array] success, message and inventory results
         def agent_inventory(nodes)
           rpc = Tasks::McollectiveTask.new
           rpc.from_hash(
@@ -33,7 +33,7 @@ module MCollective
         # Validates agent versions on nodes
         #
         # @param agents [Hash] a hash of agent names and nodes that uses that agent
-        # @raize [StandardError] on failure
+        # @raise [StandardError] on failure
         def validate_agents(agents)
           nodes = agents.map {|_, agent_nodes| agent_nodes}.flatten.uniq
 

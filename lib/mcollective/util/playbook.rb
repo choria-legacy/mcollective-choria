@@ -83,7 +83,6 @@ module MCollective
       # Runs the playbook
       #
       # @param inputs [Hash] input data
-      # @param verbose [Boolean] to log verbosely
       # @return [Boolean]
       def run!(inputs)
         start_time = Time.now
