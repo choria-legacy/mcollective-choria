@@ -1,0 +1,10 @@
+{
+    "sensitive": false,
+    "type": "list",
+    "value": [
+        "ec2-52-57-66-150.eu-central-1.compute.amazonaws.com",
+        "ec2-52-57-74-75.eu-central-1.compute.amazonaws.com",
+        "ec2-52-29-231-0.eu-central-1.compute.amazonaws.com",
+        "ec2-52-57-73-4.eu-central-1.compute.amazonaws.com"
+    ]
+}
