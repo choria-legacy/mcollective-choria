@@ -300,6 +300,11 @@ module MCollective
 
       # Attempts to look up some SRV records falling back to defaults
       #
+      # When given a array of multiple names it will try each name individually
+      # and check if it resolved to a answer, if it did it will use that one.
+      # Else it will move to the next.  In this way you can prioritise one
+      # record over another like puppetdb over puppet and faill back to defaults.
+      #
       # This is a pretty naive implementation that right now just returns
       # the first result, the correct behaviour needs to be determined but
       # for now this gets us going with easily iterable code.
@@ -308,12 +313,16 @@ module MCollective
       # be quite easy to support multiple results with fall back etc, but
       # I am not really sure what would be the best behaviour here
       #
-      # @param names [Array<String>] list of names to lookup without the domain
+      # @param names [Array<String>, String] list of names to lookup without the domain
       # @param default_target [String] default for the returned :target
       # @param default_port [String] default for the returned :port
       # @return [Hash] with :target and :port
       def try_srv(names, default_target, default_port)
-        srv_answers = query_srv_records(names)
+        srv_answers = Array(names).map do |name|
+          answer = query_srv_records([name])
+
+          answer.empty? ? nil : answer
+        end.compact.flatten
 
         if srv_answers.empty?
           {:target => default_target, :port => default_port}
