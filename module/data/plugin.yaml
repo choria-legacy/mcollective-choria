@@ -1,7 +1,7 @@
 ---
 mcollective_choria::config_name: choria
 mcollective_choria::gem_dependencies:
-  "nats-pure": "0.1.2"
+  "nats-pure": "0.2.0"
 
 mcollective_choria::client_directories:
  - util/playbook
@@ -14,9 +14,9 @@ mcollective_choria::client_files:
  - util/playbook/playbook_logger.rb
  - util/playbook/tasks
  - util/playbook/tasks/mcollective_task.rb
+ - util/playbook/tasks/mcollective_assert_task.rb
  - util/playbook/tasks/shell_task.rb
  - util/playbook/tasks/slack_task.rb
- - util/playbook/tasks/mcollective_assert_task.rb
  - util/playbook/tasks/webhook_task.rb
  - util/playbook/tasks.rb
  - util/playbook/nodes.rb
