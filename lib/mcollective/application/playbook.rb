@@ -8,7 +8,7 @@ module MCollective
 
   The ACTION can be one of the following:
 
-    show      - preview the playbook
+    show      - preview the playbook in parsed YAML format
     run       - run the playbook as your local user
 
   The PLAYBOOK is a YAML file describing the tasks
@@ -104,7 +104,7 @@ module MCollective
       def show_command
         disconnect
 
-        pp YAML.load_file(configuration[:__playbook_file])
+        puts YAML.dump(YAML.load_file(configuration[:__playbook_file]))
       end
 
       def main
