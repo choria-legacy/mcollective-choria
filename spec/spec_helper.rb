@@ -1,8 +1,13 @@
 require "rubygems"
 
 if ENV["CI"] == "true"
+  require "simplecov"
   require "coveralls"
-  Coveralls.wear!
+
+  SimpleCov.formatter = Coveralls::SimpleCov::Formatter
+  SimpleCov.start do
+    add_filter "spec"
+  end
 end
 
 require "rspec"
