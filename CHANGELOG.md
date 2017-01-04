@@ -1,6 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
-|2016/01/03|      |Release 0.0.15                                                                                           |
+|2017/01/04|127   |Allow SRV record support to be disabled                                                                  |
+|2017/01/03|      |Release 0.0.15                                                                                           |
 |2017/01/03|125   |Adjust dependencies so these modules work with librarian                                                 |
 |2016/12/31|      |Release 0.0.14                                                                                           |
 |2016/12/31|106   |Update the NATS gem to 0.2.0                                                                             |
