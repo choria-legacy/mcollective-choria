@@ -73,12 +73,19 @@ module MCollective
 
       # Query DNS for a series of records
       #
-      # The given records will be passed through {#srv_records} to figure out the domain to query in
+      # The given records will be passed through {#srv_records} to figure out the domain to query in.
+      #
+      # Querying of records can be bypassed by setting choria.use_srv_records to false
       #
       # @yield [Hash] each record for modification by the caller
       # @param records [Array<String>] the records to query without their domain parts
       # @return [Array<Hash>] with keys :port, :priority, :weight and :target
       def query_srv_records(records)
+        unless ["t", "true", "yes", "1"].include?(get_option("choria.use_srv_records", "1").downcase)
+          Log.info("Skipping SRV record queries due to choria.query_srv_records setting")
+          return []
+        end
+
         answers = Array(srv_records(records)).map do |record|
           answers = resolver.getresources(record, Resolv::DNS::Resource::IN::SRV)
           Log.debug("Found %d SRV records for %s" % [answers.size, record])

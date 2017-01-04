@@ -149,6 +149,12 @@ module MCollective
 
           expect(choria.query_srv_records(["_mcollective-server._tcp", "_x-puppet-mcollective._tcp"])).to eq([result1, result2])
         end
+
+        it "should be possible to disable SRV support" do
+          Config.instance.stubs(:pluginconf).returns("choria.use_srv_records" => "false")
+          choria.expects(:srv_records).never
+          expect(choria.query_srv_records(["_mcollective-server._tcp.example.net"])).to eq([])
+        end
       end
 
       describe "#facter_cmd" do
