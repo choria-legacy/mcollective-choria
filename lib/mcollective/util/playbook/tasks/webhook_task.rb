@@ -5,7 +5,7 @@ module MCollective
   module Util
     class Playbook
       class Tasks
-        class WebhookTask
+        class WebhookTask < Base
           USER_AGENT = "Choria Playbooks http://choria.io".freeze
 
           def validate_configuration!

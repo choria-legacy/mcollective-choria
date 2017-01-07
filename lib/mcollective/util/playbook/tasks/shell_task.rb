@@ -2,11 +2,10 @@ module MCollective
   module Util
     class Playbook
       class Tasks
-        class ShellTask
+        class ShellTask < Base
           def validate_configuration!
             raise("A command was not given") unless @command
             raise("Nodes were given but is not an array") if @nodes && !@nodes.is_a?(Array)
-            raise("Nodes can not be empty") if @nodes.empty?
           end
 
           def from_hash(data)

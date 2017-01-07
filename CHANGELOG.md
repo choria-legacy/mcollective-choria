@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/01/11|101   |Expose previous task status via templates                                                                |
 |2017/01/07|129   |Add a choria audit plugin that logs in JSON format                                                       |
 |2017/01/04|127   |Allow SRV record support to be disabled                                                                  |
 |2017/01/03|      |Release 0.0.15                                                                                           |

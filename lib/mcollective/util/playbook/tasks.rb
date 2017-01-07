@@ -1,3 +1,5 @@
+require_relative "task_result"
+require_relative "tasks/base"
 require_relative "tasks/mcollective_task"
 require_relative "tasks/mcollective_assert_task"
 require_relative "tasks/shell_task"
@@ -10,14 +12,16 @@ module MCollective
       class Tasks
         include TemplateUtil
 
-        attr_reader :tasks
+        attr_reader :tasks, :results
 
         def initialize(playbook)
           @playbook = playbook
+
           reset
         end
 
         def reset
+          @results = []
           @tasks = {
             "tasks" => [],
             "pre_task" => [],
@@ -47,7 +51,8 @@ module MCollective
         # @return [Boolean] indicating task success
         def run_task(task, hooks=true)
           properties = task[:properties]
-          success = false
+          result = task[:result]
+          task_runner = task[:runner]
 
           Log.info("About to run task: %s" % properties["description"]) if properties["description"]
 
@@ -57,24 +62,19 @@ module MCollective
           end
 
           (1..properties["tries"]).each do |try|
-            task[:runner].from_hash(t(properties))
-            task[:runner].validate_configuration!
+            task_runner.from_hash(t(properties))
+            task_runner.validate_configuration!
 
-            success, msg, _ = task[:runner].run
+            @results << result.timed_run(task)
 
-            Log.info(msg)
+            Log.info(result.msg)
 
-            if properties["fail_ok"] && !success
-              Log.warn("Task failed but fail_ok is true, treating as success")
-              success = true
-            end
-
-            if try != properties["tries"] && !success
-              Log.warn("Task failed on try %d/%d, sleeping %ds: %s" % [try, properties["tries"], properties["try_sleep"], msg])
+            if try != properties["tries"] && !result.success
+              Log.warn("Task failed on try %d/%d, sleeping %ds: %s" % [try, properties["tries"], properties["try_sleep"], result.msg])
               sleep(properties["try_sleep"])
             end
 
-            break if success
+            break if result.success
           end
 
           if hooks && !run_set("post_task")
@@ -82,7 +82,7 @@ module MCollective
             return false
           end
 
-          success
+          result.success
         end
 
         # Runs a specific task set
@@ -143,8 +143,11 @@ module MCollective
               Log.debug("Loading task %d of type %s into %s" % [idx, type, set])
 
               runner = runner_for(type)
+              runner.description = props.fetch("description", "%s task" % [type])
 
               @tasks[set] << {
+                :result => TaskResult.new,
+                :description => runner.description,
                 :type => type,
                 :runner => runner,
                 :properties => {
