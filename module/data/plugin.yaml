@@ -5,6 +5,8 @@ mcollective_choria::gem_dependencies:
 
 mcollective_choria::client_directories:
  - util/playbook
+mcollective_choria::server_files:
+ - audit/choria.rb
 mcollective_choria::client_files:
  - discovery/choria.ddl
  - discovery/choria.rb
@@ -30,7 +32,7 @@ mcollective_choria::client_files:
  - util/playbook/nodes/terraform_nodes.rb
  - util/playbook/inputs.rb
 mcollective_choria::common_directories:
-  - util/choria
+ - util/choria
 mcollective_choria::common_files:
  - security/choria.rb
  - connector/nats.ddl
