@@ -29,10 +29,7 @@ See [choria.io](http://choria.io) for full details
 
 ## Usage
 
-This module is automatically set up for you when you use the [ripienaar-mcollective](https://forge.puppet.com/ripienaar/mcollective)
-module.
-
-A deployment guide can be found at the [wiki](https://github.com/ripienaar/mcollective-choria/wiki)
+A deployment guide can be found at the [Choria Website](http://choria.io)
 
 ## Data Reference
 
