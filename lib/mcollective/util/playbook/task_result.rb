@@ -2,13 +2,14 @@ module MCollective
   module Util
     class Playbook
       class TaskResult
-        attr_accessor :success, :msg, :data, :ran, :task
+        attr_accessor :success, :msg, :data, :ran, :task, :set
 
         def initialize
           @start_time = Time.now
           @end_time = @start_time
           @ran = false
           @task = nil
+          @set = nil
         end
 
         def run_time
@@ -19,9 +20,10 @@ module MCollective
           !!success
         end
 
-        def timed_run(task)
+        def timed_run(task, set)
           @start_time = Time.now
           @task = task
+          @set = set
 
           begin
             @success, @msg, @data = task[:runner].run

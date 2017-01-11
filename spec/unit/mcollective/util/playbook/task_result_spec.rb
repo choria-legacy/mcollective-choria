@@ -23,19 +23,20 @@ module MCollective
 
             expect(tr.ran).to be(false)
 
-            tr.timed_run(task)
+            tr.timed_run(task, "rspec")
 
             expect(tr.task).to be(task)
             expect(tr.msg).to eq("rspec")
             expect(tr.data).to eq([:rspec])
             expect(tr.success).to be(true)
             expect(tr.ran).to be(true)
+            expect(tr.set).to eq("rspec")
           end
 
           it "should support fail_ok" do
             runner = stub(:run => [false, "rspec", [:rspec]])
             task = {:runner => runner, :properties => {"fail_ok" => true}}
-            tr.timed_run(task)
+            tr.timed_run(task, "rspec")
 
             expect(tr.task).to be(task)
             expect(tr.msg).to eq("rspec")
@@ -47,7 +48,7 @@ module MCollective
             runner = stub
             runner.stubs(:run).raises("rspec")
             task = {:runner => runner}
-            tr.timed_run(task)
+            tr.timed_run(task, "rspec")
 
             expect(tr.task).to be(task)
             expect(tr.msg).to match(/Running task .+ failed unexpectedly: RuntimeError: rspec/)
