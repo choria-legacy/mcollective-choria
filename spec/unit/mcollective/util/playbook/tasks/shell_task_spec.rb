@@ -64,12 +64,6 @@ module MCollective
                 "nodes" => 1
               )
               expect { task.validate_configuration! }.to raise_error("Nodes were given but is not an array")
-
-              task.from_hash(
-                "command" => "/tmp/x.sh",
-                "nodes" => []
-              )
-              expect { task.validate_configuration! }.to raise_error("Nodes can not be empty")
             end
           end
 

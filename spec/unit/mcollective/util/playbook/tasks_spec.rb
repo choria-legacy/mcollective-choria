@@ -30,14 +30,23 @@ module MCollective
         end
 
         describe "#load_tasks" do
+          let(:runner) { stub(:description= => nil, :description => "rspec description") }
+          let(:result) { TaskResult.new }
+
+          before(:each) do
+            TaskResult.stubs(:new).returns(result)
+          end
+
           it "should load the tasks and create a runner" do
             tasks.reset
-            tasks.expects(:runner_for).with("rspec").returns(runner = stub)
+            tasks.expects(:runner_for).with("rspec").returns(runner)
             tasks.load_tasks([{"rspec" => {}}], "tasks")
             expect(tasks.tasks["tasks"]).to eq(
               [
                 :type => "rspec",
                 :runner => runner,
+                :description => "rspec description",
+                :result => result,
                 :properties => {
                   "tries" => 1,
                   "try_sleep" => 10,
@@ -49,18 +58,14 @@ module MCollective
 
           it "should support overriding defaults" do
             tasks.reset
-            tasks.expects(:runner_for).with("rspec").returns(runner = stub)
+            tasks.expects(:runner_for).with("rspec").returns(runner)
             tasks.load_tasks([{"rspec" => {"tries" => 2, "try_sleep" => 5, "fail_ok" => true}}], "tasks")
-            expect(tasks.tasks["tasks"]).to eq(
-              [
-                :type => "rspec",
-                :runner => runner,
-                :properties => {
-                  "tries" => 2,
-                  "try_sleep" => 5,
-                  "fail_ok" => true
-                }
-              ]
+            expect(tasks.tasks["tasks"].first).to include(
+              :properties => {
+                "tries" => 2,
+                "try_sleep" => 5,
+                "fail_ok" => true
+              }
             )
           end
         end
@@ -176,6 +181,17 @@ module MCollective
 
             tasks.expects(:run_set).with("post_task").returns(false)
             expect(tasks.run_task(task)).to be(false)
+          end
+
+          it "should update the results" do
+            task[:runner].expects(:run).returns([true, "pass 1", [:x]])
+            tasks.run_task(task_list["tasks"][0])
+
+            result = tasks.results.first
+            expect(result.task).to be(task)
+            expect(result.success).to be(true)
+            expect(result.msg).to eq("pass 1")
+            expect(result.data).to eq([:x])
           end
         end
 

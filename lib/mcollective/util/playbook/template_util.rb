@@ -42,6 +42,8 @@ module MCollective
             @playbook.discovered_nodes(item)
           when "metadata"
             @playbook.metadata_item(item)
+          when "previous_task"
+            @playbook.previous_task(item)
           when "date"
             Time.now.strftime(item)
           when "utc_date"
@@ -61,14 +63,17 @@ module MCollective
 
           data_regex = Regexp.new("%s%s%s" % [front, '(?<type>input(s*)|metadata|nodes)\.(?<item>[a-zA-Z0-9\_\-]+)', back])
           date_regex = Regexp.new("%s%s%s" % [front, '(?<type>date|utc_date)\(\s*["\']*(?<format>.+?)["\']*\s*\)', back])
+          task_regex = Regexp.new("%s%s%s" % [front, '(?<type>previous_task)\.(?<item>(success|description|msg|message|data|runtime))', back])
           uuid_regex = Regexp.new("%s%s%s" % [front, "uuid", back])
 
-          combined_regex = Regexp.union(data_regex, date_regex, uuid_regex)
+          combined_regex = Regexp.union(data_regex, date_regex, task_regex, uuid_regex)
 
           if req = string.match(/^#{data_regex}$/)
             __template_resolve(req["type"], req["item"])
           elsif req = string.match(/^#{date_regex}$/)
             __template_resolve(req["type"], req["format"])
+          elsif req = string.match(/^#{task_regex}$/)
+            __template_resolve(req["type"], req["item"])
           elsif string =~ /^#{uuid_regex}$/
             __template_resolve("uuid", "")
           else

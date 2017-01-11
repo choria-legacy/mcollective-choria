@@ -2,7 +2,7 @@ module MCollective
   module Util
     class Playbook
       class Tasks
-        class Mcollective_assertTask
+        class Mcollective_assertTask < Base
           def initialize
             @properties = {}
             @nodes = []
@@ -10,7 +10,6 @@ module MCollective
             @pre_sleep = 10
             @expression = []
             @pre_slept = false
-            @description = nil
           end
 
           def from_hash(data)

@@ -11,6 +11,68 @@ module MCollective
       let(:inputs) { playbook.instance_variable_get("@inputs") }
       let(:playbook_fixture) { YAML.load(File.read("spec/fixtures/playbooks/playbook.yaml")) }
 
+      describe "#previous_task_result" do
+        it "should fetch the last result" do
+          tasks.results << stub
+          tasks.results << stub
+          tasks.results << stub
+
+          expect(playbook.previous_task_result).to be(tasks.results.last)
+        end
+      end
+
+      describe "#previous_task" do
+        let(:result) { Playbook::TaskResult.new }
+
+        before(:each) do
+          playbook.stubs(:previous_task_result).returns(result)
+        end
+
+        context "when there are no results" do
+          before(:each) { playbook.stubs(:previous_task_result).returns(nil) }
+
+          it "should support properties" do
+            expect(playbook.previous_task("success")).to be(false)
+            expect(playbook.previous_task("msg")).to eq("No previous task were found")
+            expect(playbook.previous_task("message")).to eq("No previous task were found")
+            expect(playbook.previous_task("data")).to eq([])
+          end
+        end
+
+        context "when the result did not run" do
+          before(:each) do
+            result.ran = false
+          end
+
+          it "should support properties" do
+            expect(playbook.previous_task("success")).to be(false)
+            expect(playbook.previous_task("msg")).to eq("Previous task did not run")
+            expect(playbook.previous_task("message")).to eq("Previous task did not run")
+            expect(playbook.previous_task("data")).to eq([])
+          end
+        end
+
+        context "when the result ran" do
+          before(:each) do
+            result.ran = true
+            result.success = true
+            result.msg = "rspec message"
+            result.data = [:rspec]
+            result.stubs(:run_time).returns(1.11111)
+            result.task = {:description => "rspec description"}
+          end
+
+          it "should support properties" do
+            expect(playbook.previous_task("success")).to be(true)
+            expect(playbook.previous_task("msg")).to eq("rspec message")
+            expect(playbook.previous_task("message")).to eq("rspec message")
+            expect(playbook.previous_task("data")).to eq([:rspec])
+            expect(playbook.previous_task("description")).to eq("rspec description")
+            expect(playbook.previous_task("runtime")).to eq(1.11)
+          end
+        end
+      end
+
       describe "#seconds_to_human" do
         it "should correctly convert seconds" do
           expect(playbook.seconds_to_human(60 * 60 * 24 + (60 * 61 + 1))).to eq("1 day 1 hours 1 minutes 01 seconds")

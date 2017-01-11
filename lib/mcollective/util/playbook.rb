@@ -193,6 +193,44 @@ module MCollective
         @inputs[input]
       end
 
+      # Looks up a proeprty of the previous task
+      #
+      # @param property [success, msg, message, data, description]
+      # @return [Object]
+      def previous_task(property)
+        if property == "success"
+          return false unless previous_task_result && previous_task_result.ran
+
+          previous_task_result.success
+        elsif ["msg", "message"].include?(property)
+          return "No previous task were found" unless previous_task_result
+          return "Previous task did not run" unless previous_task_result.ran
+
+          previous_task_result.msg
+        elsif property == "data"
+          return [] unless previous_task_result && previous_task_result.ran
+
+          previous_task_result.data || []
+        elsif property == "description"
+          return "No previous task were found" unless previous_task_result
+
+          previous_task_result.task[:description]
+        elsif property == "runtime"
+          return 0 unless previous_task_result && previous_task_result.ran
+
+          previous_task_result.run_time.round(2)
+        else
+          raise("Cannot retrieve %s for the last task outcome" % property)
+        end
+      end
+
+      # Find the last result from the tasks ran
+      #
+      # @return [TaskResult,nil]
+      def previous_task_result
+        @tasks.results.last
+      end
+
       # Adds the CLI options for an application based on the playbook inputs
       #
       # @see Inputs#add_cli_options

@@ -5,7 +5,7 @@ module MCollective
   module Util
     class Playbook
       class Tasks
-        class SlackTask
+        class SlackTask < Base
           def validate_configuration!
             raise("A channel is required") unless @channel
             raise("Message text is required") unless @text

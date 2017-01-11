@@ -19,16 +19,18 @@ module MCollective
             expect { tu.__template_process_string("") }.to raise_error("Playbook is not accessible")
           end
 
-          it "should lookup inputs, metadata and nodes and preserve data type" do
+          it "should lookup inputs, metadata and nodes, previous_task and preserve data type" do
             tu.expects(:__template_resolve).with("input", "x").returns(1)
             tu.expects(:__template_resolve).with("inputs", "y").returns(1)
             tu.expects(:__template_resolve).with("nodes", "x").returns(["value1", "value2"])
             tu.expects(:__template_resolve).with("metadata", "x").returns(2)
+            tu.expects(:__template_resolve).with("previous_task", "msg").returns("rspec_message")
 
             expect(tu.__template_process_string("{{{ input.x }}}")).to eq(1)
             expect(tu.__template_process_string("{{{ inputs.y }}}")).to eq(1)
             expect(tu.__template_process_string("{{{ nodes.x}}}")).to eq(["value1", "value2"])
             expect(tu.__template_process_string("{{{metadata.x}}}")).to eq(2)
+            expect(tu.__template_process_string("{{{previous_task.msg}}}")).to eq("rspec_message")
           end
 
           it "should support dates" do
@@ -55,6 +57,11 @@ module MCollective
         end
 
         describe "#__template_resolve" do
+          it "should support previous_task" do
+            playbook.expects(:previous_task).with("rspec").returns("value")
+            expect(tu.__template_resolve("previous_task", "rspec")).to eq("value")
+          end
+
           it "should support inputs" do
             playbook.expects(:input_value).with("rspec").returns("value").twice
             expect(tu.__template_resolve("input", "rspec")).to eq("value")

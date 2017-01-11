@@ -150,7 +150,6 @@ module MCollective
               expect(task.instance_variable_get("@agent")).to eq("puppet")
               expect(task.instance_variable_get("@action")).to eq("disable")
               expect(task.instance_variable_get("@batch_size")).to eq(10)
-              expect(task.instance_variable_get("@description")).to eq("disable puppet")
               expect(task.instance_variable_get("@post")).to eq(["summarize"])
               expect(task.instance_variable_get("@log_replies")).to eq(true)
               expect(task.instance_variable_get("@properties")).to eq(:message => "rspec")

@@ -2,7 +2,7 @@ module MCollective
   module Util
     class Playbook
       class Tasks
-        class McollectiveTask
+        class McollectiveTask < Base
           def initialize
             @properties = {}
             @post = []
@@ -60,7 +60,6 @@ module MCollective
             @batch_size = data["batch_size"]
             @properties = data.fetch("properties", {})
             @post = data.fetch("post", [])
-            @description = data["description"]
             @log_replies = !data.fetch("silent", false)
 
             @_rpc_client = nil
