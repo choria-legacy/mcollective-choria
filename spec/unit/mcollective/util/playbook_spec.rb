@@ -11,6 +11,13 @@ module MCollective
       let(:inputs) { playbook.instance_variable_get("@inputs") }
       let(:playbook_fixture) { YAML.load(File.read("spec/fixtures/playbooks/playbook.yaml")) }
 
+      describe "#task_results" do
+        it "should delegate to tasks" do
+          tasks.expects(:results).returns(results = [])
+          expect(playbook.task_results).to be(results)
+        end
+      end
+
       describe "#previous_task_result" do
         it "should fetch the last result" do
           tasks.results << stub
@@ -22,7 +29,8 @@ module MCollective
       end
 
       describe "#previous_task" do
-        let(:result) { Playbook::TaskResult.new }
+        let(:task) { {:description => "rspec"} }
+        let(:result) { Playbook::TaskResult.new(task) }
 
         before(:each) do
           playbook.stubs(:previous_task_result).returns(result)
@@ -99,10 +107,24 @@ module MCollective
         end
       end
 
+      describe "#inputs" do
+        it "should delegate to inputs" do
+          inputs.expects(:keys).returns(["rspec1", "rspec2"])
+          expect(playbook.inputs).to eq(["rspec1", "rspec2"])
+        end
+      end
+
       describe "#input_value" do
         it "should delegate to inputs" do
           inputs.expects(:[]).with("rspec").returns("rspec value")
           expect(playbook.input_value("rspec")).to eq("rspec value")
+        end
+      end
+
+      describe "#nodes" do
+        it "should delegate to nodes" do
+          nodes.expects(:keys).returns(["rspec1", "rspec2"])
+          expect(playbook.nodes).to eq(["rspec1", "rspec2"])
         end
       end
 
@@ -196,9 +218,10 @@ module MCollective
         it "should prepare and run the tasks" do
           seq = sequence(:run)
           playbook.expects(:prepare).in_sequence(seq)
-          tasks.expects(:run).in_sequence(seq).returns(:rspec_test)
+          tasks.expects(:run).in_sequence(seq).returns(true)
+          playbook.report.expects(:finalize).with(true).returns({}).in_sequence(seq)
 
-          expect(playbook.run!({})).to eq(:rspec_test)
+          expect(playbook.run!({})).to eq({})
         end
       end
 

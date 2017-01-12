@@ -17,6 +17,9 @@ module MCollective
   flags and help related to the specific playbook.
 
   Any inputs to the playbook should be given on the CLI.
+
+  A report can be produced using the --report argument
+  when running a playbook
   EOU
 
       exclude_argument_sections "common", "filter", "rpc"
@@ -58,6 +61,11 @@ module MCollective
         end
 
         # Hackily done here to force it below the playbook options
+        self.class.option :__report,
+                          :arguments => ["--report FILE"],
+                          :description => "Produce a report in YAML format",
+                          :type => String
+
         self.class.option :__loglevel,
                           :arguments => ["--loglevel LEVEL"],
                           :description => "Override the loglevel set in the playbook (debug, info, warn, error, fatal)",
@@ -98,7 +106,22 @@ module MCollective
         pb_config.keys.each {|k| k.to_s.start_with?("__") && pb_config.delete(k)}
 
         pb = playbook(configuration[:__playbook_file], configuration[:__loglevel])
-        pb.run!(pb_config)
+
+        report = pb.run!(pb_config)
+
+        if configuration[:__report]
+          unless File.writable?(configuration[:__report])
+            abort("Could not write report the file %s is not writable" % [configuration[:__report]])
+          end
+
+          File.open(configuration[:__report], "w") do |f|
+            f.puts report.to_yaml
+          end
+
+          puts "Report saved to %s" % configuration[:__report]
+        end
+
+        report["report"]["success"] ? exit(0) : exit(1)
       end
 
       def show_command

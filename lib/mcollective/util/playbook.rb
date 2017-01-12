@@ -1,3 +1,4 @@
+require_relative "playbook/report"
 require_relative "playbook/playbook_logger"
 require_relative "playbook/template_util"
 require_relative "playbook/inputs"
@@ -13,10 +14,12 @@ module MCollective
       include TemplateUtil
 
       attr_accessor :input_data, :context
-      attr_reader :loglevel, :metadata
+      attr_reader :loglevel, :metadata, :report
 
       def initialize(loglevel=nil)
         @loglevel = loglevel
+
+        @report = Report.new(self)
 
         # @todo dear god this Camel_Snake horror but mcollective requires this
         # Configures the main MCollective logger with our custom logger
@@ -83,7 +86,7 @@ module MCollective
       # Runs the playbook
       #
       # @param inputs [Hash] input data
-      # @return [Boolean]
+      # @return [Hash] the playbook report
       def run!(inputs)
         start_time = Time.now
         @input_data = inputs
@@ -95,12 +98,14 @@ module MCollective
         success = in_context("run") { @tasks.run }
         in_context("post") { Log.info("Done running playbook %s in %s" % [name, seconds_to_human(Integer(Time.now - start_time))]) }
 
-        success
+        report.finalize(success)
       rescue
+        msg = "Playbook %s failed: %s: %s" % [name, $!.class, $!.to_s]
+
         Log.error("Playbook %s failed: %s: %s" % [name, $!.class, $!.to_s])
         Log.debug($!.backtrace.join("\n\t"))
 
-        false
+        report.finalize(false, msg)
       end
 
       # Playbook name as declared in metadata
@@ -141,7 +146,7 @@ module MCollective
         in_context("prep.uses") { @uses.from_hash(t(@playbook_data.fetch("uses", {}))).prepare }
       end
 
-      # Prepares the node lists from the Playbook
+      # Prepares the ode lists from the Playbook
       #
       # @see Nodes#prepare
       def prepare_nodes
@@ -185,12 +190,26 @@ module MCollective
 
       # (see Nodes#[])
       def discovered_nodes(nodeset)
-        @nodes[nodeset]
+        @nodes[nodeset].clone
+      end
+
+      # A list of known node sets
+      #
+      # @return [Array<String>]
+      def nodes
+        @nodes.keys
       end
 
       # (see Inputs#[])
       def input_value(input)
         @inputs[input]
+      end
+
+      # A list of known input keys
+      #
+      # @return [Array<String>]
+      def inputs
+        @inputs.keys
       end
 
       # Looks up a proeprty of the previous task
@@ -224,11 +243,18 @@ module MCollective
         end
       end
 
+      # All the task results
+      #
+      # @return [Array<TaskResult>]
+      def task_results
+        @tasks.results
+      end
+
       # Find the last result from the tasks ran
       #
       # @return [TaskResult,nil]
       def previous_task_result
-        @tasks.results.last
+        task_results.last
       end
 
       # Adds the CLI options for an application based on the playbook inputs

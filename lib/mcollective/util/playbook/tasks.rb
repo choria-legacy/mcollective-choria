@@ -66,7 +66,7 @@ module MCollective
             task_runner.from_hash(t(properties))
             task_runner.validate_configuration!
 
-            @results << result.timed_run(task, set)
+            @results << result.timed_run(set)
 
             Log.info(result.msg)
 
@@ -146,8 +146,7 @@ module MCollective
               runner = runner_for(type)
               runner.description = props.fetch("description", "%s task" % [type])
 
-              @tasks[set] << {
-                :result => TaskResult.new,
+              task_data = {
                 :description => runner.description,
                 :type => type,
                 :runner => runner,
@@ -157,6 +156,10 @@ module MCollective
                   "fail_ok" => false
                 }.merge(props)
               }
+
+              task_data[:result] = TaskResult.new(task_data)
+
+              @tasks[set] << task_data
             end
           end
         end
