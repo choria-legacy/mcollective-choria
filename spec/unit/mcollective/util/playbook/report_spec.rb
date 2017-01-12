@@ -159,7 +159,7 @@ module MCollective
           it "should append the log correctly" do
             report.append_log(t = Time.now, :debug, "x:1:1", "rspec test")
             expect(report.instance_variable_get("@logs")[0]).to eq(
-              "time" => t.utc.to_i,
+              "time" => t.utc,
               "level" => "debug",
               "from" => "x:1:1",
               "msg" => "rspec test"

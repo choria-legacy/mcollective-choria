@@ -120,7 +120,7 @@ module MCollective
 
         def append_log(time, level, from, msg)
           @logs << {
-            "time" => time.utc.to_i,
+            "time" => time.utc,
             "level" => level.to_s,
             "from" => from.strip,
             "msg" => msg
