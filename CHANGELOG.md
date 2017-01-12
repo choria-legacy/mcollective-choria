@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/01/12|      |Release 0.0.16                                                                                           |
 |2017/01/12|88    |Add playbook reports                                                                                     |
 |2017/01/11|101   |Expose previous task status via templates                                                                |
 |2017/01/07|129   |Add a choria audit plugin that logs in JSON format                                                       |
