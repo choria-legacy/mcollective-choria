@@ -47,9 +47,10 @@ module MCollective
         # Runs a specific task
         #
         # @param task [Hash] a task entry
+        # @param set [String] the set the task is running in
         # @param hooks [Boolean] indicates if hooks should be run
         # @return [Boolean] indicating task success
-        def run_task(task, hooks=true)
+        def run_task(task, set, hooks=true)
           properties = task[:properties]
           result = task[:result]
           task_runner = task[:runner]
@@ -65,7 +66,7 @@ module MCollective
             task_runner.from_hash(t(properties))
             task_runner.validate_configuration!
 
-            @results << result.timed_run(task)
+            @results << result.timed_run(set)
 
             Log.info(result.msg)
 
@@ -100,7 +101,7 @@ module MCollective
             # would typically use map here but you cant break out of a map and keep the thus far built up array
             # so it's either this or a inject loop
             passed = set_tasks.take_while do |task|
-              @playbook.in_context("%s.%s" % [set, task[:type]]) { run_task(task, set == "tasks") }
+              @playbook.in_context("%s.%s" % [set, task[:type]]) { run_task(task, set, set == "tasks") }
             end
 
             set_success = passed.size == set_tasks.size
@@ -145,8 +146,7 @@ module MCollective
               runner = runner_for(type)
               runner.description = props.fetch("description", "%s task" % [type])
 
-              @tasks[set] << {
-                :result => TaskResult.new,
+              task_data = {
                 :description => runner.description,
                 :type => type,
                 :runner => runner,
@@ -156,6 +156,10 @@ module MCollective
                   "fail_ok" => false
                 }.merge(props)
               }
+
+              task_data[:result] = TaskResult.new(task_data)
+
+              @tasks[set] << task_data
             end
           end
         end

@@ -120,7 +120,7 @@ module MCollective
 
           it "should stop executing a set when the first failed task is met" do
             task_list["tasks"] << task_list["tasks"][0].clone
-            tasks.expects(:run_task).with(task_list["tasks"][0], true).returns(false)
+            tasks.expects(:run_task).with(task_list["tasks"][0], "tasks", true).returns(false)
 
             expect(tasks.run_set("tasks")).to be(false)
           end
@@ -149,21 +149,21 @@ module MCollective
 
           it "should run the pre_task and fail if it fails" do
             tasks.expects(:run_set).with("pre_task").returns(false)
-            expect(tasks.run_task(task_list["tasks"][0])).to be(false)
+            expect(tasks.run_task(task_list["tasks"][0], "tasks")).to be(false)
           end
 
           it "should support retries" do
             task[:runner].expects(:run).twice.returns([false, "fail 1", :x], [false, "fail 2", :x])
             tasks.expects(:sleep).with(20)
 
-            expect(tasks.run_task(task)).to be(false)
+            expect(tasks.run_task(task, "tasks")).to be(false)
           end
 
           it "should run a task with retries just once if it passes" do
             task[:runner].expects(:run).returns([true, "pass 1", :x])
             tasks.expects(:sleep).never
 
-            expect(tasks.run_task(task)).to be(true)
+            expect(tasks.run_task(task, "tasks")).to be(true)
           end
 
           it "should support fail_ok" do
@@ -171,21 +171,21 @@ module MCollective
             task[:runner].expects(:run).returns([false, "fail 1", :x])
             tasks.expects(:sleep).never
 
-            expect(tasks.run_task(task)).to be(true)
+            expect(tasks.run_task(task, "tasks")).to be(true)
           end
 
           it "should support post_task hook and fail if it fails" do
             task[:runner].stubs(:run).returns([true, "pass 1", :x])
             tasks.expects(:run_set).with("post_task").returns(true)
-            expect(tasks.run_task(task)).to be(true)
+            expect(tasks.run_task(task, "tasks")).to be(true)
 
             tasks.expects(:run_set).with("post_task").returns(false)
-            expect(tasks.run_task(task)).to be(false)
+            expect(tasks.run_task(task, "tasks")).to be(false)
           end
 
           it "should update the results" do
             task[:runner].expects(:run).returns([true, "pass 1", [:x]])
-            tasks.run_task(task_list["tasks"][0])
+            tasks.run_task(task_list["tasks"][0], "tasks")
 
             result = tasks.results.first
             expect(result.task).to be(task)

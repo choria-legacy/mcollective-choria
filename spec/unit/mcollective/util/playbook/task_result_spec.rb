@@ -5,7 +5,22 @@ module MCollective
   module Util
     class Playbook
       describe TaskResult do
-        let(:tr) { TaskResult.new }
+        let(:runner) { stub(:run => [true, "rspec", [:rspec]]) }
+        let(:tr) { TaskResult.new(task) }
+        let(:task) do
+          {
+            :description => "rspec task",
+            :type => "rspec",
+            :runner => runner,
+            :properties => {}
+          }
+        end
+
+        describe "#task_type" do
+          it "should get the right type" do
+            expect(tr.task_type).to eq("rspec")
+          end
+        end
 
         describe "#run_time" do
           it "should calculate the right elapsed time" do
@@ -18,24 +33,21 @@ module MCollective
 
         describe "#timed_run" do
           it "should run and update properties" do
-            runner = stub(:run => [true, "rspec", [:rspec]])
-            task = {:runner => runner}
-
             expect(tr.ran).to be(false)
 
-            tr.timed_run(task)
+            tr.timed_run("rspec")
 
             expect(tr.task).to be(task)
             expect(tr.msg).to eq("rspec")
             expect(tr.data).to eq([:rspec])
             expect(tr.success).to be(true)
             expect(tr.ran).to be(true)
+            expect(tr.set).to eq("rspec")
+            expect(tr.description).to eq("rspec task")
           end
 
           it "should support fail_ok" do
-            runner = stub(:run => [false, "rspec", [:rspec]])
-            task = {:runner => runner, :properties => {"fail_ok" => true}}
-            tr.timed_run(task)
+            tr.timed_run("rspec")
 
             expect(tr.task).to be(task)
             expect(tr.msg).to eq("rspec")
@@ -44,10 +56,8 @@ module MCollective
           end
 
           it "should handle exceptions" do
-            runner = stub
             runner.stubs(:run).raises("rspec")
-            task = {:runner => runner}
-            tr.timed_run(task)
+            tr.timed_run("rspec")
 
             expect(tr.task).to be(task)
             expect(tr.msg).to match(/Running task .+ failed unexpectedly: RuntimeError: rspec/)

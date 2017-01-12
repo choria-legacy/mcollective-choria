@@ -6,6 +6,7 @@ module MCollective
       class Playbook_Logger < Logger::Console_logger
         def initialize(playbook)
           @playbook = playbook
+          @report = playbook.report
 
           super()
         end
@@ -17,16 +18,19 @@ module MCollective
         def log(level, from, msg, normal_output=STDERR, last_resort_output=STDERR)
           if @playbook.loglevel != "debug"
             if should_show?
-              from = "%s#%-25s" % [@playbook.name, @playbook.context]
+              console_from = "%s#%-25s" % [@playbook.name, @playbook.context]
             else
               level = :debug
             end
           end
 
           if @known_levels.index(level) >= @known_levels.index(@active_level)
-            time = Time.new.strftime("%H:%M:%S")
+            r_time = Time.now
+            s_time = r_time.strftime("%H:%M:%S")
 
-            normal_output.puts("%s %s: %s %s" % [colorize(level, level[0].capitalize), time, from, msg])
+            @report.append_log(r_time, level, from, msg)
+
+            normal_output.puts("%s %s: %s %s" % [colorize(level, level[0].capitalize), s_time, console_from, msg])
           end
         rescue
           last_resort_output.puts("%s: %s" % [level, msg])
