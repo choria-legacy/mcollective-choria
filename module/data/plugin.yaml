@@ -8,29 +8,31 @@ mcollective_choria::client_directories:
 mcollective_choria::server_files:
  - audit/choria.rb
 mcollective_choria::client_files:
- - discovery/choria.ddl
- - discovery/choria.rb
  - application/choria.rb
  - application/playbook.rb
+ - discovery/choria.ddl
+ - discovery/choria.rb
  - util/playbook.rb
+ - util/playbook/inputs.rb
+ - util/playbook/nodes
+ - util/playbook/nodes.rb
+ - util/playbook/nodes/mcollective_nodes.rb
+ - util/playbook/nodes/pql_nodes.rb
+ - util/playbook/nodes/shell_nodes.rb
+ - util/playbook/nodes/terraform_nodes.rb
+ - util/playbook/nodes/yaml_nodes.rb
  - util/playbook/playbook_logger.rb
+ - util/playbook/report.rb
+ - util/playbook/task_result.rb
  - util/playbook/tasks
- - util/playbook/tasks/mcollective_task.rb
+ - util/playbook/tasks.rb
  - util/playbook/tasks/mcollective_assert_task.rb
+ - util/playbook/tasks/mcollective_task.rb
  - util/playbook/tasks/shell_task.rb
  - util/playbook/tasks/slack_task.rb
  - util/playbook/tasks/webhook_task.rb
- - util/playbook/tasks.rb
- - util/playbook/nodes.rb
  - util/playbook/template_util.rb
  - util/playbook/uses.rb
- - util/playbook/nodes
- - util/playbook/nodes/mcollective_nodes.rb
- - util/playbook/nodes/pql_nodes.rb
- - util/playbook/nodes/yaml_nodes.rb
- - util/playbook/nodes/shell_nodes.rb
- - util/playbook/nodes/terraform_nodes.rb
- - util/playbook/inputs.rb
 mcollective_choria::common_directories:
  - util/choria
 mcollective_choria::common_files:
