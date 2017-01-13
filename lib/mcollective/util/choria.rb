@@ -394,12 +394,17 @@ module MCollective
       # as determined by the USER environment variable or the configured
       # `identity`
       #
+      # At present windows clients are probably not supported automatically
+      # as they will default to the certificate based on identity.  Same
+      # as root.  Windows will have to rely on the environment override
+      # until we can figure out what the best behaviour is
+      #
       # In all cases the certname can be overridden using the `MCOLLECTIVE_CERTNAME`
       # environment variable
       #
       # @return [String]
       def certname
-        if Process.uid == 0
+        if Process.uid == 0 || Util.windows?
           certname = @config.identity
         else
           certname = "%s.mcollective" % [env_fetch("USER", @config.identity)]
