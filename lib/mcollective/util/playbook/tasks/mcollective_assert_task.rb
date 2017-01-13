@@ -3,7 +3,7 @@ module MCollective
     class Playbook
       class Tasks
         class Mcollective_assertTask < Base
-          def initialize
+          def startup_hook
             @properties = {}
             @nodes = []
             @action = nil

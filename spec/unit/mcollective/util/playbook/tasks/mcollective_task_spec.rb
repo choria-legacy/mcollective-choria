@@ -6,7 +6,7 @@ module MCollective
     class Playbook
       class Tasks
         describe McollectiveTask do
-          let(:task) { McollectiveTask.new }
+          let(:task) { McollectiveTask.new(stub) }
 
           describe "#run" do
             before(:each) do

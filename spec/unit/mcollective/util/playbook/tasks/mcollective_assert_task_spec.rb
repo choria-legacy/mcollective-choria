@@ -6,7 +6,7 @@ module MCollective
     class Playbook
       class Tasks
         describe Mcollective_assertTask do
-          let(:task) { Mcollective_assertTask.new }
+          let(:task) { Mcollective_assertTask.new(stub) }
 
           before(:each) do
             task.from_hash(

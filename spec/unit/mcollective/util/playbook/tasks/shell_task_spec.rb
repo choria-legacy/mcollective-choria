@@ -6,7 +6,7 @@ module MCollective
     class Playbook
       class Tasks
         describe ShellTask do
-          let(:task) { ShellTask.new }
+          let(:task) { ShellTask.new(stub) }
 
           describe "#run" do
             it "should detect failed scripts" do
