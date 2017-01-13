@@ -2,6 +2,8 @@ module MCollective
   module Util
     class Playbook
       class Report
+        attr_reader :timestamp
+
         def initialize(playbook)
           @playbook = playbook
           @logs = []

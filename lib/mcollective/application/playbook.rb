@@ -62,8 +62,14 @@ module MCollective
 
         # Hackily done here to force it below the playbook options
         self.class.option :__report,
-                          :arguments => ["--report FILE"],
+                          :arguments => ["--report"],
                           :description => "Produce a report in YAML format",
+                          :default => false,
+                          :type => :boolean
+
+        self.class.option :__report_file,
+                          :arguments => ["--report-file FILE"],
+                          :description => "Override the default file name for the report",
                           :type => String
 
         self.class.option :__loglevel,
@@ -101,24 +107,49 @@ module MCollective
         methods.grep(/_command$/).map {|c| c.to_s.gsub("_command", "")}
       end
 
+      def show_report_summary(report)
+        puts
+        puts "Summary for %s %s started at %s" % [
+          Util.colorize(:bold, report["playbook"]["name"]),
+          Util.colorize(:bold, report["playbook"]["version"]),
+          Util.colorize(:bold, report["report"]["timestamp"])
+        ]
+        puts
+        puts "Overall outcome: %s" % [report["report"]["success"] ? Util.colorize(:green, "success") : Util.colorize(:red, "failed")]
+        puts "      Tasks Ran: %s" % [Util.colorize(:bold, report["metrics"]["task_count"])]
+        puts "       Run Time: %s seconds" % [Util.colorize(:bold, report["metrics"]["run_time"].round(2))]
+        puts
+      end
+
       def run_command
         pb_config = configuration.clone
         pb_config.keys.each {|k| k.to_s.start_with?("__") && pb_config.delete(k)}
 
         pb = playbook(configuration[:__playbook_file], configuration[:__loglevel])
 
+        if configuration[:__report]
+          # windows can't have : in file names, ffs
+          report_name = configuration.fetch(:__report_file, "playbook-%s-%s.yaml" % [pb.name, pb.report.timestamp.strftime("%F_%H-%M-%S")])
+
+          if File.exist?(report_name)
+            abort("Could not write report the file %s: it already exists" % [report_name])
+          end
+
+          begin
+            report_file = File.open(report_name, "w")
+          rescue
+            abort("Could not write report the file %s: it can not be created: %s: %s" % [report_name, $!.class, $!.to_s])
+          end
+        end
+
         report = pb.run!(pb_config)
 
+        show_report_summary(report)
+
         if configuration[:__report]
-          unless File.writable?(configuration[:__report])
-            abort("Could not write report the file %s is not writable" % [configuration[:__report]])
-          end
-
-          File.open(configuration[:__report], "w") do |f|
-            f.puts report.to_yaml
-          end
-
-          puts "Report saved to %s" % configuration[:__report]
+          report_file.print report.to_yaml
+          puts
+          puts "Report saved to %s" % report_name
         end
 
         report["report"]["success"] ? exit(0) : exit(1)
