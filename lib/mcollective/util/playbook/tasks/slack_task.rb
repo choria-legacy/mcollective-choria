@@ -16,30 +16,46 @@ module MCollective
             @channel = data["channel"]
             @text = data["text"]
             @token = data["token"]
+            @color = data.fetch("color", "#ffa449")
             @username = data.fetch("username", "Choria")
 
             self
-          end
-
-          def message_body
-            {
-              "channel" => @channel,
-              "text" => @text,
-              "token" => @token
-            }
           end
 
           def choria
             @_choria ||= Util::Choria.new("production", nil, false)
           end
 
+          def attachments
+            [
+              "fallback" => @text,
+              "color" => @color,
+              "text" => @text,
+              "pretext" => "Task: %s" % @description,
+              "mrkdwn_in" => ["text"],
+              "footer" => "Choria Playbooks",
+              "fields" => [
+                {
+                  "title" => "user",
+                  "value" => PluginManager["security_plugin"].callerid,
+                  "short" => true
+                },
+                {
+                  "title" => "playbook",
+                  "value" => @playbook.name,
+                  "short" => true
+                }
+              ]
+            ]
+          end
+
           def run
             https = choria.https(:target => "slack.com", :port => 443)
-            path = "/api/chat.postMessage?token=%s&username=%s&channel=%s&text=%s" % [
+            path = "/api/chat.postMessage?token=%s&username=%s&channel=%s&attachments=%s" % [
               URI.encode(@token),
               URI.encode(@username),
               URI.encode(@channel),
-              URI.encode(@text)
+              URI.encode(attachments.to_json)
             ]
 
             resp, data = https.request(choria.http_get(path))

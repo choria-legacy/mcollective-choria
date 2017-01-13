@@ -6,7 +6,7 @@ module MCollective
     class Playbook
       class Tasks
         describe WebhookTask do
-          let(:task) { WebhookTask.new }
+          let(:task) { WebhookTask.new(stub) }
 
           before(:each) do
             uuid = MCollective::SSL.uuid("rspec")

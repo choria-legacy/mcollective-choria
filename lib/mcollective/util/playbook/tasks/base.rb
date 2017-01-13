@@ -5,6 +5,14 @@ module MCollective
         class Base
           attr_accessor :description
 
+          def initialize(playbook)
+            @playbook = playbook
+
+            startup_hook
+          end
+
+          def startup_hook; end
+
           def to_s
             "#<%s description: %s>" % [self.class, description]
           end

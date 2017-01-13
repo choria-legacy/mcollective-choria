@@ -39,7 +39,7 @@ module MCollective
         def runner_for(type)
           klass_name = "%sTask" % type.capitalize
 
-          Tasks.const_get(klass_name).new
+          Tasks.const_get(klass_name).new(@playbook)
         rescue NameError
           raise("Cannot find a handler for Task type %s" % type)
         end
@@ -68,7 +68,11 @@ module MCollective
 
             @results << result.timed_run(set)
 
-            Log.info(result.msg)
+            if result.success?
+              Log.info(result.msg)
+            else
+              Log.error(result.msg)
+            end
 
             if try != properties["tries"] && !result.success
               Log.warn("Task failed on try %d/%d, sleeping %ds: %s" % [try, properties["tries"], properties["try_sleep"], result.msg])

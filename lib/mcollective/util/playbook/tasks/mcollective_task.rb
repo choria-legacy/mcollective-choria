@@ -3,7 +3,7 @@ module MCollective
     class Playbook
       class Tasks
         class McollectiveTask < Base
-          def initialize
+          def startup_hook
             @properties = {}
             @post = []
             @nodes = []
