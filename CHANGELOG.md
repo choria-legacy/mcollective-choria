@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/01/13|      |Release 0.0.19                                                                                           |
 |2017/01/13|147   |Add a color option to the slack task and make it generally prettier                                      |
 |2017/01/13|145   |Improve file name handling for reports                                                                   |
 |2017/01/13|143   |Always use the identity cert on windows                                                                  |
