@@ -40,6 +40,14 @@ inputs:
     default: "data_backed_default"
     data: "mem_store/data_backed"
 
+  forced_dynamic:
+    description: "Forced dynamic input"
+    type: String
+    validation: ":string"
+    default: "data_backed_default"
+    dynamic_only: true
+    data: "mem_store/data_backed"
+
 nodes:
   load_balancers:
     type: mcollective

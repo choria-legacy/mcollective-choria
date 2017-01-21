@@ -40,6 +40,8 @@ module MCollective
           @inputs.each do |input, props|
             i_props = props[:properties]
 
+            next if i_props["dynamic_only"]
+
             type = case i_props["type"]
                    when :string, "String"
                      String
@@ -77,6 +79,7 @@ module MCollective
           @inputs.each do |input, _|
             next unless data.include?(input)
             next if data[input].nil?
+            next if @inputs[input][:properties]["dynamic_only"]
 
             validate_data(input, data[input])
             @inputs[input][:value] = data[input]
