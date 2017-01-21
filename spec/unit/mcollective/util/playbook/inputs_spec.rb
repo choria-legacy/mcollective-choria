@@ -5,14 +5,50 @@ module MCollective
   module Util
     class Playbook
       describe Inputs do
-        let(:playbook) { stub }
+        let(:ds) { stub }
+        let(:playbook) { stub(:data_stores => ds) }
         let(:inputs) { Inputs.new(playbook) }
         let(:playbook_fixture) { YAML.load(File.read("spec/fixtures/playbooks/playbook.yaml")) }
+
+        describe "#dyanmic_keys" do
+          it "should find the right keys" do
+            inputs.from_hash(playbook_fixture["inputs"])
+            expect(inputs.dynamic_keys).to eq(["data_backed"])
+          end
+        end
+
+        describe "#static_keys" do
+          it "should find the right keys" do
+            inputs.from_hash(playbook_fixture["inputs"])
+            expect(inputs.static_keys).to eq(["cluster", "two"])
+          end
+        end
+
+        describe "#lookup_from_datsource" do
+          it "should look up from the data store" do
+            inputs.from_hash(playbook_fixture["inputs"])
+            ds.expects(:read).with("mem_store/data_backed").returns("rspec")
+            expect(inputs.lookup_from_datastore("data_backed")).to eq("rspec")
+          end
+
+          it "should return the default if not found" do
+            inputs.from_hash(playbook_fixture["inputs"])
+            ds.expects(:read).with("mem_store/data_backed").raises("not found")
+            expect(inputs.lookup_from_datastore("data_backed")).to eq("data_backed_default")
+          end
+
+          it "should raise when not found and no default" do
+            playbook_fixture["inputs"]["data_backed"].delete("default")
+            inputs.from_hash(playbook_fixture["inputs"])
+            ds.expects(:read).with("mem_store/data_backed").raises("not found")
+            expect { inputs.lookup_from_datastore("data_backed") }.to raise_error("Could not resolve mem_store/data_backed for input data_backed: RuntimeError: not found")
+          end
+        end
 
         describe "#keys" do
           it "should return the right keys" do
             inputs.from_hash(playbook_fixture["inputs"])
-            expect(inputs.keys).to eq(["cluster", "two"])
+            expect(inputs.keys).to eq(["cluster", "two", "data_backed"])
           end
         end
 
@@ -22,7 +58,8 @@ module MCollective
             input_def = {
               "string_input" => {"description" => "string input", "type" => "String", "default" => "1", "validation" => ":string"},
               "numeric_input" => {"description" => "numeric input", "type" => "Fixnum", "required" => true},
-              "array_input" => {"description" => "array input", "type" => ":array"}
+              "array_input" => {"description" => "array input", "type" => ":array"},
+              "data_source_input" => {"description" => "data source input", "type" => "String", "default" => "test", "data" => "memory/data_source_input", "required" => true}
             }
 
             inputs.from_hash(input_def)
@@ -51,6 +88,13 @@ module MCollective
                                             :validation => nil,
                                             :required => true)
 
+            app.class.expects(:option).with("data_source_input",
+                                            :description => "data source input (String) default: test",
+                                            :arguments => ["--data_source_input DATA_SOURCE_INPUT"],
+                                            :type => String,
+                                            :default => "test",
+                                            :validation => nil)
+
             inputs.add_cli_options(app, true)
           end
         end
@@ -67,6 +111,15 @@ module MCollective
             inputs.prepare("cluster" => "beta", "two" => "foo")
             expect(inputs["two"]).to eq("foo")
           end
+
+          it "should mark dynamic inputs with data given as static" do
+            inputs.from_hash(playbook_fixture["inputs"])
+            expect(inputs.dynamic_keys).to eq(["data_backed"])
+            expect(inputs.static_keys).to eq(["cluster", "two"])
+            inputs.prepare("cluster" => "beta", "two" => "foo", "data_backed" => "1")
+            expect(inputs.dynamic_keys).to be_empty
+            expect(inputs.static_keys).to eq(["cluster", "two", "data_backed"])
+          end
         end
 
         describe "#include?" do
@@ -82,7 +135,19 @@ module MCollective
             expect {inputs["cluster"]}.to raise_error("Unknown input cluster")
           end
 
-          it "should retrieve the right value" do
+          it "should retrieve the specifically set value" do
+            inputs.from_hash(playbook_fixture["inputs"])
+            inputs.prepare("cluster" => "rspec", "two" => "x")
+            expect(inputs["cluster"]).to eq("rspec")
+          end
+
+          it "should consult data sources" do
+            inputs.from_hash(playbook_fixture["inputs"])
+            ds.expects(:read).with("mem_store/data_backed").returns("ds_value")
+            expect(inputs["data_backed"]).to eq("ds_value")
+          end
+
+          it "should return default when there are no data or specific value" do
             inputs.from_hash(playbook_fixture["inputs"])
             expect(inputs["cluster"]).to eq("alpha")
           end
@@ -144,7 +209,7 @@ module MCollective
         describe "#from_hash" do
           it "should store the data" do
             inputs.from_hash(playbook_fixture["inputs"])
-            expect(inputs.keys).to eq(["cluster", "two"])
+            expect(inputs.keys).to eq(["cluster", "two", "data_backed"])
           end
 
           it "should set the defaults" do

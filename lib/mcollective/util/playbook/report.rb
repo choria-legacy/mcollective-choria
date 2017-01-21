@@ -33,6 +33,7 @@ module MCollective
 
           store_playbook_metadata
           store_static_inputs
+          store_dynamic_inputs
           store_node_groups
           store_task_results
           calculate_metrics
@@ -114,8 +115,12 @@ module MCollective
           end
         end
 
+        def store_dynamic_inputs
+          @inputs["dynamic"] = @playbook.dynamic_inputs
+        end
+
         def store_static_inputs
-          @playbook.inputs.each do |key|
+          @playbook.static_inputs.each do |key|
             @inputs["static"][key] = @playbook.input_value(key)
           end
         end

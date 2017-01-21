@@ -13,6 +13,13 @@ uses:
   rpcutil: "~1.0.0"
   puppet: "~1.11.0"
 
+data_stores:
+  mem_store:
+    type: memory
+
+  another:
+    type: memory
+
 inputs:
   cluster:
     description: Cluster to deploy
@@ -25,6 +32,13 @@ inputs:
     description: input 2 description
     type: String
     validation: ":string"
+
+  data_backed:
+    description: data source backed input
+    type: String
+    validation: ":string"
+    default: "data_backed_default"
+    data: "mem_store/data_backed"
 
 nodes:
   load_balancers:
