@@ -48,6 +48,7 @@ module MCollective
           it "should fetch all data and produce a report" do
             report.expects(:store_playbook_metadata)
             report.expects(:store_static_inputs)
+            report.expects(:store_dynamic_inputs)
             report.expects(:store_node_groups)
             report.expects(:store_task_results)
             report.expects(:calculate_metrics)
@@ -136,6 +137,19 @@ module MCollective
               "nodes1" => ["node1.1", "node1.2"],
               "nodes2" => ["node2.1", "node2.2"]
             )
+          end
+        end
+
+        describe "#store_dynamic_inputs" do
+          it "should fetch all the inputs" do
+            inputs.prepare(
+              "cluster" => "alpha",
+              "two" => "2"
+            )
+
+            report.store_dynamic_inputs
+
+            expect(report.instance_variable_get("@inputs")["dynamic"]).to eq(["data_backed"])
           end
         end
 

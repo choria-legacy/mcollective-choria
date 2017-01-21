@@ -5,6 +5,7 @@ require_relative "playbook/inputs"
 require_relative "playbook/uses"
 require_relative "playbook/nodes"
 require_relative "playbook/tasks"
+require_relative "playbook/data_stores"
 
 require "semantic_puppet"
 
@@ -14,7 +15,7 @@ module MCollective
       include TemplateUtil
 
       attr_accessor :input_data, :context
-      attr_reader :loglevel, :metadata, :report
+      attr_reader :loglevel, :metadata, :report, :data_stores
 
       def initialize(loglevel=nil)
         @loglevel = loglevel
@@ -29,6 +30,7 @@ module MCollective
         @tasks = Tasks.new(self)
         @uses = Uses.new(self)
         @inputs = Inputs.new(self)
+        @data_stores = DataStores.new(self)
         @playbook = self
         @playbook_data = {}
         @input_data = {}
@@ -78,6 +80,7 @@ module MCollective
         # do this first for templating down below
         prepare_inputs
 
+        prepare_data_stores
         prepare_uses
         prepare_nodes
         prepare_tasks
@@ -128,6 +131,11 @@ module MCollective
 
       def set_logger_level
         @logger.set_level(loglevel.intern)
+      end
+
+      # Prepares the data sources from the plabook
+      def prepare_data_stores
+        in_context("pre.stores") { @data_stores.from_hash(t(@playbook_data.fetch("data_stores", {}))).prepare }
       end
 
       # Prepares the inputs from the playbook
@@ -210,6 +218,20 @@ module MCollective
       # @return [Array<String>]
       def inputs
         @inputs.keys
+      end
+
+      # List of known input names that have dynamic values
+      #
+      # @return [Array<String>]
+      def dynamic_inputs
+        @inputs.dynamic_keys
+      end
+
+      # List of known input names that have static values
+      #
+      # @return [Array<String>]
+      def static_inputs
+        @inputs.static_keys
       end
 
       # Looks up a proeprty of the previous task

@@ -9,7 +9,32 @@ module MCollective
       let(:tasks) { playbook.instance_variable_get("@tasks") }
       let(:uses) { playbook.instance_variable_get("@uses") }
       let(:inputs) { playbook.instance_variable_get("@inputs") }
+      let(:stores) { playbook.instance_variable_get("@data_stores") }
       let(:playbook_fixture) { YAML.load(File.read("spec/fixtures/playbooks/playbook.yaml")) }
+
+      describe "#static_inputs" do
+        it "should get the right inputs" do
+          inputs.expects(:static_keys).returns(["s1"])
+          expect(playbook.static_inputs).to eq(["s1"])
+        end
+      end
+
+      describe "#dynamic_inputs" do
+        it "should get the right inputs" do
+          inputs.expects(:dynamic_keys).returns(["dynamic1"])
+          expect(playbook.dynamic_inputs).to eq(["dynamic1"])
+        end
+      end
+
+      describe "#prepare_data_stores" do
+        it "should prepare data sources with the right data" do
+          playbook.from_hash(playbook_fixture)
+          playbook.expects(:t).with(playbook_fixture["data_stores"]).returns(playbook_fixture["data_stores"])
+          stores.expects(:from_hash).with(playbook_fixture["data_stores"]).returns(stores)
+          stores.expects(:prepare)
+          playbook.prepare_data_stores
+        end
+      end
 
       describe "#task_results" do
         it "should delegate to tasks" do
@@ -229,6 +254,7 @@ module MCollective
         it "should prepare in the right order" do
           seq = sequence(:prep)
           playbook.expects(:prepare_inputs).in_sequence(seq)
+          playbook.expects(:prepare_data_stores).in_sequence(seq)
           playbook.expects(:prepare_uses).in_sequence(seq)
           playbook.expects(:prepare_nodes).in_sequence(seq)
           playbook.expects(:prepare_tasks).in_sequence(seq)
