@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/01/21|155   |Allow inputs to be forced to dynamic only inputs                                                         |
 |2017/01/21|149   |Support data sources, dynamic inputs, data source read and write tasks                                   |
 |2017/01/13|      |Release 0.0.19                                                                                           |
 |2017/01/13|147   |Add a color option to the slack task and make it generally prettier                                      |

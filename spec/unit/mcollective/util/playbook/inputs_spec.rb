@@ -13,7 +13,7 @@ module MCollective
         describe "#dyanmic_keys" do
           it "should find the right keys" do
             inputs.from_hash(playbook_fixture["inputs"])
-            expect(inputs.dynamic_keys).to eq(["data_backed"])
+            expect(inputs.dynamic_keys).to eq(["data_backed", "forced_dynamic"])
           end
         end
 
@@ -48,7 +48,7 @@ module MCollective
         describe "#keys" do
           it "should return the right keys" do
             inputs.from_hash(playbook_fixture["inputs"])
-            expect(inputs.keys).to eq(["cluster", "two", "data_backed"])
+            expect(inputs.keys).to eq(["cluster", "two", "data_backed", "forced_dynamic"])
           end
         end
 
@@ -56,10 +56,21 @@ module MCollective
           it "should add correct options" do
             app = stub
             input_def = {
-              "string_input" => {"description" => "string input", "type" => "String", "default" => "1", "validation" => ":string"},
-              "numeric_input" => {"description" => "numeric input", "type" => "Fixnum", "required" => true},
-              "array_input" => {"description" => "array input", "type" => ":array"},
-              "data_source_input" => {"description" => "data source input", "type" => "String", "default" => "test", "data" => "memory/data_source_input", "required" => true}
+              "string_input" => {
+                "description" => "string input", "type" => "String", "default" => "1", "validation" => ":string"
+              },
+              "numeric_input" => {
+                "description" => "numeric input", "type" => "Fixnum", "required" => true
+              },
+              "array_input" => {
+                "description" => "array input", "type" => ":array"
+              },
+              "data_source_input" => {
+                "description" => "data source input", "type" => "String", "default" => "test", "data" => "memory/data_source_input", "required" => true
+              },
+              "forced_dynamic" => {
+                "description" => "forced dynamic input", "type" => "String", "default" => "test", "data" => "memory/data_source_input", "required" => true, "dynamic_only" => true
+              }
             }
 
             inputs.from_hash(input_def)
@@ -114,11 +125,19 @@ module MCollective
 
           it "should mark dynamic inputs with data given as static" do
             inputs.from_hash(playbook_fixture["inputs"])
-            expect(inputs.dynamic_keys).to eq(["data_backed"])
+            expect(inputs.dynamic_keys).to eq(["data_backed", "forced_dynamic"])
             expect(inputs.static_keys).to eq(["cluster", "two"])
             inputs.prepare("cluster" => "beta", "two" => "foo", "data_backed" => "1")
-            expect(inputs.dynamic_keys).to be_empty
+            expect(inputs.dynamic_keys).to eq(["forced_dynamic"])
             expect(inputs.static_keys).to eq(["cluster", "two", "data_backed"])
+          end
+
+          it "should not take data for dynamic only inputs" do
+            inputs.from_hash(playbook_fixture["inputs"])
+            inputs.prepare("cluster" => "beta", "two" => "foo", "forced_dynamic" => "rspec_override")
+            expect(inputs.dynamic_keys).to include("forced_dynamic")
+            ds.expects(:read).with("mem_store/data_backed").returns("rspec_ds")
+            expect(inputs["forced_dynamic"]).to eq("rspec_ds")
           end
         end
 
@@ -209,7 +228,7 @@ module MCollective
         describe "#from_hash" do
           it "should store the data" do
             inputs.from_hash(playbook_fixture["inputs"])
-            expect(inputs.keys).to eq(["cluster", "two", "data_backed"])
+            expect(inputs.keys).to eq(["cluster", "two", "data_backed", "forced_dynamic"])
           end
 
           it "should set the defaults" do
