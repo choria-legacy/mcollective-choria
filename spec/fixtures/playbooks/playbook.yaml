@@ -16,9 +16,15 @@ uses:
 data_stores:
   mem_store:
     type: memory
+    ttl: 10
+    timeout: 20
 
   another:
     type: memory
+
+locks:
+  - mem_store/playbook
+  - mem_store
 
 inputs:
   cluster:
@@ -45,7 +51,7 @@ inputs:
     type: String
     validation: ":string"
     default: "data_backed_default"
-    dynamic_only: true
+    dynamic: true
     data: "mem_store/data_backed"
 
 nodes:

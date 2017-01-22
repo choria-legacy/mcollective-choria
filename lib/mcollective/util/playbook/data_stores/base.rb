@@ -22,7 +22,7 @@ module MCollective
             raise(NotImplementedError, "release not implemented", caller)
           end
 
-          def lock(key)
+          def lock(key, timeout, ttl)
             raise(NotImplementedError, "lock not implemented", caller)
           end
 

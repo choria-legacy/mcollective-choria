@@ -69,7 +69,7 @@ module MCollective
                 "description" => "data source input", "type" => "String", "default" => "test", "data" => "memory/data_source_input", "required" => true
               },
               "forced_dynamic" => {
-                "description" => "forced dynamic input", "type" => "String", "default" => "test", "data" => "memory/data_source_input", "required" => true, "dynamic_only" => true
+                "description" => "forced dynamic input", "type" => "String", "default" => "test", "data" => "memory/data_source_input", "required" => true, "dynamic" => true
               }
             }
 

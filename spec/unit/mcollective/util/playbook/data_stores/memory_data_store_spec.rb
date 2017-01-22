@@ -35,7 +35,7 @@ module MCollective
             end
 
             it "should release the right lock" do
-              ds.lock("x")
+              ds.lock("x", 60, 60)
               expect(locks["x"]).to be_locked
               ds.release("x")
               expect(locks["x"]).to_not be_locked
@@ -45,7 +45,7 @@ module MCollective
           describe "#lock" do
             it "should create and lock the lock" do
               expect(locks).to eq({})
-              ds.lock("x")
+              ds.lock("x", 60, 60)
               expect(locks["x"]).to be_a(Mutex)
               expect(locks["x"]).to be_locked
             end
