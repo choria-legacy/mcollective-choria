@@ -81,9 +81,38 @@ module MCollective
         prepare_inputs
 
         prepare_data_stores
+
+        obtain_playbook_locks
+
         prepare_uses
         prepare_nodes
         prepare_tasks
+      end
+
+      # Derives a playbook lock from a given lock
+      #
+      # If a lock is in the normal valid format of source/lock
+      # then it's assumed the user gave a full path and knows what
+      # she wants otherwise a path will be constructed using the
+      # playbook name
+      #
+      # @return [String]
+      def lock_path(lock)
+        lock =~ /^[a-zA-Z0-9\-\_]+\/.+$/ ? lock : "%s/%s" % [lock, name]
+      end
+
+      # Obtains the playbook level locks
+      def obtain_playbook_locks
+        Array(@playbook_data["locks"]).each do |lock|
+          @data_stores.lock(lock_path(lock))
+        end
+      end
+
+      # Obtains the playbook level locks
+      def release_playbook_locks
+        Array(@playbook_data["locks"]).each do |lock|
+          @data_stores.release(lock_path(lock))
+        end
       end
 
       # Runs the playbook
@@ -109,6 +138,8 @@ module MCollective
         Log.debug($!.backtrace.join("\n\t"))
 
         report.finalize(false, msg)
+      ensure
+        release_playbook_locks
       end
 
       # Playbook name as declared in metadata

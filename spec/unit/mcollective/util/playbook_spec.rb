@@ -12,6 +12,35 @@ module MCollective
       let(:stores) { playbook.instance_variable_get("@data_stores") }
       let(:playbook_fixture) { YAML.load(File.read("spec/fixtures/playbooks/playbook.yaml")) }
 
+      describe "#release_playbook_locks" do
+        it "should lock all the locks" do
+          playbook.from_hash(playbook_fixture)
+
+          stores.expects(:release).with("mem_store/playbook")
+          stores.expects(:release).with("mem_store/test_playbook")
+
+          playbook.release_playbook_locks
+        end
+      end
+
+      describe "#obtain_playbook_locks" do
+        it "should lock all the locks" do
+          playbook.from_hash(playbook_fixture)
+
+          stores.expects(:lock).with("mem_store/playbook")
+          stores.expects(:lock).with("mem_store/test_playbook")
+
+          playbook.obtain_playbook_locks
+        end
+      end
+
+      describe "#lock_path" do
+        it "should construct the correct path" do
+          playbook.from_hash(playbook_fixture)
+          expect(playbook.lock_path("rspec/key")).to eq("rspec/key")
+          expect(playbook.lock_path("rspec")).to eq("rspec/test_playbook")
+        end
+      end
       describe "#static_inputs" do
         it "should get the right inputs" do
           inputs.expects(:static_keys).returns(["s1"])
@@ -245,6 +274,7 @@ module MCollective
           playbook.expects(:prepare).in_sequence(seq)
           tasks.expects(:run).in_sequence(seq).returns(true)
           playbook.report.expects(:finalize).with(true).returns({}).in_sequence(seq)
+          playbook.expects(:release_playbook_locks).in_sequence(seq)
 
           expect(playbook.run!({})).to eq({})
         end
@@ -255,6 +285,7 @@ module MCollective
           seq = sequence(:prep)
           playbook.expects(:prepare_inputs).in_sequence(seq)
           playbook.expects(:prepare_data_stores).in_sequence(seq)
+          playbook.expects(:obtain_playbook_locks).in_sequence(seq)
           playbook.expects(:prepare_uses).in_sequence(seq)
           playbook.expects(:prepare_nodes).in_sequence(seq)
           playbook.expects(:prepare_tasks).in_sequence(seq)

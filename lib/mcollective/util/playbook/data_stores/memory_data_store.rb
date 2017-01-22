@@ -26,12 +26,14 @@ module MCollective
             @store.delete(key)
           end
 
-          def lock(key)
+          def lock(key, timeout, ttl)
             @locks_mutex.synchronize do
               @locks[key] ||= Mutex.new
             end
 
-            @locks[key].lock
+            Timeout.timeout(timeout) { @locks[key].lock }
+          rescue Timeout::Error
+            raise("Failed to obtain lock %s after %d seconds" % [key, timeout])
           end
 
           def release(key)

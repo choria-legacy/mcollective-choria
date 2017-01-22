@@ -92,13 +92,17 @@ module MCollective
         # Attempts to lock a named semaphore, waits until it succeeds
         #
         # @param path [String] example data_store/key_name
-        # @raise [StandardError] when reading from the key fails
+        # @raise [StandardError] when obtaining a lock fails
+        # @raise [StandardError] when obtaining a lock timesout
         # @raise [StandardError] for unknown stores
         def lock(path)
           store, key = parse_path(path)
+          timeout = lock_timeout(store)
+          ttl = lock_ttl(store)
 
-          Log.debug("Obtaining lock %s on data store %s" % [key, store])
-          self[store].lock(key)
+          Log.debug("Obtaining lock %s on data store %s with timeout %d and ttl %d" % [key, store, timeout, ttl])
+
+          self[store].lock(key, timeout, ttl)
         end
 
         # Attempts to unlock a named semaphore
@@ -110,7 +114,28 @@ module MCollective
           store, key = parse_path(path)
 
           Log.debug("Releasing lock %s on data store %s" % [key, store])
+
           self[store].release(key)
+        end
+
+        # Retrieves the configured lock ttl for a store
+        #
+        # @param store [String]
+        # @return [Integer]
+        def lock_ttl(store)
+          raise("Unknown data store %s" % store) unless include?(store)
+
+          @stores[store][:lock_ttl]
+        end
+
+        # Retrieves the configured lock timeout for a store
+        #
+        # @param store [String]
+        # @return [Integer]
+        def lock_timeout(store)
+          raise("Unknown data store %s" % store) unless include?(store)
+
+          @stores[store][:lock_timeout]
         end
 
         # Finds a named store instance
@@ -169,6 +194,8 @@ module MCollective
             @stores[store] = {
               :properties => props,
               :type => props["type"],
+              :lock_timeout => Integer(props.fetch("timeout", 120)),
+              :lock_ttl => Integer(props.fetch("ttl", 60)),
               :store => store_for(props["type"])
             }
           end

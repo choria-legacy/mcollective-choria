@@ -14,13 +14,31 @@ module MCollective
           ds.from_hash(playbook_fixture["data_stores"])
         end
 
+        describe "#lock_timeout" do
+          it "should get the right timeout" do
+            expect(ds.lock_timeout("mem_store")).to eq(20)
+            expect(ds.lock_timeout("another")).to eq(120)
+            expect { ds.lock_timeout("rspec") }.to raise_error("Unknown data store rspec")
+          end
+        end
+
+        describe "#lock_ttl" do
+          it "should get the right ttl" do
+            expect(ds.lock_ttl("mem_store")).to eq(10)
+            expect(ds.lock_ttl("another")).to eq(60)
+            expect { ds.lock_ttl("rspec") }.to raise_error("Unknown data store rspec")
+          end
+        end
+
         describe "#from_hash" do
           it "should create the right data" do
             ds.from_hash(playbook_fixture["data_stores"])
             expect(stores.keys).to eq(["mem_store", "another"])
             expect(stores["mem_store"]).to include(
-              :properties => {"type" => "memory"},
+              :properties => {"type" => "memory", "timeout" => 20, "ttl" => 10},
               :type => "memory",
+              :lock_timeout => 20,
+              :lock_ttl => 10,
               :store => a_kind_of(DataStores::MemoryDataStore)
             )
           end
@@ -62,7 +80,7 @@ module MCollective
 
         describe "#lock" do
           it "should lock the right lock" do
-            store.expects(:lock).with("rspec")
+            store.expects(:lock).with("rspec", 20, 10)
             ds.lock("mem_store/rspec")
           end
         end
