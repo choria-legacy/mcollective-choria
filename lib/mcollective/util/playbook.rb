@@ -98,7 +98,7 @@ module MCollective
       #
       # @return [String]
       def lock_path(lock)
-        lock =~ /^[a-zA-Z0-9\-\_]+\/.+$/ ? lock : "choria/locks/playbook/%s" % [name]
+        lock =~ /^[a-zA-Z0-9\-\_]+\/.+$/ ? lock : "%s/choria/locks/playbook/%s" % [lock, name]
       end
 
       # Obtains the playbook level locks
