@@ -1,4 +1,5 @@
 require_relative "data_stores/memory_data_store"
+require_relative "data_stores/consul_data_store"
 
 module MCollective
   module Util
@@ -53,7 +54,6 @@ module MCollective
         #
         # @param path [String] example data_store/key_name
         # @param value [Object] data to write to the path
-        # @return [Object] the value written on success
         # @raise [StandardError] when reading from the key fails
         # @raise [StandardError] for unknown stores
         def write(path, value)
@@ -66,7 +66,6 @@ module MCollective
         # Deletes a path
         #
         # @param path [String] example data_store/key_name
-        # @return [Object,nil] the deleted data if possible
         # @raise [StandardError] when reading from the key fails
         # @raise [StandardError] for unknown stores
         def delete(path)
@@ -98,11 +97,10 @@ module MCollective
         def lock(path)
           store, key = parse_path(path)
           timeout = lock_timeout(store)
-          ttl = lock_ttl(store)
 
-          Log.debug("Obtaining lock %s on data store %s with timeout %d and ttl %d" % [key, store, timeout, ttl])
+          Log.debug("Obtaining lock %s on data store %s with timeout %d" % [key, store, timeout])
 
-          self[store].lock(key, timeout, ttl)
+          self[store].lock(key, timeout)
         end
 
         # Attempts to unlock a named semaphore
@@ -116,16 +114,6 @@ module MCollective
           Log.debug("Releasing lock %s on data store %s" % [key, store])
 
           self[store].release(key)
-        end
-
-        # Retrieves the configured lock ttl for a store
-        #
-        # @param store [String]
-        # @return [Integer]
-        def lock_ttl(store)
-          raise("Unknown data store %s" % store) unless include?(store)
-
-          @stores[store][:lock_ttl]
         end
 
         # Retrieves the configured lock timeout for a store
@@ -171,12 +159,14 @@ module MCollective
 
         # Creates a store instance for a given type
         #
+        # @param name [String] the store instance name
+        # @param type [String] store type
         # @return [DataStores::Base] data store instance
         # @raise [NameError] for unknown types
-        def store_for(type)
+        def store_for(name, type)
           klass_name = "%sDataStore" % type.capitalize
 
-          DataStores.const_get(klass_name).new(@playbook)
+          DataStores.const_get(klass_name).new(name, @playbook)
         rescue NameError
           raise("Cannot find a handler for Data Store type %s" % type)
         end
@@ -195,8 +185,7 @@ module MCollective
               :properties => props,
               :type => props["type"],
               :lock_timeout => Integer(props.fetch("timeout", 120)),
-              :lock_ttl => Integer(props.fetch("ttl", 60)),
-              :store => store_for(props["type"])
+              :store => store_for(store, props["type"])
             }
           end
 

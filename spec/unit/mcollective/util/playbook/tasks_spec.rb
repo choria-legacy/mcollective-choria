@@ -13,6 +13,7 @@ module MCollective
         before(:each) do
           tasks.from_hash(playbook_fixture["tasks"])
           tasks.from_hash(playbook_fixture["hooks"])
+          Log.stubs(:error)
         end
 
         describe "#from_hash" do

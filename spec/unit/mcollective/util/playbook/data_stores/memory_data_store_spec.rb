@@ -6,7 +6,7 @@ module MCollective
     class Playbook
       class DataStores
         describe MemoryDataStore do
-          let(:ds) { MemoryDataStore.new(stub) }
+          let(:ds) { MemoryDataStore.new("rspec", stub) }
           let(:store) { ds.instance_variable_get("@store") }
           let(:locks) { ds.instance_variable_get("@locks") }
 

@@ -38,7 +38,8 @@ module MCollective
           end
 
           def mcollective_task
-            rpc = Tasks::McollectiveTask.new
+            rpc = Tasks::McollectiveTask.new(@playbook)
+
             rpc.from_hash(
               "description" => @description,
               "nodes" => @nodes,

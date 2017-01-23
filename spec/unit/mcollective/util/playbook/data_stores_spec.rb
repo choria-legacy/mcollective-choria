@@ -22,14 +22,6 @@ module MCollective
           end
         end
 
-        describe "#lock_ttl" do
-          it "should get the right ttl" do
-            expect(ds.lock_ttl("mem_store")).to eq(10)
-            expect(ds.lock_ttl("another")).to eq(60)
-            expect { ds.lock_ttl("rspec") }.to raise_error("Unknown data store rspec")
-          end
-        end
-
         describe "#from_hash" do
           it "should create the right data" do
             ds.from_hash(playbook_fixture["data_stores"])
@@ -38,7 +30,6 @@ module MCollective
               :properties => {"type" => "memory", "timeout" => 20, "ttl" => 10},
               :type => "memory",
               :lock_timeout => 20,
-              :lock_ttl => 10,
               :store => a_kind_of(DataStores::MemoryDataStore)
             )
           end
@@ -46,9 +37,9 @@ module MCollective
 
         describe "#store_for" do
           it "should create the correct type of store" do
-            expect(ds.store_for("memory")).to be_a(DataStores::MemoryDataStore)
+            expect(ds.store_for("name", "memory")).to be_a(DataStores::MemoryDataStore)
 
-            expect { ds.store_for("rspec") }.to raise_error("Cannot find a handler for Data Store type rspec")
+            expect { ds.store_for("name", "rspec") }.to raise_error("Cannot find a handler for Data Store type rspec")
           end
         end
 
@@ -80,7 +71,7 @@ module MCollective
 
         describe "#lock" do
           it "should lock the right lock" do
-            store.expects(:lock).with("rspec", 20, 10)
+            store.expects(:lock).with("rspec", 20)
             ds.lock("mem_store/rspec")
           end
         end
@@ -102,7 +93,7 @@ module MCollective
         describe "#write" do
           it "should write the right values" do
             store.expects(:write).with("rspec", "rsv").returns("rsv")
-            expect(ds.write("mem_store/rspec", "rsv")).to eq("rsv")
+            ds.write("mem_store/rspec", "rsv")
           end
         end
 
@@ -116,6 +107,7 @@ module MCollective
         describe "#parse_path" do
           it "should correctly parse the path" do
             expect(ds.parse_path("mem_store/y")).to eq(["mem_store", "y"])
+            expect(ds.parse_path("mem_store/y/z")).to eq(["mem_store", "y/z"])
             expect {ds.parse_path("x") }.to raise_error("Invalid data store path x")
           end
         end
@@ -124,6 +116,7 @@ module MCollective
           it "should correctly validate paths" do
             expect(ds.valid_path?("x/y")).to be(false)
             expect(ds.valid_path?("mem_store/y")).to be(true)
+            expect(ds.valid_path?("mem_store/y/z")).to be(true)
           end
         end
       end
