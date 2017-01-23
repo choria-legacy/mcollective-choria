@@ -20,7 +20,8 @@ module MCollective
         # @param nodes [Array<String>] list of nodes to retrieve it for
         # @return [Boolean, String, Array] success, message and inventory results
         def agent_inventory(nodes)
-          rpc = Tasks::McollectiveTask.new
+          rpc = Tasks::McollectiveTask.new(@playbook)
+
           rpc.from_hash(
             "nodes" => nodes,
             "action" => "rpcutil.agent_inventory",

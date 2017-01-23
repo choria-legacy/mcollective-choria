@@ -98,12 +98,13 @@ module MCollective
       #
       # @return [String]
       def lock_path(lock)
-        lock =~ /^[a-zA-Z0-9\-\_]+\/.+$/ ? lock : "%s/%s" % [lock, name]
+        lock =~ /^[a-zA-Z0-9\-\_]+\/.+$/ ? lock : "choria/locks/playbook/%s" % [name]
       end
 
       # Obtains the playbook level locks
       def obtain_playbook_locks
         Array(@playbook_data["locks"]).each do |lock|
+          Log.info("Obtaining playbook lock %s" % [lock_path(lock)])
           @data_stores.lock(lock_path(lock))
         end
       end
@@ -111,6 +112,7 @@ module MCollective
       # Obtains the playbook level locks
       def release_playbook_locks
         Array(@playbook_data["locks"]).each do |lock|
+          Log.info("Releasing playbook lock %s" % [lock_path(lock)])
           @data_stores.release(lock_path(lock))
         end
       end

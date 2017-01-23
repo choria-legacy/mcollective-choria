@@ -109,7 +109,7 @@ module MCollective
         end
 
         def mcollective_task
-          Tasks::McollectiveTask.new
+          Tasks::McollectiveTask.new(@playbook)
         end
 
         # Tests a RPC ping to the discovered nodes

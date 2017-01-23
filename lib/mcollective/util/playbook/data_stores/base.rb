@@ -3,8 +3,9 @@ module MCollective
     class Playbook
       class DataStores
         class Base
-          def initialize(playbook)
+          def initialize(name, playbook)
             @playbook = playbook
+            @name = name
 
             startup_hook
           end
@@ -22,7 +23,7 @@ module MCollective
             raise(NotImplementedError, "release not implemented", caller)
           end
 
-          def lock(key, timeout, ttl)
+          def lock(key, timeout)
             raise(NotImplementedError, "lock not implemented", caller)
           end
 
