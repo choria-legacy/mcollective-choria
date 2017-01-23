@@ -57,7 +57,7 @@ module MCollective
                 loop do
                   renew_session
 
-                  sleep(ttl)
+                  sleep(ttl - 5)
                 end
               rescue
                 Log.warn("Session manager for Consul data store %s failed: %s: %s" % [@name, $!.class, $!.to_s])

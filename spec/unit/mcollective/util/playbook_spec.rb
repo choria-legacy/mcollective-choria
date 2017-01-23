@@ -16,7 +16,7 @@ module MCollective
         it "should lock all the locks" do
           playbook.from_hash(playbook_fixture)
 
-          stores.expects(:release).with("choria/locks/playbook/test_playbook")
+          stores.expects(:release).with("mem_store/choria/locks/playbook/test_playbook")
           stores.expects(:release).with("mem_store/playbook")
 
           playbook.release_playbook_locks
@@ -27,7 +27,7 @@ module MCollective
         it "should lock all the locks" do
           playbook.from_hash(playbook_fixture)
 
-          stores.expects(:lock).with("choria/locks/playbook/test_playbook")
+          stores.expects(:lock).with("mem_store/choria/locks/playbook/test_playbook")
           stores.expects(:lock).with("mem_store/playbook")
 
           playbook.obtain_playbook_locks
@@ -38,7 +38,7 @@ module MCollective
         it "should construct the correct path" do
           playbook.from_hash(playbook_fixture)
           expect(playbook.lock_path("rspec/key")).to eq("rspec/key")
-          expect(playbook.lock_path("rspec")).to eq("choria/locks/playbook/test_playbook")
+          expect(playbook.lock_path("rspec")).to eq("rspec/choria/locks/playbook/test_playbook")
         end
       end
       describe "#static_inputs" do
