@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/01/23|      |Release 0.0.20                                                                                           |
+|2017/01/23|151   |Add a Consul data source                                                                                 |
 |2017/01/21|155   |Allow inputs to be forced to dynamic only inputs                                                         |
 |2017/01/21|149   |Support data sources, dynamic inputs, data source read and write tasks                                   |
 |2017/01/13|      |Release 0.0.19                                                                                           |
