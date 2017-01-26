@@ -60,10 +60,19 @@ module MCollective
                 "description" => "string input", "type" => "String", "default" => "1", "validation" => ":string"
               },
               "numeric_input" => {
-                "description" => "numeric input", "type" => "Fixnum", "required" => true
+                "description" => "numeric input", "type" => "Numeric", "required" => true
+              },
+              "integer_input" => {
+                "description" => "integer input", "type" => "Integer", "required" => true
+              },
+              "float_input" => {
+                "description" => "float input", "type" => "Float", "required" => true
               },
               "array_input" => {
                 "description" => "array input", "type" => ":array"
+              },
+              "bool_input" => {
+                "description" => "bool input", "type" => ":bool"
               },
               "data_source_input" => {
                 "description" => "data source input", "type" => "String", "default" => "test", "data" => "memory/data_source_input", "required" => true
@@ -80,33 +89,50 @@ module MCollective
                                             :arguments => ["--string_input STRING_INPUT"],
                                             :type => String,
                                             :default => "1",
-                                            :validation => ":string",
+                                            :required => true)
+
+            app.class.expects(:option).with("float_input",
+                                            :description => "float input (Float) ",
+                                            :arguments => ["--float_input FLOAT_INPUT"],
+                                            :type => Float,
+                                            :required => true)
+
+            app.class.expects(:option).with("integer_input",
+                                            :description => "integer input (Integer) ",
+                                            :arguments => ["--integer_input INTEGER_INPUT"],
+                                            :type => Integer,
                                             :required => true)
 
             app.class.expects(:option).with("numeric_input",
-                                            :description => "numeric input (Integer) ",
+                                            :description => "numeric input (Numeric) ",
                                             :arguments => ["--numeric_input NUMERIC_INPUT"],
-                                            :type => Integer,
-                                            :default => nil,
-                                            :validation => nil,
+                                            :type => Numeric,
+                                            :required => true)
+
+            app.class.expects(:option).with("bool_input",
+                                            :description => "bool input (boolean) ",
+                                            :arguments => ["--bool_input BOOL_INPUT"],
+                                            :type => :boolean,
                                             :required => true)
 
             app.class.expects(:option).with("array_input",
-                                            :description => "array input (:array) ",
+                                            :description => "array input (array) ",
                                             :arguments => ["--array_input ARRAY_INPUT"],
-                                            :type => ":array",
-                                            :default => nil,
-                                            :validation => nil,
+                                            :type => :array,
                                             :required => true)
 
             app.class.expects(:option).with("data_source_input",
                                             :description => "data source input (String) default: test",
                                             :arguments => ["--data_source_input DATA_SOURCE_INPUT"],
                                             :type => String,
-                                            :default => "test",
-                                            :validation => nil)
+                                            :default => "test")
 
             inputs.add_cli_options(app, true)
+          end
+
+          it "should fail on invalid inputs" do
+            inputs.from_hash("x" => {"type" => "Rspec"})
+            expect { inputs.add_cli_options(stub, true) }.to raise_error("Invalid input type Rspec given for input x")
           end
         end
 
@@ -195,6 +221,13 @@ module MCollective
         end
 
         describe "#validate_data" do
+          it "should be a noop for no validation" do
+            inputs.from_hash("test" => {})
+            Validator.expects(:validate).never
+
+            inputs.validate_data("test", "spec_value")
+          end
+
           it "should support symbol like validators" do
             inputs.from_hash("test" => {"validation" => ":string"})
             Validator.expects(:validate).with("spec_value", :string)
