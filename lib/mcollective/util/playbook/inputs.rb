@@ -36,6 +36,7 @@ module MCollective
         #
         # @param application [MCollective::Application]
         # @param set_required [Boolean] when true required inputs will be required on the CLI
+        # @raise [StandardError] for invalidly defined inputs
         def add_cli_options(application, set_required)
           @inputs.each do |input, props|
             i_props = props[:properties]
@@ -47,8 +48,16 @@ module MCollective
                      String
                    when :fixnum, "Fixnum", "Integer"
                      Integer
+                   when :float, "Float"
+                     Float
+                   when :numeric, "Numeric"
+                     Numeric
+                   when :array, ":array", "Array"
+                     :array
+                   when :bool, ":bool", ":boolean", "Boolean"
+                     :boolean
                    else
-                     i_props["type"]
+                     raise("Invalid input type %s given for input %s" % [i_props["type"], input])
                    end
 
             description = "%s (%s) %s" % [i_props["description"], type, i_props["default"] ? ("default: %s" % i_props["default"]) : ""]
@@ -56,10 +65,10 @@ module MCollective
             option_params = {
               :description => description,
               :arguments => ["--%s %s" % [input.downcase, input.upcase]],
-              :type => type,
-              :default => i_props["default"],
-              :validation => i_props["validation"]
+              :type => type
             }
+
+            option_params[:default] = i_props["default"] if i_props.include?("default")
 
             if set_required && !i_props.include?("data")
               option_params[:required] = i_props["required"]
@@ -184,6 +193,8 @@ module MCollective
         # @param value [Object] a value to validate
         # @raise [StandardError] on validation failure
         def validate_data(input, value)
+          return unless @inputs[input][:properties].include?("validation")
+
           validator = @inputs[input][:properties]["validation"]
 
           if validator =~ /^:(.+)/
