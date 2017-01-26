@@ -145,6 +145,7 @@ module MCollective
 
           before(:each) do
             tasks.stubs(:t).with(task[:properties]).returns(task[:properties])
+            tasks.stubs(:t).with(task[:description]).returns(task[:description])
             tasks.stubs(:run_set).returns(true)
           end
 

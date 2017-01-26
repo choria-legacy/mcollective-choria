@@ -5,6 +5,8 @@ module MCollective
         class Base
           attr_accessor :description
 
+          include TemplateUtil
+
           def initialize(playbook)
             @playbook = playbook
 
@@ -14,7 +16,7 @@ module MCollective
           def startup_hook; end
 
           def to_s
-            "#<%s description: %s>" % [self.class, description]
+            "#<%s description: %s>" % [self.class, t(description)]
           end
 
           def run_task(result)

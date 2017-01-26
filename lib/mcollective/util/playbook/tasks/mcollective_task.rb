@@ -7,7 +7,6 @@ module MCollective
             @properties = {}
             @post = []
             @nodes = []
-            @description = nil
           end
 
           # Creates and cache an RPC::Client for the configured agent
