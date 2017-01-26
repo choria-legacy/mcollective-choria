@@ -56,7 +56,8 @@ module MCollective
           result = task[:result]
           task_runner = task[:runner]
 
-          Log.info("About to run task: %s" % properties["description"]) if properties["description"]
+          Log.info("About to run task: %s" % t(task[:runner].description))
+          result.description = t(task[:runner].description)
 
           if hooks && !run_set("pre_task")
             Log.warn("Failing task because a critical pre_task hook failed")
