@@ -68,8 +68,6 @@ module MCollective
               :type => type
             }
 
-            option_params[:default] = i_props["default"] if i_props.include?("default")
-
             if set_required && !i_props.include?("data")
               option_params[:required] = i_props["required"]
             end
@@ -146,10 +144,13 @@ module MCollective
           props = @inputs[input][:properties]
 
           if @inputs[input].include?(:value)
+            Log.debug("Resolving %s as static" % [input])
             @inputs[input][:value]
           elsif props.include?("data")
+            Log.debug("Resolving %s as dynamic" % [input])
             lookup_from_datastore(input)
           elsif props.include?("default")
+            Log.debug("Resolving %s as default" % [input])
             props["default"]
           else
             raise("Input %s has no value, data source or default" % [input])

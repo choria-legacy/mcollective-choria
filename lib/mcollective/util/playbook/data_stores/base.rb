@@ -14,8 +14,13 @@ module MCollective
 
           def prepare; end
 
+          def validate_configuration!; end
+
           def from_hash(properties)
             @properties = properties
+
+            validate_configuration!
+
             self
           end
 
