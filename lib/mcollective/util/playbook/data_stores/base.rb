@@ -20,27 +20,27 @@ module MCollective
           end
 
           def release(key)
-            raise(NotImplementedError, "release not implemented", caller)
+            raise(NotImplementedError, "release not implemented in %s" % [self.class], caller)
           end
 
           def lock(key, timeout)
-            raise(NotImplementedError, "lock not implemented", caller)
+            raise(NotImplementedError, "lock not implemented in %s" % [self.class], caller)
           end
 
           def members(key)
-            raise(NotImplementedError, "members not implemented", caller)
+            raise(NotImplementedError, "members not implemented in %s" % [self.class], caller)
           end
 
           def delete(key)
-            raise(NotImplementedError, "delete not implemented", caller)
+            raise(NotImplementedError, "delete not implemented in %s" % [self.class], caller)
           end
 
           def write(key, value)
-            raise(NotImplementedError, "write not implemented", caller)
+            raise(NotImplementedError, "write not implemented in %s" % [self.class], caller)
           end
 
           def read(key)
-            raise(NotImplementedError, "read not implemented", caller)
+            raise(NotImplementedError, "read not implemented in %s" % [self.class], caller)
           end
         end
       end
