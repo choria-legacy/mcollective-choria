@@ -52,8 +52,9 @@ module MCollective
             report.expects(:store_node_groups)
             report.expects(:store_task_results)
             report.expects(:calculate_metrics)
-            report.expects(:to_report)
+            report.expects(:to_report).twice
 
+            report.finalize(false, "rspec message")
             report.finalize(false, "rspec message")
 
             expect(report.instance_variable_get("@success")).to be(false)

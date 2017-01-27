@@ -1,0 +1,12 @@
+loglevel: illegal
+run_as: rspec
+
+foo: bar
+
+uses: []
+nodes: []
+hooks: []
+data_stores: []
+inputs: []
+locks: {}
+tasks: {}
