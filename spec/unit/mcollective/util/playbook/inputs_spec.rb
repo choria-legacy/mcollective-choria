@@ -88,7 +88,6 @@ module MCollective
                                             :description => "string input (String) default: 1",
                                             :arguments => ["--string_input STRING_INPUT"],
                                             :type => String,
-                                            :default => "1",
                                             :required => true)
 
             app.class.expects(:option).with("float_input",
@@ -124,8 +123,7 @@ module MCollective
             app.class.expects(:option).with("data_source_input",
                                             :description => "data source input (String) default: test",
                                             :arguments => ["--data_source_input DATA_SOURCE_INPUT"],
-                                            :type => String,
-                                            :default => "test")
+                                            :type => String)
 
             inputs.add_cli_options(app, true)
           end
