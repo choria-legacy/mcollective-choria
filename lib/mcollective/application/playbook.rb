@@ -158,6 +158,9 @@ module MCollective
       def show_command
         disconnect
 
+        pb = playbook(configuration[:__playbook_file], configuration[:__loglevel])
+        pb.validate_configuration!
+
         puts YAML.dump(YAML.load_file(configuration[:__playbook_file]))
       end
 

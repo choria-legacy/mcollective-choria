@@ -1,5 +1,8 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/01/27|166   |Improve validation of the playbook data                                                                  |
+|2017/01/26|160   |Fix inputs like :array and a few other types                                                             |
+|2017/01/26|163   |Ensure templates are parsed in task descriptions                                                         |
 |2017/01/23|      |Release 0.0.20                                                                                           |
 |2017/01/23|151   |Add a Consul data source                                                                                 |
 |2017/01/21|155   |Allow inputs to be forced to dynamic only inputs                                                         |

@@ -12,6 +12,7 @@ module MCollective
           @nodes = {}
           @tasks = []
           @success = false
+          @final = false
 
           @metrics = {
             "start_time" => @timestamp,
@@ -28,6 +29,8 @@ module MCollective
         end
 
         def finalize(success, fail_msg=nil)
+          return(to_report) if @final
+
           @success = success
           @fail_message = fail_msg
 
@@ -37,6 +40,8 @@ module MCollective
           store_node_groups
           store_task_results
           calculate_metrics
+
+          @final = true
 
           to_report
         end

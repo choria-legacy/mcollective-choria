@@ -76,12 +76,66 @@ module MCollective
         self
       end
 
+      # Validate the playbook structure
+      #
+      # This is a pretty grim way to do this, ideally AIO would include some JSON Schema
+      # tools but they don't and I don't want to carray a dependency on that now
+      #
+      # @todo use JSON Schema
+      # @raise [StandardError] for invalid playbooks
+      def validate_configuration!
+        in_context("validation") do
+          failed = false
+
+          valid_keys = (@metadata.keys + ["uses", "inputs", "locks", "data_stores", "nodes", "tasks", "hooks", "macros"])
+          invalid_keys = @playbook_data.keys - valid_keys
+
+          unless invalid_keys.empty?
+            Log.error("Invalid playbook data items %s found" % invalid_keys.join(", "))
+            failed = true
+          end
+
+          ["name", "version", "author", "description"].each do |item|
+            unless @metadata[item]
+              Log.error("A playbook %s is needed" % item)
+              failed = true
+            end
+          end
+
+          unless ["debug", "info", "warn", "error", "fatal"].include?(@metadata["loglevel"])
+            Log.error("Invalid log level %s, valid levels are debug, info, warn, error, fatal" % @metadata["loglevel"])
+            failed = true
+          end
+
+          unless PluginManager["security_plugin"].valid_callerid?(@metadata["run_as"])
+            Log.error("Invalid callerid %s" % @metadata["run_as"])
+            failed = true
+          end
+
+          ["uses", "nodes", "hooks", "data_stores", "inputs"].each do |key|
+            next unless @playbook_data.include?(key)
+            next if @playbook_data[key].is_a?(Hash)
+
+            Log.error("%s should be a hash" % key)
+            failed = true
+          end
+
+          ["locks", "tasks"].each do |key|
+            next unless @playbook_data.include?(key)
+            next if @playbook_data[key].is_a?(Array)
+
+            Log.error("%s should be a array" % key)
+            failed = true
+          end
+
+          raise("Playbook is not in a valid format") if failed
+        end
+      end
+
       def prepare
-        # do this first for templating down below
         prepare_inputs
 
         prepare_data_stores
-
         obtain_playbook_locks
 
         prepare_uses
@@ -113,7 +167,12 @@ module MCollective
       def release_playbook_locks
         Array(@playbook_data["locks"]).each do |lock|
           Log.info("Releasing playbook lock %s" % [lock_path(lock)])
-          @data_stores.release(lock_path(lock))
+
+          begin
+            @data_stores.release(lock_path(lock))
+          rescue
+            Log.warn("Lock %s could not be released, ignoring" % lock_path(lock))
+          end
         end
       end
 
@@ -122,26 +181,31 @@ module MCollective
       # @param inputs [Hash] input data
       # @return [Hash] the playbook report
       def run!(inputs)
-        start_time = Time.now
-        @input_data = inputs
+        success = false
+        validate_configuration!
 
-        in_context("pre") { Log.info("Starting playbook %s at %s" % [name, start_time]) }
+        begin
+          start_time = Time.now
+          @input_data = inputs
 
-        prepare
+          in_context("pre") { Log.info("Starting playbook %s at %s" % [name, start_time]) }
 
-        success = in_context("run") { @tasks.run }
-        in_context("post") { Log.info("Done running playbook %s in %s" % [name, seconds_to_human(Integer(Time.now - start_time))]) }
+          prepare
+
+          success = in_context("run") { @tasks.run }
+          in_context("post") { Log.info("Done running playbook %s in %s" % [name, seconds_to_human(Integer(Time.now - start_time))]) }
+
+          release_playbook_locks
+        rescue
+          msg = "Playbook %s failed: %s: %s" % [name, $!.class, $!.to_s]
+
+          Log.error("Playbook %s failed: %s: %s" % [name, $!.class, $!.to_s])
+          Log.debug($!.backtrace.join("\n\t"))
+
+          report.finalize(false, msg)
+        end
 
         report.finalize(success)
-      rescue
-        msg = "Playbook %s failed: %s: %s" % [name, $!.class, $!.to_s]
-
-        Log.error("Playbook %s failed: %s: %s" % [name, $!.class, $!.to_s])
-        Log.debug($!.backtrace.join("\n\t"))
-
-        report.finalize(false, msg)
-      ensure
-        release_playbook_locks
       end
 
       # Playbook name as declared in metadata
@@ -168,7 +232,7 @@ module MCollective
 
       # Prepares the data sources from the plabook
       def prepare_data_stores
-        in_context("pre.stores") { @data_stores.from_hash(t(@playbook_data.fetch("data_stores", {}))).prepare }
+        in_context("pre.stores") { @data_stores.from_hash(t(@playbook_data["data_stores"] || {})).prepare }
       end
 
       # Prepares the inputs from the playbook
@@ -184,14 +248,14 @@ module MCollective
       #
       # @see Uses#prepare
       def prepare_uses
-        in_context("prep.uses") { @uses.from_hash(t(@playbook_data.fetch("uses", {}))).prepare }
+        in_context("prep.uses") { @uses.from_hash(t(@playbook_data["uses"] || {})).prepare }
       end
 
       # Prepares the ode lists from the Playbook
       #
       # @see Nodes#prepare
       def prepare_nodes
-        in_context("prep.nodes") { @nodes.from_hash(t(@playbook_data.fetch("nodes", {}))).prepare }
+        in_context("prep.nodes") { @nodes.from_hash(t(@playbook_data["nodes"] || {})).prepare }
       end
 
       # Prepares the tasks lists `tasks` and `hooks` from the Playbook data
@@ -202,8 +266,8 @@ module MCollective
         # state via the template system - like for example in a post task you
         # might want to reference properties of another rpc request
         in_context("prep.tasks") do
-          @tasks.from_hash(@playbook_data.fetch("tasks", []))
-          @tasks.from_hash(@playbook_data.fetch("hooks", {}))
+          @tasks.from_hash(@playbook_data["tasks"] || [])
+          @tasks.from_hash(@playbook_data["hooks"] || {})
           @tasks.prepare
         end
       end

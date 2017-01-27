@@ -12,6 +12,41 @@ module MCollective
       let(:stores) { playbook.instance_variable_get("@data_stores") }
       let(:playbook_fixture) { YAML.load(File.read("spec/fixtures/playbooks/playbook.yaml")) }
 
+      describe "#validate_configuration!" do
+        let(:security) { stub(:valid_callerid? => false) }
+        let(:extra_keys) { YAML.load(File.read("spec/fixtures/playbooks/illegal.yaml")) }
+
+        before(:each) do
+          PluginManager.expects(:[]).with("security_plugin").returns(security)
+        end
+
+        it "should detect invalid keys" do
+          playbook.from_hash(extra_keys)
+          Log.expects(:error).with("Invalid playbook data items foo found")
+          Log.expects(:error).with("A playbook name is needed")
+          Log.expects(:error).with("A playbook version is needed")
+          Log.expects(:error).with("A playbook author is needed")
+          Log.expects(:error).with("A playbook description is needed")
+          Log.expects(:error).with("Invalid log level illegal, valid levels are debug, info, warn, error, fatal")
+          Log.expects(:error).with("Invalid callerid rspec")
+          Log.expects(:error).with("uses should be a hash")
+          Log.expects(:error).with("nodes should be a hash")
+          Log.expects(:error).with("hooks should be a hash")
+          Log.expects(:error).with("data_stores should be a hash")
+          Log.expects(:error).with("inputs should be a hash")
+          Log.expects(:error).with("locks should be a array")
+          Log.expects(:error).with("tasks should be a array")
+
+          expect { playbook.validate_configuration! }.to raise_error("Playbook is not in a valid format")
+        end
+
+        it "should allow valid playbooks" do
+          playbook.from_hash(playbook_fixture)
+          security.expects(:valid_callerid?).returns(true)
+          playbook.validate_configuration!
+        end
+      end
+
       describe "#release_playbook_locks" do
         it "should lock all the locks" do
           playbook.from_hash(playbook_fixture)
@@ -271,10 +306,11 @@ module MCollective
       describe "#run!" do
         it "should prepare and run the tasks" do
           seq = sequence(:run)
+          playbook.expects(:validate_configuration!).in_sequence(seq)
           playbook.expects(:prepare).in_sequence(seq)
           tasks.expects(:run).in_sequence(seq).returns(true)
-          playbook.report.expects(:finalize).with(true).returns({}).in_sequence(seq)
           playbook.expects(:release_playbook_locks).in_sequence(seq)
+          playbook.report.expects(:finalize).with(true).returns({}).in_sequence(seq)
 
           expect(playbook.run!({})).to eq({})
         end
@@ -308,7 +344,7 @@ module MCollective
             "tags" => ["test"],
             "on_fail" => "fail",
             "loglevel" => "debug",
-            "run_as" => "deployer.bob"
+            "run_as" => "choria=deployer.bob"
           )
         end
       end

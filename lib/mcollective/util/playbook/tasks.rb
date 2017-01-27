@@ -173,7 +173,7 @@ module MCollective
         def from_hash(data)
           if data.is_a?(Array)
             load_tasks(data, "tasks")
-          else
+          elsif data.is_a?(Hash)
             data.each do |set, tasks|
               load_tasks(tasks, set)
             end

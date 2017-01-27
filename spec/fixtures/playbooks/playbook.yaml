@@ -3,7 +3,7 @@ name: test_playbook
 version: 1.1.2
 author: R.I.Pienaar <rip@devco.net>
 description: test description
-run_as: deployer.bob
+run_as: choria=deployer.bob
 loglevel: debug
 
 tags:
