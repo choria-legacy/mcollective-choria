@@ -37,6 +37,7 @@ module MCollective
           #
           # @raise [StandardError] on failure of the internal state
           def validate_configuration!
+            raise("Nodes have to be an array") unless @nodes.is_a?(Array)
             raise("Nodes need to be supplied, refusing to run against empty node list") if @nodes.empty?
           end
 

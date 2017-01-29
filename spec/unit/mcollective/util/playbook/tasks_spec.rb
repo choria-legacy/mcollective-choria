@@ -156,6 +156,7 @@ module MCollective
 
           it "should support retries" do
             task[:runner].expects(:run).twice.returns([false, "fail 1", :x], [false, "fail 2", :x])
+            task[:runner].stubs(:validate_configuration!)
             tasks.expects(:sleep).with(20)
 
             expect(tasks.run_task(task, "tasks")).to be(false)
@@ -163,6 +164,7 @@ module MCollective
 
           it "should run a task with retries just once if it passes" do
             task[:runner].expects(:run).returns([true, "pass 1", :x])
+            task[:runner].stubs(:validate_configuration!)
             tasks.expects(:sleep).never
 
             expect(tasks.run_task(task, "tasks")).to be(true)
@@ -171,6 +173,7 @@ module MCollective
           it "should support fail_ok" do
             task[:properties]["fail_ok"] = true
             task[:runner].expects(:run).returns([false, "fail 1", :x])
+            task[:runner].stubs(:validate_configuration!)
             tasks.expects(:sleep).never
 
             expect(tasks.run_task(task, "tasks")).to be(true)
@@ -178,6 +181,7 @@ module MCollective
 
           it "should support post_task hook and fail if it fails" do
             task[:runner].stubs(:run).returns([true, "pass 1", :x])
+            task[:runner].stubs(:validate_configuration!)
             tasks.expects(:run_set).with("post_task").returns(true)
             expect(tasks.run_task(task, "tasks")).to be(true)
 
@@ -187,6 +191,7 @@ module MCollective
 
           it "should update the results" do
             task[:runner].expects(:run).returns([true, "pass 1", [:x]])
+            task[:runner].stubs(:validate_configuration!)
             tasks.run_task(task_list["tasks"][0], "tasks")
 
             result = tasks.results.first

@@ -163,6 +163,11 @@ module MCollective
           end
 
           describe "#validate_configuration!" do
+            it "should accept only arrays" do
+              task.instance_variable_set("@nodes", "")
+              expect { task.validate_configuration! }.to raise_error("Nodes have to be an array")
+            end
+
             it "should not support unbounded node lists" do
               expect { task.validate_configuration! }.to raise_error("Nodes need to be supplied, refusing to run against empty node list")
 
