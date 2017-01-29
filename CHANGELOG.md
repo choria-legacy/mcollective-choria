@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/01/19|161   |Improve validation for node lists in the mcollective task                                                |
 |2017/01/27|165   |Create environment and file data stores                                                                  |
 |2017/01/27|166   |Improve validation of the playbook data                                                                  |
 |2017/01/26|160   |Fix inputs like :array and a few other types                                                             |
