@@ -59,7 +59,9 @@ module MCollective
               task.stubs(:choria).returns(choria = stub)
               choria.expects(:https).with(:target => "slack.com", :port => 443).returns(https = stub)
               task.expects(:attachments).returns([])
-              choria.expects(:http_get).with("/api/chat.postMessage?token=RSPEC_TOKEN&username=Rspec%20Bot&channel=%23general&attachments=[]").returns(get = stub)
+              choria.expects(:http_get).with(
+                "/api/chat.postMessage?token=RSPEC_TOKEN&username=Rspec%20Bot&channel=%23general&icon_url=http://choria.io/img/slack-48x48.png&attachments=[]"
+              ).returns(get = stub)
               https.expects(:request).with(get).returns([stub(:code => "200", :body => JSON.dump("ok" => true))])
 
               expect(task.run).to eq(
@@ -74,7 +76,9 @@ module MCollective
             it "should handle failures" do
               task.stubs(:choria).returns(choria = stub)
               choria.expects(:https).with(:target => "slack.com", :port => 443).returns(https = stub)
-              choria.expects(:http_get).with("/api/chat.postMessage?token=RSPEC_TOKEN&username=Rspec%20Bot&channel=%23general&attachments=[]").returns(get = stub)
+              choria.expects(:http_get).with(
+                "/api/chat.postMessage?token=RSPEC_TOKEN&username=Rspec%20Bot&channel=%23general&icon_url=http://choria.io/img/slack-48x48.png&attachments=[]"
+              ).returns(get = stub)
               https.expects(:request).with(get).returns([stub(:code => "500", :body => JSON.dump("ok" => false, "error" => "rspec error"))])
 
               expect(task.run).to eq(
