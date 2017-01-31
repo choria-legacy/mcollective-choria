@@ -18,6 +18,7 @@ module MCollective
             @token = data["token"]
             @color = data.fetch("color", "#ffa449")
             @username = data.fetch("username", "Choria")
+            @icon = "http://choria.io/img/slack-48x48.png"
 
             self
           end
@@ -51,10 +52,11 @@ module MCollective
 
           def run
             https = choria.https(:target => "slack.com", :port => 443)
-            path = "/api/chat.postMessage?token=%s&username=%s&channel=%s&attachments=%s" % [
+            path = "/api/chat.postMessage?token=%s&username=%s&channel=%s&icon_url=%s&attachments=%s" % [
               URI.encode(@token),
               URI.encode(@username),
               URI.encode(@channel),
+              URI.encode(@icon),
               URI.encode(attachments.to_json)
             ]
 

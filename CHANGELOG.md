@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/01/31|135   |Add a choria logo to the slack task user                                                                 |
 |2017/01/29|      |Release 0.0.21                                                                                           |
 |2017/01/29|161   |Improve validation for node lists in the mcollective task                                                |
 |2017/01/27|165   |Create environment and file data stores                                                                  |
