@@ -86,7 +86,12 @@ module MCollective
             end
 
             if request_success?(stats)
-              [true, "Successful request %s for %s#%s on %d node(s)" % [stats.requestid, @agent, @action, stats.okcount], reply_data]
+              msg = nil
+
+              msg = summary_message(stats) if should_summarize?
+              msg = success_message(stats) unless msg
+
+              [true, msg, reply_data]
             else
               failed = stats.failcount + stats.noresponsefrom.size
               [false, "Failed request %s for %s#%s on %d failed node(s)" % [stats.requestid, @agent, @action, failed], reply_data]
@@ -109,10 +114,21 @@ module MCollective
           #
           # @param stats [RPC::Stats]
           def log_success(stats)
-            Log.debug("Successful request %s for %s#%s in %0.2fs against %d node(s)" % [stats.requestid, @agent, @action, stats.totaltime, stats.okcount])
+            Log.debug(success_message(stats))
           end
 
-          def log_summarize(stats)
+          # Creates the messages logged on success
+          #
+          # @return [String]
+          def success_message(stats)
+            "Successful request %s for %s#%s in %0.2fs against %d node(s)" % [stats.requestid, @agent, @action, stats.totaltime, stats.okcount]
+          end
+
+          # Creates the summary message
+          #
+          # @param stats [RPC::Stat]
+          # @return [String,nil]
+          def summary_message(stats)
             summary = {}
 
             if stats.aggregate_summary.size + stats.aggregate_failures.size > 0
@@ -121,15 +137,9 @@ module MCollective
               end
             end
 
-            unless summary.empty?
-              if @description
-                desc = "%s (%s#%s)" % [@description, @agent, @action]
-              else
-                desc = "%s#%s" % [@agent, @action]
-              end
+            return nil if summary.empty?
 
-              Log.info("Summary for %s: %s" % [desc, summary.inspect])
-            end
+            "Summary for %s: %s" % [@description, summary.to_json]
           end
 
           # Logs a failed request
@@ -174,6 +184,13 @@ module MCollective
             true
           end
 
+          # Determines if a summary was requested
+          #
+          # @return [Boolean]
+          def should_summarize?
+            @post.include?("summarize")
+          end
+
           # Logs a single RPC reply
           # Performs a single attempt at calling the agent
           # @todo should return some kind of task status object
@@ -189,7 +206,6 @@ module MCollective
                 log_reply(s)
               end
 
-              log_summarize(client.stats) if @post.include?("summarize")
               log_results(client.stats, replies)
               run_result(client.stats, replies)
             rescue

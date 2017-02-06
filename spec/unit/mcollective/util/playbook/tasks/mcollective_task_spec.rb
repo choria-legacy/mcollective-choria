@@ -8,6 +8,58 @@ module MCollective
         describe McollectiveTask do
           let(:task) { McollectiveTask.new(stub) }
 
+          before(:each) do
+            task.description = "Rspec Task"
+          end
+
+          describe "#should_summarize?" do
+            it "should detect when it should" do
+              task.from_hash(
+                "action" => "puppet.status",
+                "post" => ["summarize"]
+              )
+
+              expect(task.should_summarize?).to be(true)
+            end
+
+            it "should detect when it shouldnt" do
+              task.from_hash(
+                "action" => "puppet.status"
+              )
+
+              expect(task.should_summarize?).to be(false)
+            end
+          end
+
+          describe "#summary_message" do
+            it "should create a correct summary" do
+              stats = stub(
+                :aggregate_summary => [],
+                :aggregate_failures => []
+              )
+
+              stats.aggregate_summary << stub(
+                :result => {
+                  :value => {"one" => 1}
+                }
+              )
+              stats.aggregate_summary << stub(
+                :result => {
+                  :value => {"two" => 2}
+                }
+              )
+
+              expect(task.summary_message(stats)).to eq('Summary for Rspec Task: {"one":1,"two":2}')
+            end
+          end
+
+          describe "#success_message" do
+            it "should calcualte the right message" do
+              stats = stub(:requestid => "123", :failcount => 1, :noresponsefrom => [], :okcount => 0, :totaltime => 2)
+              expect(task.success_message(stats)).to eq("Successful request 123 for # in 2.00s against 0 node(s)")
+            end
+          end
+
           describe "#run" do
             before(:each) do
               task.from_hash(
@@ -45,7 +97,6 @@ module MCollective
 
               task.expects(:log_reply).with(rpc_result1)
               task.expects(:log_reply).with(rpc_result2)
-              task.expects(:log_summarize).with(mc_stats)
               task.expects(:log_results).with(mc_stats, [rpc_result1, rpc_result2])
               task.expects(:run_result).with(mc_stats, [rpc_result1, rpc_result2])
               task.run
@@ -110,12 +161,12 @@ module MCollective
             end
 
             it "should create a correct success result set" do
-              stats = stub(:requestid => "123", :failcount => 0, :noresponsefrom => [], :okcount => 1)
+              stats = stub(:requestid => "123", :failcount => 0, :noresponsefrom => [], :okcount => 1, :totaltime => 2)
 
               expect(task.run_result(stats, [rpc_result])).to eq(
                 [
                   true,
-                  "Successful request 123 for puppet#disable on 1 node(s)",
+                  "Successful request 123 for puppet#disable in 2.00s against 1 node(s)",
                   [
                     {
                       "agent" => "puppet",
