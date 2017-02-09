@@ -384,6 +384,13 @@ module MCollective
         FileUtils.expects(:mkdir_p).never
         expect(security.server_public_cert_dir).to eq("/etc/puppetlabs/mcollective/choria_security/public_certs")
       end
+
+      it "should support windows" do
+        Util.stubs(:windows?).returns(true)
+        Util.stubs(:windows_prefix).returns("c:/nonexisting")
+        File.expects(:directory?).with("c:/nonexisting/choria_security/public_certs").returns(true)
+        expect(security.server_public_cert_dir).to eq("c:/nonexisting/choria_security/public_certs")
+      end
     end
 
     describe "#callerid" do

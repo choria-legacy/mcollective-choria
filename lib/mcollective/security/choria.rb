@@ -470,7 +470,11 @@ module MCollective
       # @return [String]
       # @raise [StandardError] when creating the directory fails
       def server_public_cert_dir
-        dir = "/etc/puppetlabs/mcollective/choria_security/public_certs"
+        if Util.windows?
+          dir = File.join(Util.windows_prefix, "choria_security", "public_certs")
+        else
+          dir = "/etc/puppetlabs/mcollective/choria_security/public_certs"
+        end
 
         FileUtils.mkdir_p(dir) unless File.directory?(dir)
 
