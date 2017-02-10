@@ -10,6 +10,7 @@ mcollective_choria::client_directories:
  - util/playbook/tasks
 mcollective_choria::server_files:
  - audit/choria.rb
+ - registration/choria.rb
 mcollective_choria::client_files:
  - application/choria.rb
  - application/playbook.rb
