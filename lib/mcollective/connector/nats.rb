@@ -15,6 +15,27 @@ module MCollective
         Log.info("Choria NATS.io connector using pure ruby nats/io/client %s with protocol version %s" % [NATS::IO::VERSION, NATS::IO::PROTOCOL])
       end
 
+      # Determines if the NATS connection is active
+      #
+      # @return [Boolean]
+      def connected?
+        connection.connected?
+      end
+
+      # Returns the current connected server
+      #
+      # @return [String,nil]
+      def connected_server
+        connection.connected_server
+      end
+
+      # Retrieves the NATS connection stats
+      #
+      # @return [Hash]
+      def stats
+        connection.stats
+      end
+
       # Attempts to connect to the middleware, noop when already connected
       #
       # @return [void]

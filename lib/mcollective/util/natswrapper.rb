@@ -37,6 +37,24 @@ module MCollective
         !!@client
       end
 
+      # Retrieves the current connected server
+      #
+      # @return [String,nil]
+      def connected_server
+        return nil unless connected?
+
+        @client.connected_server
+      end
+
+      # Connection stats from the NATS gem
+      #
+      # @return [Hash]
+      def stats
+        return {} unless has_client?
+
+        @client.stats
+      end
+
       # Is NATS connected
       #
       # @return [Boolean]

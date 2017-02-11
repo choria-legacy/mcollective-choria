@@ -10,6 +10,29 @@ module MCollective
       wrapper.stub_client(client)
     end
 
+    describe "#connected_server" do
+      it "should be nil when not connected" do
+        client.expects(:connected?).returns(false)
+        expect(wrapper.connected_server).to be_nil
+      end
+
+      it "should get the connected server" do
+        expect(wrapper.connected_server).to eq("rspec.example.net:1234")
+      end
+    end
+
+    describe "#stats" do
+      it "should be empty when there is no client" do
+        wrapper.expects(:has_client?).returns(false)
+        expect(wrapper.stats).to eq({})
+      end
+
+      it "should ge the client stats" do
+        client.expects(:stats).returns(:stats => 1)
+        expect(wrapper.stats).to eq(:stats => 1)
+      end
+    end
+
     describe "#start" do
       it "should have tests"
     end

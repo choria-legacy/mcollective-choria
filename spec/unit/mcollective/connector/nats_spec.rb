@@ -6,6 +6,7 @@ module MCollective
   describe Connector::Nats do
     let(:connector) { Connector::Nats.new }
     let(:choria) { connector.choria }
+    let(:connection) { connector.connection }
     let(:msg) { Message.new(Base64.encode64("rspec"), mock, :base64 => true, :headers => {}) }
 
     before(:each) do
@@ -18,6 +19,27 @@ module MCollective
 
       msg.agent = "rspec_agent"
       msg.collective = "mcollective"
+    end
+
+    describe "#stats" do
+      it "should get the stats from the wrapper" do
+        connection.expects(:stats).returns(:stats => 1)
+        expect(connector.stats).to eq(:stats => 1)
+      end
+    end
+
+    describe "#connected_server" do
+      it "should get the server when connected" do
+        connection.expects(:connected_server).returns("nats.example.net")
+        expect(connector.connected_server).to eq("nats.example.net")
+      end
+    end
+
+    describe "#connected?" do
+      it "should proxy to the wrapper" do
+        connection.expects(:connected?).returns(false)
+        expect(connector.connected?).to be(false)
+      end
     end
 
     describe "#ssl_context" do
