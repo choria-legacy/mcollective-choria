@@ -66,7 +66,6 @@ module MCollective
         {
           "timestamp" => Time.now.to_i,
           "identity" => config.identity,
-          "agents" => Agents.agentlist,
           "version" => MCollective::VERSION,
           "stats" => PluginManager["global_stats"].to_hash,
           "nats" => {

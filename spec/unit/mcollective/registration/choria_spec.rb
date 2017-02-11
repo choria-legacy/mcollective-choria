@@ -21,14 +21,12 @@ module MCollective
         it "should return the right data" do
           t = Time.now
           Time.stubs(:now).returns(t)
-          Agents.expects(:agentlist).returns(["rspec"])
           PluginManager.expects(:[]).with("global_stats").returns("g_stats" => 1)
           choria.expects(:connected_server).returns("nats.example.net")
           choria.expects(:connector_stats).returns("c_stats" => 1)
           expect(choria.registration_data).to eq(
             "timestamp" => t.to_i,
             "identity" => "rspec_identity",
-            "agents" => ["rspec"],
             "version" => MCollective::VERSION,
             "stats" => {"g_stats" => 1},
             "nats" => {
