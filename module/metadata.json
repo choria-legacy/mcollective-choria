@@ -1,20 +1,20 @@
 {
-  "name": "ripienaar-mcollective_choria",
-  "version": "0.0.21",
+  "name": "choria-mcollective_choria",
+  "version": "0.0.22",
   "author": "R.I.Pienaar <rip@devco.net>",
   "summary": "A suite of MCollective Plugins for AIO Puppet",
   "license": "Apache-2.0",
-  "source": "https://github.com/ripienaar/mcollective-choria",
-  "project_page": "https://github.com/ripienaar/mcollective-choria/wiki",
-  "issues_url": "https://github.com/ripienaar/mcollective-choria/issues",
+  "source": "https://github.com/choria-io/mcollective-choria",
+  "project_page": "https://github.com/choria-io/mcollective-choria/wiki",
+  "issues_url": "https://github.com/choria-io/mcollective-choria/issues",
   "dependencies": [
-    {"name":"ripienaar/mcollective","version_requirement":">= 0.0.23 < 2.0.0"},
-    { "name": "ripienaar/mcollective_agent_puppet", "version_requirement": ">= 1.11.0" },
-    { "name": "ripienaar/mcollective_agent_package", "version_requirement": ">= 4.3.0" },
-    { "name": "ripienaar/mcollective_agent_service", "version_requirement": ">= 3.1.3" },
-    { "name": "ripienaar/mcollective_agent_filemgr", "version_requirement": ">= 1.1.0" },
-    { "name": "ripienaar/mcollective_util_actionpolicy", "version_requirement": ">= 2.1.0" },
-    { "name": "ripienaar/nats", "version_requirement": ">= 0.0.5" }
+    { "name": "choria/mcollective","version_requirement":">= 0.0.24 < 2.0.0"},
+    { "name": "choria/mcollective_agent_puppet", "version_requirement": ">= 1.12.0" },
+    { "name": "choria/mcollective_agent_package", "version_requirement": ">= 4.5.0" },
+    { "name": "choria/mcollective_agent_service", "version_requirement": ">= 3.1.3" },
+    { "name": "choria/mcollective_agent_filemgr", "version_requirement": ">= 1.1.0" },
+    { "name": "choria/mcollective_util_actionpolicy", "version_requirement": ">= 2.1.0" },
+    { "name": "choria/nats", "version_requirement": ">= 0.0.6" }
   ],
   "data_provider": "hiera"
 }

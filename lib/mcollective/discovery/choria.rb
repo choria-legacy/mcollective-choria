@@ -51,7 +51,7 @@ module MCollective
       #
       # When the `rpcutil` agent is required it will look for `Mcollective` class
       # otherwise `Mcollective_avent_agentname` thus it will only find plugins
-      # installed using the `ripienaar/mcollective` AIO plugin packager
+      # installed using the `choria/mcollective` AIO plugin packager
       #
       # @param filter [Array<String>] agent names
       # @return [Array<String>] list of nodes found
