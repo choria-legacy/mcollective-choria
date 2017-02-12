@@ -8,7 +8,12 @@ module MCollective
       attr_writer :connection
 
       def run(connection)
-        return false if interval == 0
+        if interval == 0
+          Log.info("Choria registration cannot start as registerinterval is 0")
+          return false
+        else
+          Log.info("Choria registration starting, storing stats in %s every %d seconds" % [registration_file, interval])
+        end
 
         @connection = connection
 

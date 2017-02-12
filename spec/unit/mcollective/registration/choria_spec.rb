@@ -99,6 +99,7 @@ module MCollective
 
         it "should start the publisher" do
           choria.stubs(:interval).returns(5)
+          choria.stubs(:registration_file).returns("/nonexisting/choria-stats.json")
 
           # this is pointless but mocha doesnt work with threads
           Thread.expects(:new).once

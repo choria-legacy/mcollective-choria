@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/02/12|      |Release 0.0.22                                                                                           |
 |2017/02/11|181   |Add a registration plugin                                                                                |
 |2017/02/09|176   |Create the choria public certs in the right directory on windows                                         |
 |2017/02/06|174   |Set the mcollective summary as task outcome when its requested                                           |
