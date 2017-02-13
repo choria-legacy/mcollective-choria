@@ -8,7 +8,7 @@ module MCollective
         # `nodes` and the key is some item contained in those scopes like a named node list.
         #
         # You'll generally mix this into a class you wish to use it in, that class should have
-        # a `@playbook` variable set which is an instnace of `Playbook`
+        # a `@playbook` variable set which is an instance of `Playbook`
         #
         # @param data [Object] data structure to traverse
         # @return [Object] deep cloned copy of the structure with strings parsed
