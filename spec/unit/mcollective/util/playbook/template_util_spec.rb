@@ -20,12 +20,14 @@ module MCollective
           end
 
           it "should lookup inputs, metadata and nodes, previous_task and preserve data type" do
-            tu.expects(:__template_resolve).with("input", "x").returns(1)
+            tu.expects(:__template_resolve).with("input", "x").returns(1).twice
             tu.expects(:__template_resolve).with("inputs", "y").returns(1)
             tu.expects(:__template_resolve).with("nodes", "x").returns(["value1", "value2"])
             tu.expects(:__template_resolve).with("metadata", "x").returns(2)
             tu.expects(:__template_resolve).with("previous_task", "msg").returns("rspec_message")
 
+            expect(tu.__template_process_string("{ input.x }")).to eq("{ input.x }")
+            expect(tu.__template_process_string("{{ input.x }}")).to eq(1)
             expect(tu.__template_process_string("{{{ input.x }}}")).to eq(1)
             expect(tu.__template_process_string("{{{ inputs.y }}}")).to eq(1)
             expect(tu.__template_process_string("{{{ nodes.x}}}")).to eq(["value1", "value2"])
