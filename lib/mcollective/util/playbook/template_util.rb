@@ -58,8 +58,8 @@ module MCollective
         def __template_process_string(string)
           raise("Playbook is not accessible") unless @playbook
 
-          front = '{{{\s*'
-          back = '\s*}}}'
+          front = '{{2,3}\s*'
+          back = '\s*}{2,3}'
 
           data_regex = Regexp.new("%s%s%s" % [front, '(?<type>input(s*)|metadata|nodes)\.(?<item>[a-zA-Z0-9\_\-]+)', back])
           date_regex = Regexp.new("%s%s%s" % [front, '(?<type>date|utc_date)\(\s*["\']*(?<format>.+?)["\']*\s*\)', back])
