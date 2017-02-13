@@ -3,6 +3,7 @@ require_relative "data_stores/consul_data_store"
 require_relative "data_stores/environment_data_store"
 require_relative "data_stores/file_data_store"
 require_relative "data_stores/memory_data_store"
+require_relative "data_stores/shell_data_store"
 
 module MCollective
   module Util
