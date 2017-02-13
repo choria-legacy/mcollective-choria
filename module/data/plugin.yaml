@@ -21,6 +21,7 @@ mcollective_choria::client_files:
  - util/playbook/data_stores/environment_data_store.rb
  - util/playbook/data_stores/file_data_store.rb
  - util/playbook/data_stores/memory_data_store.rb
+ - util/playbook/data_stores/shell_data_store.rb
  - util/playbook/data_stores.rb
  - util/playbook/inputs.rb
  - util/playbook/nodes/mcollective_nodes.rb

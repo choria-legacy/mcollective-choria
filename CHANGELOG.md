@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/02/13|177   |Add a shell script based data store                                                                      |
 |2017/02/12|      |Release 0.0.22                                                                                           |
 |2017/02/11|181   |Add a registration plugin                                                                                |
 |2017/02/09|176   |Create the choria public certs in the right directory on windows                                         |
