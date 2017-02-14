@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/02/14|193   |Improve support for custom CAs by making x509 subject parsing more robust                                |
 |2017/02/14|191   |Add the `mco choria show_config` command to inspect active Choria configuration                          |
 |2017/02/13|187   |Support *{{ ... }}* as well as *{{{ ... }}}* in templates                                                |
 |2017/02/13|177   |Add a shell script based data store                                                                      |
