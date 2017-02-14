@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/02/14|191   |Add the `mco choria show_config` command to inspect active Choria configuration                          |
 |2017/02/13|187   |Support *{{ ... }}* as well as *{{{ ... }}}* in templates                                                |
 |2017/02/13|177   |Add a shell script based data store                                                                      |
 |2017/02/12|      |Release 0.0.22                                                                                           |

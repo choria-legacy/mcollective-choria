@@ -250,16 +250,17 @@ module MCollective
 
       # Checks all the required SSL files exist
       #
-      # @return [boolean]
+      # @param log [Boolean] log warnings when true
+      # @return [Boolean]
       # @raise [StandardError] on failure
-      def check_ssl_setup
+      def check_ssl_setup(log=true)
         valid = [client_public_cert, client_private_key, ca_path].map do |path|
           Log.debug("Checking for SSL file %s" % path)
 
           if File.exist?(path)
             true
           else
-            Log.warn("Cannot find SSL file %s" % path)
+            Log.warn("Cannot find SSL file %s" % path) if log
             false
           end
         end.all?
