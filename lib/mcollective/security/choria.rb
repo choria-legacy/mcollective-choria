@@ -386,7 +386,7 @@ module MCollective
       #
       # @param pubcert [String] PEM encoded X509 public certificate
       # @return [String,false] when succesful, the certname else false
-      # @raise [Exception] in case OpenSSL fails to open the various certificates
+      # @raise [StandardError] in case OpenSSL fails to open the various certificates
       def valid_certificate?(pubcert)
         unless File.readable?(ca_path)
           raise("Cannot find or read the CA in %s, cannot verify public certificate" % ca_path)
@@ -410,7 +410,11 @@ module MCollective
 
         Log.info("Verified certificate %s against CA %s" % [incoming.subject.to_s, ca.subject.to_s])
 
-        incoming.subject.to_a.first[1]
+        cn_parts = incoming.subject.to_a.select {|c| c[0] == "CN"}.flatten
+
+        raise("Could not parser certificate with subject %s as it has no CN part" % [incoming.subject.to_s]) if cn_parts.empty?
+
+        cn_parts[1]
       end
 
       # Determines the path to a cached certificate for a caller
