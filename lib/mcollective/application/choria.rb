@@ -11,6 +11,7 @@ module MCollective
      plan         - view the plan for a specific environment
      run          - run a the plan for a specific environment
      request_cert - requests a certificate from the Puppet CA
+     show_config  - shows the active configuration parameters
 
   The environment is chosen using --environment and the concurrent
   runs may be limited using --batch.
@@ -69,7 +70,7 @@ module MCollective
           abort("Unknown command %s, valid commands are: %s" % [configuration[:command], valid_commands.join(", ")])
         end
 
-        if !choria.has_client_public_cert? && configuration[:command] != "request_cert"
+        if !choria.has_client_public_cert? && !["request_cert", "show_config"].include?(configuration[:command])
           abort("A certificate is needed from the Puppet CA for `%s`, please use the `request_cert` command" % choria.certname)
         end
       end
@@ -146,6 +147,69 @@ module MCollective
 
           orchestrator.run_plan
         end
+      end
+
+      def show_config_command # rubocop:disable Metrics/MethodLength
+        puppet_server = "%s:%s" % [choria.puppet_server[:target], choria.puppet_server[:port]]
+        puppetca_server = "%s:%s" % [choria.puppetca_server[:target], choria.puppetca_server[:port]]
+        puppetdb_server = "%s:%s" % [choria.puppetca_server[:target], choria.puppetca_server[:port]]
+        choria_settings = Config.instance.pluginconf.select {|k, _| k.start_with?("choria")}
+        middleware_servers = choria.middleware_servers("puppet", 42222).map {|s, p| "%s:%s" % [s, p]}.join(", ")
+        padding = choria_settings.keys.map(&:length).max + 2
+
+        begin
+          choria.check_ssl_setup(false)
+          valid_ssl = true
+        rescue
+          valid_ssl = false
+        end
+
+        puts "Active Choria configuration:"
+        puts
+        puts "The active configuration used in Choria comes from using Puppet AIO defaults, querying SRV"
+        puts "records and reading configuration files.  The below information shows the completely resolved"
+        puts "configuration that will be used when running MCollective commands"
+        puts
+        puts "Puppet related:"
+        puts
+        puts "       Puppet Server: %s" % puppet_server
+        puts "     PuppetCA Server: %s" % puppetca_server
+        puts "     PuppetDB Server: %s" % puppetdb_server
+        puts "      Facter Command: %s" % choria.facter_cmd
+        puts "       Facter Domain: %s" % choria.facter_domain
+        puts
+
+        puts "SSL setup:"
+        puts
+        if valid_ssl
+          puts "     Valid SSL Setup: %s" % [Util.colorize(:green, "yes")]
+        else
+          puts "     Valid SSL Setup: %s run 'mco choria request_cert'" % [Util.colorize(:red, "no")]
+        end
+        puts "            Certname: %s" % choria.certname
+        puts "       SSL Directory: %s (%s)" % [choria.ssl_dir, File.exist?(choria.ssl_dir) ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
+        puts "  Client Public Cert: %s (%s)" % [choria.client_public_cert, choria.has_client_public_cert? ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
+        puts "  Client Private Key: %s (%s)" % [choria.client_private_key, choria.has_client_private_key? ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
+        puts "             CA Path: %s (%s)" % [choria.ca_path, choria.has_ca? ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
+        puts "            CSR Path: %s (%s)" % [choria.csr_path, choria.has_csr? ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
+        puts
+
+        puts "MCollective selated:"
+        puts
+        puts " MCollective Version: %s" % MCollective::VERSION
+        puts "  Client Config File: %s" % Util.config_file_for_user
+        puts "  Middleware Servers: %s" % middleware_servers
+        puts "          SRV Domain: %s" % choria.srv_domain
+        puts
+
+        puts "Active Choria configuration settings as found in configuration files:"
+        puts
+
+        choria_settings.each do |k, v|
+          puts "%#{padding}s: %s" % [k, v]
+        end
+
+        puts
       end
 
       # Creates and cache a client to the Puppet RPC Agent
