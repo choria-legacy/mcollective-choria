@@ -7,6 +7,25 @@ module MCollective
       let(:choria) { Choria.new("production", nil, false) }
       let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
+      describe "#should_use_srv?" do
+        it "should default to on" do
+          Config.instance.stubs(:pluginconf).returns({})
+          expect(choria.should_use_srv?).to be(true)
+        end
+
+        it "should support common 'on' settings" do
+          ["t", "true", "yes", "1"].each do |setting|
+            Config.instance.stubs(:pluginconf).returns("choria.use_srv_records" => setting)
+            expect(choria.should_use_srv?).to be(true)
+          end
+        end
+
+        it "should support disabling SRV" do
+          Config.instance.stubs(:pluginconf).returns("choria.use_srv_records" => "false")
+          expect(choria.should_use_srv?).to be(false)
+        end
+      end
+
       describe "#pql_extract_certnames" do
         it "should extract all certname fields" do
           expect(
@@ -151,7 +170,7 @@ module MCollective
         end
 
         it "should be possible to disable SRV support" do
-          Config.instance.stubs(:pluginconf).returns("choria.use_srv_records" => "false")
+          choria.expects(:should_use_srv?).returns(false)
           choria.expects(:srv_records).never
           expect(choria.query_srv_records(["_mcollective-server._tcp.example.net"])).to eq([])
         end

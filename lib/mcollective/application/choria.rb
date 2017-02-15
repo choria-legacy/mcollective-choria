@@ -150,19 +150,7 @@ module MCollective
       end
 
       def show_config_command # rubocop:disable Metrics/MethodLength
-        puppet_server = "%s:%s" % [choria.puppet_server[:target], choria.puppet_server[:port]]
-        puppetca_server = "%s:%s" % [choria.puppetca_server[:target], choria.puppetca_server[:port]]
-        puppetdb_server = "%s:%s" % [choria.puppetca_server[:target], choria.puppetca_server[:port]]
-        choria_settings = Config.instance.pluginconf.select {|k, _| k.start_with?("choria")}
-        middleware_servers = choria.middleware_servers("puppet", 42222).map {|s, p| "%s:%s" % [s, p]}.join(", ")
-        padding = choria_settings.keys.map(&:length).max + 2
-
-        begin
-          choria.check_ssl_setup(false)
-          valid_ssl = true
-        rescue
-          valid_ssl = false
-        end
+        disconnect
 
         puts "Active Choria configuration:"
         puts
@@ -170,6 +158,24 @@ module MCollective
         puts "records and reading configuration files.  The below information shows the completely resolved"
         puts "configuration that will be used when running MCollective commands"
         puts
+        puts "MCollective selated:"
+        puts
+        puts " MCollective Version: %s" % MCollective::VERSION
+        puts "  Client Config File: %s" % Util.config_file_for_user
+        puts "  Active Config File: %s" % Config.instance.configfile
+        puts "   Plugin Config Dir: %s" % File.join(Config.instance.configdir, "plugin.d")
+        puts "   Using SRV Records: %s" % choria.should_use_srv?
+        puts "          SRV Domain: %s" % choria.srv_domain
+
+        middleware_servers = choria.middleware_servers("puppet", 42222).map {|s, p| "%s:%s" % [s, p]}.join(", ")
+
+        puts "  Middleware Servers: %s" % middleware_servers
+        puts
+
+        puppet_server = "%s:%s" % [choria.puppet_server[:target], choria.puppet_server[:port]]
+        puppetca_server = "%s:%s" % [choria.puppetca_server[:target], choria.puppetca_server[:port]]
+        puppetdb_server = "%s:%s" % [choria.puppetca_server[:target], choria.puppetca_server[:port]]
+
         puts "Puppet related:"
         puts
         puts "       Puppet Server: %s" % puppet_server
@@ -181,11 +187,15 @@ module MCollective
 
         puts "SSL setup:"
         puts
+
+        valid_ssl = choria.check_ssl_setup(false) rescue false
+
         if valid_ssl
           puts "     Valid SSL Setup: %s" % [Util.colorize(:green, "yes")]
         else
           puts "     Valid SSL Setup: %s run 'mco choria request_cert'" % [Util.colorize(:red, "no")]
         end
+
         puts "            Certname: %s" % choria.certname
         puts "       SSL Directory: %s (%s)" % [choria.ssl_dir, File.exist?(choria.ssl_dir) ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
         puts "  Client Public Cert: %s (%s)" % [choria.client_public_cert, choria.has_client_public_cert? ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
@@ -194,19 +204,18 @@ module MCollective
         puts "            CSR Path: %s (%s)" % [choria.csr_path, choria.has_csr? ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
         puts
 
-        puts "MCollective selated:"
-        puts
-        puts " MCollective Version: %s" % MCollective::VERSION
-        puts "  Client Config File: %s" % Util.config_file_for_user
-        puts "  Middleware Servers: %s" % middleware_servers
-        puts "          SRV Domain: %s" % choria.srv_domain
-        puts
-
         puts "Active Choria configuration settings as found in configuration files:"
         puts
 
-        choria_settings.each do |k, v|
-          puts "%#{padding}s: %s" % [k, v]
+        choria_settings = Config.instance.pluginconf.select {|k, _| k.start_with?("choria")}
+        padding = choria_settings.empty? ? 2 : choria_settings.keys.map(&:length).max + 2
+
+        if choria_settings.empty?
+          puts "  No custom Choria settings found in your configuration files"
+        else
+          choria_settings.each do |k, v|
+            puts "%#{padding}s: %s" % [k, v]
+          end
         end
 
         puts
