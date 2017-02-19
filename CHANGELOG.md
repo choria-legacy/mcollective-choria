@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/02/19|186   |Add a Graphite event task                                                                                |
 |2017/02/17|      |Release 0.0.23                                                                                           |
 |2017/02/14|193   |Improve support for custom CAs by making x509 subject parsing more robust                                |
 |2017/02/14|191   |Add the `mco choria show_config` command to inspect active Choria configuration                          |
