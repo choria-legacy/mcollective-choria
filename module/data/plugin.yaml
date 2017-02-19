@@ -36,6 +36,7 @@ mcollective_choria::client_files:
  - util/playbook/task_result.rb
  - util/playbook/tasks/base.rb
  - util/playbook/tasks/data_task.rb
+ - util/playbook/tasks/graphite_event_task.rb
  - util/playbook/tasks/mcollective_assert_task.rb
  - util/playbook/tasks/mcollective_task.rb
  - util/playbook/tasks.rb
