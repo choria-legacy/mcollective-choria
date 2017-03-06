@@ -307,6 +307,7 @@ module MCollective
         it "should prepare and run the tasks" do
           seq = sequence(:run)
           playbook.expects(:validate_configuration!).in_sequence(seq)
+          playbook.report.expects(:start!).returns(Time.now).in_sequence(seq)
           playbook.expects(:prepare).in_sequence(seq)
           tasks.expects(:run).in_sequence(seq).returns(true)
           playbook.expects(:release_playbook_locks).in_sequence(seq)

@@ -185,7 +185,8 @@ module MCollective
         validate_configuration!
 
         begin
-          start_time = Time.now
+          start_time = @report.start!
+
           @input_data = inputs
 
           in_context("pre") { Log.info("Starting playbook %s at %s" % [name, start_time]) }
@@ -193,13 +194,13 @@ module MCollective
           prepare
 
           success = in_context("run") { @tasks.run }
-          in_context("post") { Log.info("Done running playbook %s in %s" % [name, seconds_to_human(Integer(Time.now - start_time))]) }
+          in_context("post") { Log.info("Done running playbook %s in %s" % [name, seconds_to_human(Integer(@report.elapsed_time))]) }
 
           release_playbook_locks
         rescue
           msg = "Playbook %s failed: %s: %s" % [name, $!.class, $!.to_s]
 
-          Log.error("Playbook %s failed: %s: %s" % [name, $!.class, $!.to_s])
+          Log.error(msg)
           Log.debug($!.backtrace.join("\n\t"))
 
           report.finalize(false, msg)

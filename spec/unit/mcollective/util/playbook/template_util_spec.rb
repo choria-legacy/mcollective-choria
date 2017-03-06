@@ -43,6 +43,11 @@ module MCollective
             expect(tu.__template_process_string("{{{ utc_date('%Y%m%dT%H%M%S%z') }}}")).to eq("20161229T124726+0000")
           end
 
+          it "should support elapsed times" do
+            tu.expects(:__template_resolve).with("elapsed_time", "").returns(10)
+            expect(tu.__template_process_string("{{{elapsed_time}}}")).to eq(10)
+          end
+
           it "should support uuids" do
             tu.expects(:__template_resolve).with("uuid", "").returns(SSL.uuid("rspec"))
             expect(tu.__template_process_string("{{{uuid}}}")).to eq("479d1982-120a-5ba8-8664-1f16a6504371")
@@ -94,6 +99,12 @@ module MCollective
             now = Time.now
             Time.expects(:now).returns(now)
             expect(tu.__template_resolve("utc_date", "%Y%m%dT%H%M%S%z")).to eq(now.utc.strftime("%Y%m%dT%H%M%S%z"))
+          end
+
+          it "should support elapsed times" do
+            playbook.stubs(:report).returns(report = stub)
+            report.expects(:elapsed_time).returns(10)
+            expect(tu.__template_resolve("elapsed_time", "")).to eq(10)
           end
 
           it "should support uuids" do
