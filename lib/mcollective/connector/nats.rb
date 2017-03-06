@@ -49,11 +49,11 @@ module MCollective
         parameters = {
           :max_reconnect_attempts => -1,
           :reconnect_time_wait => 1,
-          :dont_randomize_servers => true,
+          :dont_randomize_servers => !choria.randomize_middleware_servers?,
+          :name => @config.identity,
           :tls => {
             :context => ssl_context
-          },
-          :name => @config.identity
+          }
         }
 
         servers = server_list

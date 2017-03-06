@@ -82,11 +82,12 @@ module MCollective
       it "should connect" do
         mock_context = OpenSSL::SSL::SSLContext.new
         connector.stubs(:ssl_context).returns(mock_context)
+        choria.expects(:randomize_middleware_servers?).returns(true)
 
         connector.connection.expects(:start).with(
           :max_reconnect_attempts => -1,
           :reconnect_time_wait => 1,
-          :dont_randomize_servers => true,
+          :dont_randomize_servers => false,
           :name => "rspec_identity",
           :tls => {
             :context => mock_context

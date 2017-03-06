@@ -316,6 +316,13 @@ module MCollective
         [[default_host, default_port]]
       end
 
+      # Determines if servers should be randomized
+      #
+      # @return [Boolean]
+      def randomize_middleware_servers?
+        Util.str_to_bool(get_option("choria.randomize_middleware_hosts", "false"))
+      end
+
       # Attempts to look up some SRV records falling back to defaults
       #
       # When given a array of multiple names it will try each name individually
