@@ -7,6 +7,18 @@ module MCollective
       let(:choria) { Choria.new("production", nil, false) }
       let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
+      describe "#randomize_middleware_servers?" do
+        it "should default to false" do
+          Config.instance.stubs(:pluginconf).returns({})
+          expect(choria.randomize_middleware_servers?).to be(false)
+        end
+
+        it "should be configurable" do
+          Config.instance.stubs(:pluginconf).returns("choria.randomize_middleware_hosts" => "true")
+          expect(choria.randomize_middleware_servers?).to be(true)
+        end
+      end
+
       describe "#should_use_srv?" do
         it "should default to on" do
           Config.instance.stubs(:pluginconf).returns({})
