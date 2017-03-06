@@ -48,6 +48,8 @@ module MCollective
             Time.now.strftime(item)
           when "utc_date"
             Time.now.utc.strftime(item)
+          when "elapsed_time"
+            @playbook.report.elapsed_time
           when "uuid"
             SSL.uuid
           else
@@ -64,9 +66,9 @@ module MCollective
           data_regex = Regexp.new("%s%s%s" % [front, '(?<type>input(s*)|metadata|nodes)\.(?<item>[a-zA-Z0-9\_\-]+)', back])
           date_regex = Regexp.new("%s%s%s" % [front, '(?<type>date|utc_date)\(\s*["\']*(?<format>.+?)["\']*\s*\)', back])
           task_regex = Regexp.new("%s%s%s" % [front, '(?<type>previous_task)\.(?<item>(success|description|msg|message|data|runtime))', back])
-          uuid_regex = Regexp.new("%s%s%s" % [front, "uuid", back])
+          singles_regex = Regexp.new("%s%s%s" % [front, "(?<type>uuid|elapsed_time)", back])
 
-          combined_regex = Regexp.union(data_regex, date_regex, task_regex, uuid_regex)
+          combined_regex = Regexp.union(data_regex, date_regex, task_regex, singles_regex)
 
           if req = string.match(/^#{data_regex}$/)
             __template_resolve(req["type"], req["item"])
@@ -74,8 +76,8 @@ module MCollective
             __template_resolve(req["type"], req["format"])
           elsif req = string.match(/^#{task_regex}$/)
             __template_resolve(req["type"], req["item"])
-          elsif string =~ /^#{uuid_regex}$/
-            __template_resolve("uuid", "")
+          elsif req = string.match(/^#{singles_regex}$/)
+            __template_resolve(req["type"], "")
           else
             string.gsub(/#{combined_regex}/) do |part|
               value = __template_process_string(part)

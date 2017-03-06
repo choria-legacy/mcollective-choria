@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/03/06|173   |Support playbook elapsed time in templates                                                               |
 |2017/03/06|201   |Allow server randomization to be configured                                                              |
 |2017/02/16|199   |Use the configured *ssl_dir* for storing the public cert cache                                           |
 |2017/02/19|186   |Add a Graphite event task                                                                                |

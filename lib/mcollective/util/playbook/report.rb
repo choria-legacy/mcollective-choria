@@ -28,6 +28,14 @@ module MCollective
           }
         end
 
+        def start!
+          @metrics["start_time"] = Time.now.utc
+        end
+
+        def elapsed_time
+          Time.now.utc - @metrics["start_time"]
+        end
+
         def finalize(success, fail_msg=nil)
           return(to_report) if @final
 
