@@ -55,6 +55,29 @@ module MCollective
         @client.stats
       end
 
+      # Client library flavour
+      #
+      # @return [String]
+      def client_flavour
+        "nats-pure"
+      end
+
+      # Client library version
+      #
+      # @return [String]
+      def client_version
+        NATS::IO::VERSION
+      end
+
+      # Connection options from the NATS gem
+      #
+      # @return [Hash]
+      def active_options
+        return {} unless has_client?
+
+        @client.options
+      end
+
       # Is NATS connected
       #
       # @return [Boolean]

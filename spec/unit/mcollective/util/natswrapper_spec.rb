@@ -4,10 +4,34 @@ require "mcollective/util/natswrapper"
 module MCollective
   describe Util::NatsWrapper do
     let(:wrapper) { Util::NatsWrapper.new }
-    let(:client) { stub(:connected? => true, :connected_server => "rspec.example.net:1234") }
+    let(:client) do
+      stub(
+        :options => {:nats => "options"},
+        :connected? => true,
+        :connected_server => "rspec.example.net:1234"
+      )
+    end
 
     before(:each) do
       wrapper.stub_client(client)
+    end
+
+    describe "#active_options" do
+      it "should get the options from the client" do
+        expect(wrapper.active_options).to eq(:nats => "options")
+      end
+    end
+
+    describe "#client_version" do
+      it "should return the gem version" do
+        expect(wrapper.client_version).to eq(NATS::IO::VERSION)
+      end
+    end
+
+    describe "#client_flavour" do
+      it "should return nats-pure" do
+        expect(wrapper.client_flavour).to eq("nats-pure")
+      end
     end
 
     describe "#connected_server" do
