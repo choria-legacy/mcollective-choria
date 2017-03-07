@@ -294,7 +294,7 @@ module MCollective
       # @param default_host [String] default hostname
       # @param default_port [String] default port
       # @return [Array<Array<String, String>>] groups of host and port
-      def middleware_servers(default_host, default_port)
+      def middleware_servers(default_host="puppet", default_port="4222")
         if servers = get_option("choria.middleware_hosts", nil)
           hosts = servers.split(",").map do |server|
             server.split(":")

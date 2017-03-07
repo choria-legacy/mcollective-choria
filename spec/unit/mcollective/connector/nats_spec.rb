@@ -21,6 +21,27 @@ module MCollective
       msg.collective = "mcollective"
     end
 
+    describe "#client_options" do
+      it "should get the options from the wrapper" do
+        connection.expects(:active_options).returns(:rspec => 1)
+        expect(connector.active_options).to eq(:rspec => 1)
+      end
+    end
+
+    describe "#client_flavour" do
+      it "should get the flavour from the wrapper" do
+        connection.expects(:client_flavour).returns("rspec nats")
+        expect(connector.client_flavour).to eq("rspec nats")
+      end
+    end
+
+    describe "#client_version" do
+      it "should get the version from the wrapper" do
+        connection.expects(:client_version).returns("1.2.3")
+        expect(connector.client_version).to eq("1.2.3")
+      end
+    end
+
     describe "#stats" do
       it "should get the stats from the wrapper" do
         connection.expects(:stats).returns(:stats => 1)

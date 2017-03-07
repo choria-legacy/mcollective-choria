@@ -9,6 +9,7 @@ mcollective_choria::client_directories:
  - util/playbook/nodes
  - util/playbook/tasks
 mcollective_choria::server_files:
+ - agent/choria_util.rb
  - audit/choria.rb
  - registration/choria.rb
 mcollective_choria::client_files:
@@ -48,6 +49,7 @@ mcollective_choria::client_files:
 mcollective_choria::common_directories:
  - util/choria
 mcollective_choria::common_files:
+ - agent/choria_util.ddl
  - connector/nats.ddl
  - connector/nats.rb
  - security/choria.rb

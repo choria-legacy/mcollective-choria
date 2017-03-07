@@ -22,7 +22,7 @@ module MCollective
         connection.connected?
       end
 
-      # Returns the current connected server
+      # Current connected server
       #
       # @return [String,nil]
       def connected_server
@@ -34,6 +34,28 @@ module MCollective
       # @return [Hash]
       def stats
         connection.stats
+      end
+
+      # Client library version
+      #
+      # @return [String]
+      def client_version
+        connection.client_version
+      end
+
+      # Client library flavour
+      #
+      # @note this flavour/version split is because I anticipate we'll support streaming too eventually
+      # @return [String]
+      def client_flavour
+        connection.client_flavour
+      end
+
+      # Connection options from the NATS gem
+      #
+      # @return [Hash]
+      def active_options
+        connection.active_options
       end
 
       # Attempts to connect to the middleware, noop when already connected
