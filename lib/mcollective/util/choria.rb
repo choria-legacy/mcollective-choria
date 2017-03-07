@@ -10,6 +10,8 @@ module MCollective
       class UserError < StandardError; end
       class Abort < StandardError; end
 
+      VERSION = "0.0.23".freeze
+
       attr_writer :ca
 
       def initialize(environment, application=nil, check_ssl=true)
