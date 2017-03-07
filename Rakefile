@@ -23,10 +23,41 @@ namespace :doc do
   end
 end
 
+desc "Set versions and create docs for a release"
+task :prep_version do
+  abort("Please specify CHORIA_VERSION") unless ENV["CHORIA_VERSION"]
+
+  sh 'sed -i.bak -re \'s/(.+"version": ").+/\1%s",/\' module/metadata.json' % ENV["CHORIA_VERSION"]
+  sh 'sed -i.bak -re \'s/(\s+VERSION\s+=\s+").+/\1%s".freeze/\' ./lib/mcollective/util/choria.rb' % ENV["CHORIA_VERSION"]
+
+  ["connector/nats.ddl", "discovery/choria.ddl", "agent/choria_util.ddl"].each do |file|
+    sh 'sed -i.bak -re \'s/(\s+:version\s+=>\s+").+/\1%s",/\' ./lib/mcollective/%s' % [ENV["CHORIA_VERSION"], file]
+  end
+
+  changelog = File.readlines("CHANGELOG.md")
+
+  File.open("CHANGELOG.md", "w") do |cl|
+    changelog.each do |line|
+      # rubocop:disable Metrics/LineLength
+      if line =~ /^\|----------/
+        cl.puts line
+        cl.puts "|%s|      |Release %s                                                                                            |" % [Time.now.strftime("%Y/%m/%d"), ENV["CHORIA_VERSION"]]
+      else
+        cl.puts line
+      end
+      # rubocop:enable Metrics/LineLength
+    end
+  end
+
+  sh "git commit CHANGELOG.md lib -e -m '(misc) Release %s'" % ENV["CHORIA_VERSION"]
+  sh "git tag %s" % ENV["CHORIA_VERSION"]
+end
+
 desc "Prepare and build the Puppet module"
 task :release do
   Rake::Task[:spec].execute
   Rake::Task[:rubocop].execute
+  Rake::Task[:prep_version].execute
 
   sh("mkdir -p module/files/mcollective")
   sh("rm -rf module/files/mcollective/*")
