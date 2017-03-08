@@ -17,6 +17,7 @@ module MCollective
         reply[:srv_domain] = choria.srv_domain
         reply[:using_srv] = choria.should_use_srv?
         reply[:middleware_servers] = choria.middleware_servers.map {|s| s.join(":")}
+        reply[:path] = ENV.fetch("PATH", "")
 
         if connector.connected?
           reply[:connected_server] = "%s:%s" % [connector.connected_server.host, connector.connected_server.port]
