@@ -17,6 +17,10 @@ action "info", :description => "Choria related information from the running Daem
          :description => "Connector plugin",
          :display_as => "Connector"
 
+  output :path,
+         :description => "Active OS PATH",
+         :display_as => "Path"
+
   output :client_version,
          :description => "Client gem version",
          :display_as => "Client Version"
