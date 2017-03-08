@@ -49,7 +49,8 @@ task :prep_version do
     end
   end
 
-  sh "git commit CHANGELOG.md lib -e -m '(misc) Release %s'" % ENV["CHORIA_VERSION"]
+  sh "git add CHANGELOG.md lib module"
+  sh "git commit -e -m '(misc) Release %s'" % ENV["CHORIA_VERSION"]
   sh "git tag %s" % ENV["CHORIA_VERSION"]
 end
 

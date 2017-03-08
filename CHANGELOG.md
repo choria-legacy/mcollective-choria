@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/03/08|      |Release 0.0.24                                                                                            |
 |2017/03/07|204   |Add a `choria_util` agent that extract running info out of the mcollective daemon                        |
 |2017/03/06|173   |Support playbook elapsed time in templates                                                               |
 |2017/03/06|201   |Allow server randomization to be configured                                                              |
