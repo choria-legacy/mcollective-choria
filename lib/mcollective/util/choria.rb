@@ -10,7 +10,7 @@ module MCollective
       class UserError < StandardError; end
       class Abort < StandardError; end
 
-      VERSION = "0.0.23".freeze
+      VERSION = "0.0.24".freeze
 
       attr_writer :ca
 
