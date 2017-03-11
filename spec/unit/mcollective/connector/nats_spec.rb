@@ -205,27 +205,131 @@ module MCollective
       end
     end
 
-    describe "#publish" do
-      before(:each) do
+    describe "#publish_federated_broadcast" do
+      it "should support broacasts" do
         msg.collective = "mcollective"
         msg.agent = "rspec_agent"
-      end
+        msg.type = :request
+        choria.expects(:federation_networks).returns(["net_a", "net_b"])
 
+        msg1 = {
+          "data" => "rspec",
+          "headers" => {
+            "mc_sender" => "rspec_identity",
+            "reply-to" => "mcollective.reply.rspec_identity.999999.0",
+            "federation" => {
+              "target" => ["mcollective.broadcast.agent.rspec_agent"]
+            }
+          }
+        }
+
+        JSON.expects(:dump).with(msg1).returns("msg_1")
+
+        connection.expects(:publish).with("federation.network.net_a", "msg_1", "mcollective.reply.rspec_identity.999999.0")
+        connection.expects(:publish).with("federation.network.net_b", "msg_1", "mcollective.reply.rspec_identity.999999.0")
+
+        connector.publish_federated_broadcast(msg)
+      end
+    end
+
+    describe "#publish_federated_directed" do
+      it "should support directed messages" do
+        msg.collective = "mcollective"
+        msg.agent = "rspec_agent"
+        msg.discovered_hosts = (0..300).to_a.map {|i| "#{i}.example"}
+        msg.type = :direct_request
+
+        choria.expects(:federation_networks).returns(["net_a", "net_b"])
+        msg1 = {
+          "data" => "rspec",
+          "headers" => {
+            "mc_sender" => "rspec_identity",
+            "federation" => {
+              "target" => (0..199).to_a.map {|i| "mcollective.node.#{i}.example"}
+            },
+            "reply-to" => "mcollective.reply.rspec_identity.999999.0"
+          }
+        }
+
+        msg2 = {
+          "data" => "rspec",
+          "headers" => {
+            "mc_sender" => "rspec_identity",
+            "federation" => {
+              "target" => (200..300).to_a.map {|i| "mcollective.node.#{i}.example"}
+            },
+            "reply-to" => "mcollective.reply.rspec_identity.999999.0"
+          }
+        }
+
+        JSON.expects(:dump).with(msg1).returns("msg_1")
+        JSON.expects(:dump).with(msg2).returns("msg_2")
+
+        connection.expects(:publish).with("federation.network.net_a", "msg_1", "mcollective.reply.rspec_identity.999999.0")
+        connection.expects(:publish).with("federation.network.net_a", "msg_2", "mcollective.reply.rspec_identity.999999.0")
+        connection.expects(:publish).with("federation.network.net_b", "msg_1", "mcollective.reply.rspec_identity.999999.0")
+        connection.expects(:publish).with("federation.network.net_b", "msg_2", "mcollective.reply.rspec_identity.999999.0")
+
+        connector.publish_federated_directed(msg)
+      end
+    end
+
+    describe "#publish_connected_broadcast" do
+      it "should support broacasts" do
+        msg.collective = "mcollective"
+        msg.agent = "rspec_agent"
+        msg.type = :request
+        connector.connection.expects(:publish).with("mcollective.broadcast.agent.rspec_agent", any_parameters)
+
+        connector.publish_connected_broadcast(msg)
+      end
+    end
+
+    describe "#publish_connected_directed" do
       it "should support direct requests" do
+        msg.collective = "mcollective"
+        msg.agent = "rspec_agent"
         msg.discovered_hosts = ["rspec1", "rspec2"]
         msg.type = :direct_request
 
         connector.connection.expects(:publish).with("mcollective.node.rspec1", any_parameters)
         connector.connection.expects(:publish).with("mcollective.node.rspec2", any_parameters)
 
-        connector.publish(msg)
+        connector.publish_connected_directed(msg)
+      end
+    end
+
+    describe "#publish" do
+      context "when federating" do
+        before(:each) { choria.expects(:federated?).returns(true) }
+
+        it "should support broadcasts" do
+          connector.expects(:publish_federated_broadcast).with(msg)
+          connector.publish(msg)
+        end
+
+        it "should support directed" do
+          msg.discovered_hosts = ["1.example"]
+          msg.type = :direct_request
+          connector.expects(:publish_federated_directed).with(msg)
+          connector.publish(msg)
+        end
       end
 
-      it "should support broacasts" do
-        msg.type = :request
-        connector.connection.expects(:publish).with("mcollective.broadcast.agent.rspec_agent", any_parameters)
+      context "when connected" do
+        before(:each) { choria.expects(:federated?).returns(false) }
 
-        connector.publish(msg)
+        it "should support broadcasts" do
+          connector.expects(:publish_connected_broadcast).with(msg)
+          connector.publish(msg)
+        end
+
+        it "should support directed" do
+          msg.discovered_hosts = ["1.example"]
+          msg.type = :direct_request
+          connector.expects(:publish_connected_directed).with(msg)
+          connector.publish(msg)
+        end
       end
     end
 

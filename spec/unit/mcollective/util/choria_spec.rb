@@ -7,6 +7,32 @@ module MCollective
       let(:choria) { Choria.new("production", nil, false) }
       let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
+      describe "#federation_networks" do
+        it "should correctly interpret federations config" do
+          Config.instance.stubs(:pluginconf).returns("choria.federation.networks" => "          ")
+          expect(choria.federation_networks).to eq([])
+
+          Config.instance.stubs(:pluginconf).returns("choria.federation.networks" => "net_a,net_b , net_c")
+          expect(choria.federation_networks).to eq(["net_a", "net_b", "net_c"])
+        end
+
+        it "should support environment variable setting" do
+          Config.instance.stubs(:pluginconf).returns("choria.federation.networks" => "net_a,net_b,net_c")
+          choria.expects(:env_fetch).with("CHORIA_NETWORK", nil).returns("net_a, net_d")
+          expect(choria.federation_networks).to eq(["net_a", "net_d"])
+        end
+      end
+
+      describe "#federated?" do
+        it "should correctly report the config setting" do
+          choria.expects(:federation_networks).returns([])
+          expect(choria.federated?).to be(false)
+
+          choria.expects(:federation_networks).returns(["fed_a", "fed_b"])
+          expect(choria.federated?).to be(true)
+        end
+      end
+
       describe "#randomize_middleware_servers?" do
         it "should default to false" do
           Config.instance.stubs(:pluginconf).returns({})

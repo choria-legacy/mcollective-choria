@@ -45,7 +45,6 @@ module MCollective
 
       # Client library flavour
       #
-      # @note this flavour/version split is because I anticipate we'll support streaming too eventually
       # @return [String]
       def client_flavour
         connection.client_flavour
@@ -210,23 +209,106 @@ module MCollective
       def publish(msg)
         msg.base64_encode!
 
-        if msg.type == :direct_request
-          msg.discovered_hosts.each do |node|
-            target = target_for(msg, node)
-            data = {"data" => msg.payload, "headers" => target[:headers]}
-
-            Log.debug("Sending a direct message to %s via NATS target '%s' for message type %s" % [node, target.inspect, msg.type])
-
-            connection.publish(target[:name], data.to_json, target[:headers]["reply-to"])
-          end
+        if choria.federated?
+          msg.type == :direct_request ? publish_federated_directed(msg) : publish_federated_broadcast(msg)
         else
-          target = target_for(msg)
-          data = {"data" => msg.payload, "headers" => target[:headers]}
+          msg.type == :direct_request ? publish_connected_directed(msg) : publish_connected_broadcast(msg)
+        end
+      end
 
-          Log.debug("Sending a broadcast message to NATS target '%s' for message type %s" % [target.inspect, msg.type])
+      # Publish a directed request via a Federation Broker
+      #
+      # @param msg [Message]
+      def publish_federated_directed(msg)
+        messages = []
+        target = target_for(msg, msg.discovered_hosts[0])
+
+        msg.discovered_hosts.in_groups_of(200) do |nodes|
+          node_targets = nodes.compact.map do |node|
+            target_for(msg, node)[:name]
+          end
+
+          data = {
+            "data" => msg.payload,
+            "headers" => {
+              "federation" => {
+                "target" => node_targets
+              }
+            }.merge(target[:headers])
+          }
+
+          messages << JSON.dump(data)
+        end
+
+        choria.federation_networks.each do |network|
+          messages.each do |data|
+            network_target = "federation.network.%s" % network
+
+            Log.debug("Sending a federated direct message via NATS target '%s' for message type %s" % [target.inspect, msg.type])
+
+            connection.publish(network_target, data, target[:headers]["reply-to"])
+          end
+        end
+      end
+
+      # Publish a directed request to a connected collective
+      #
+      # @param msg [Message]
+      def publish_connected_directed(msg)
+        msg.discovered_hosts.each do |node|
+          target = target_for(msg, node)
+          data = {
+            "data" => msg.payload,
+            "headers" => target[:headers]
+          }
+
+          Log.debug("Sending a direct message to %s via NATS target '%s' for message type %s" % [node, target.inspect, msg.type])
 
           connection.publish(target[:name], data.to_json, target[:headers]["reply-to"])
         end
+      end
+
+      # Publish a broadcast message to via a Federation Broker
+      #
+      # @param msg [Message]
+      def publish_federated_broadcast(msg)
+        target = target_for(msg)
+        data = {
+          "data" => msg.payload,
+          "headers" => {
+            "federation" => {
+              "target" => [target[:name]]
+            }
+          }.merge(target[:headers])
+        }
+
+        data = JSON.dump(data)
+
+        choria.federation_networks.each do |network|
+          target[:name] = "federation.network.%s" % network
+
+          Log.warn("Sending a federated broadcast message to NATS target '%s' for message type %s" % [target.inspect, msg.type])
+
+          connection.publish(target[:name], data, target[:headers]["reply-to"])
+        end
+      end
+
+      # Publish a broadcast message to a connected collective
+      #
+      # @param msg [Message]
+      def publish_connected_broadcast(msg)
+        target = target_for(msg)
+        data = {"data" => msg.payload, "headers" => target[:headers]}
+
+        if received_message = msg.request
+          if received_message.headers.include?("federation")
+            data["headers"]["federation"] = received_message.headers["federation"]
+          end
+        end
+
+        Log.debug("Sending a broadcast message to NATS target '%s' for message type %s" % [target.inspect, msg.type])
+
+        connection.publish(target[:name], data.to_json, target[:headers]["reply-to"])
       end
 
       # Unsubscribe from the target for a agent

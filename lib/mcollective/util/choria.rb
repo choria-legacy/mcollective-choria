@@ -22,6 +22,24 @@ module MCollective
         check_ssl_setup if check_ssl
       end
 
+      # Determines if there are any federations configured
+      #
+      # @return [Boolean]
+      def federated?
+        !federation_networks.empty?
+      end
+
+      # List of named federations
+      #
+      # @return [Array<String>]
+      def federation_networks
+        if override_networks = env_fetch("CHORIA_NETWORK", nil)
+          override_networks.split(",").map(&:strip).reject(&:empty?)
+        else
+          get_option("choria.federation.networks", "").split(",").map(&:strip).reject(&:empty?)
+        end
+      end
+
       # Retrieves a DNS resolver
       #
       # @note mainly used for testing
