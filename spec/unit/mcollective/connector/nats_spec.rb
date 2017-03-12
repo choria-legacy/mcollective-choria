@@ -63,21 +63,6 @@ module MCollective
       end
     end
 
-    describe "#ssl_context" do
-      it "should create a valid ssl context" do
-        choria.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
-        choria.stubs(:client_public_cert).returns("spec/fixtures/rip.mcollective.pem")
-        choria.stubs(:client_private_key).returns("spec/fixtures/rip.mcollective.key")
-
-        context = connector.ssl_context
-
-        expect(context.verify_mode).to be(OpenSSL::SSL::VERIFY_PEER)
-        expect(context.ca_file).to eq("spec/fixtures/ca_crt.pem")
-        expect(context.cert.subject.to_s).to eq("/CN=rip.mcollective")
-        expect(context.key.to_pem).to eq(File.read("spec/fixtures/rip.mcollective.key"))
-      end
-    end
-
     describe "#server_list" do
       it "should create uris and credentials servers" do
         Config.instance.stubs(:pluginconf).returns("nats.user" => "rspec_user", "nats.pass" => "rspec_pass")
@@ -102,7 +87,7 @@ module MCollective
 
       it "should connect" do
         mock_context = OpenSSL::SSL::SSLContext.new
-        connector.stubs(:ssl_context).returns(mock_context)
+        choria.stubs(:ssl_context).returns(mock_context)
         choria.expects(:randomize_middleware_servers?).returns(true)
 
         connector.connection.expects(:start).with(
@@ -134,6 +119,15 @@ module MCollective
         expect(connector.headers_for(msg)).to eq(
           "mc_sender" => "rspec_identity",
           "reply-to" => "rspec.reply.dest"
+        )
+      end
+
+      it "should support recording the route" do
+        connector.stubs(:get_option).with("nats.record_route", "n").returns("y")
+        connector.stubs(:connected_server).returns("nats1.example.net")
+        expect(connector.headers_for(msg)).to eq(
+          "mc_sender" => "rspec_identity",
+          "seen-by" => ["nats1.example.net"]
         )
       end
     end
@@ -283,6 +277,42 @@ module MCollective
 
         connector.publish_connected_broadcast(msg)
       end
+
+      it "should retain headers from the received message" do
+        request = Message.new(
+          Base64.encode64("rspec"),
+          mock,
+          :base64 => true,
+          :headers => {
+            "seen-by" => ["rspec.example"],
+            "federation" => {"reply-to" => "reply.example"}
+          }
+        )
+
+        msg = Message.new(Base64.encode64("rspec"), mock, :base64 => true, :headers => {}, :request => request)
+
+        msg.collective = "mcollective"
+        msg.agent = "rspec_agent"
+        msg.type = :request
+
+        JSON.expects(:dump).with(
+          "data" => "rspec",
+          "headers" => {
+            "mc_sender" => "rspec_identity",
+            "reply-to" => "mcollective.reply.rspec_identity.999999.0",
+            "federation" => {
+              "reply-to" => "reply.example"
+            },
+            "seen-by" => [
+              "rspec.example"
+            ]
+          }
+        ).returns("json_stub")
+
+        connector.connection.expects(:publish).with("mcollective.broadcast.agent.rspec_agent", "json_stub", "mcollective.reply.rspec_identity.999999.0")
+
+        connector.publish_connected_broadcast(msg)
+      end
     end
 
     describe "#publish_connected_directed" do
@@ -371,6 +401,18 @@ module MCollective
         Log.expects(:warn).with(regexp_matches(/Got non JSON data from the broker/))
 
         expect(connector.receive.message).to eq(rawmsg)
+      end
+
+      it "should support recording the route" do
+        connector.stubs(:get_option).with("nats.record_route", "n").returns("y")
+        connector.stubs(:connected_server).returns("nats.example")
+        connection.expects(:receive).returns({"data" => "rspec", "headers" => {}}.to_json)
+        result = connector.receive
+        expect(result.headers).to eq("seen-by" => ["nats.example"])
+
+        connection.expects(:receive).returns({"data" => "rspec", "headers" => {"seen-by" => ["fed1"]}}.to_json)
+        result = connector.receive
+        expect(result.headers).to eq("seen-by" => ["fed1", "nats.example"])
       end
     end
 
