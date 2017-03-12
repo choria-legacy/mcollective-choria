@@ -73,7 +73,7 @@ module MCollective
           :dont_randomize_servers => !choria.randomize_middleware_servers?,
           :name => @config.identity,
           :tls => {
-            :context => ssl_context
+            :context => choria.ssl_context
           }
         }
 
@@ -96,19 +96,6 @@ module MCollective
         connection.stop
       end
 
-      # Creates a SSL Context for the NATS gem to use which includes the AIO SSL files
-      #
-      # @return [OpenSSL::SSL::SSLContext]
-      def ssl_context
-        context = OpenSSL::SSL::SSLContext.new
-        context.ca_file = choria.ca_path
-        context.cert = OpenSSL::X509::Certificate.new(File.read(choria.client_public_cert))
-        context.key = OpenSSL::PKey::RSA.new(File.read(choria.client_private_key))
-        context.verify_mode = OpenSSL::SSL::VERIFY_PEER
-
-        context
-      end
-
       # Creates the middleware headers needed for a given message
       #
       # @param msg [Message]
@@ -119,6 +106,10 @@ module MCollective
         headers = {
           "mc_sender" => @config.identity
         }
+
+        if Util.str_to_bool(get_option("nats.record_route", "n"))
+          headers["seen-by"] = [connected_server]
+        end
 
         if [:request, :direct_request].include?(msg.type)
           if msg.reply_to
@@ -304,11 +295,15 @@ module MCollective
           if received_message.headers.include?("federation")
             data["headers"]["federation"] = received_message.headers["federation"]
           end
+
+          if received_message.headers.include?("seen-by")
+            data["headers"]["seen-by"] = received_message.headers["seen-by"]
+          end
         end
 
         Log.debug("Sending a broadcast message to NATS target '%s' for message type %s" % [target.inspect, msg.type])
 
-        connection.publish(target[:name], data.to_json, target[:headers]["reply-to"])
+        connection.publish(target[:name], JSON.dump(data), target[:headers]["reply-to"])
       end
 
       # Unsubscribe from the target for a agent
@@ -356,6 +351,11 @@ module MCollective
             Log.warn("Got non JSON data from the broker: %s" % [received])
             msg = nil
           end
+        end
+
+        if Util.str_to_bool(get_option("nats.record_route", "n"))
+          headers = msg["headers"]
+          (headers["seen-by"] ||= []) << connected_server
         end
 
         Message.new(msg["data"], msg, :base64 => true, :headers => msg["headers"])

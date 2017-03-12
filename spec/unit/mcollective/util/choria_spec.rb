@@ -7,6 +7,21 @@ module MCollective
       let(:choria) { Choria.new("production", nil, false) }
       let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
+      describe "#ssl_context" do
+        it "should create a valid ssl context" do
+          choria.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
+          choria.stubs(:client_public_cert).returns("spec/fixtures/rip.mcollective.pem")
+          choria.stubs(:client_private_key).returns("spec/fixtures/rip.mcollective.key")
+
+          context = choria.ssl_context
+
+          expect(context.verify_mode).to be(OpenSSL::SSL::VERIFY_PEER)
+          expect(context.ca_file).to eq("spec/fixtures/ca_crt.pem")
+          expect(context.cert.subject.to_s).to eq("/CN=rip.mcollective")
+          expect(context.key.to_pem).to eq(File.read("spec/fixtures/rip.mcollective.key"))
+        end
+      end
+
       describe "#federation_networks" do
         it "should correctly interpret federations config" do
           Config.instance.stubs(:pluginconf).returns("choria.federation.networks" => "          ")

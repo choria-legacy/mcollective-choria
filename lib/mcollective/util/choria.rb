@@ -469,6 +469,19 @@ module MCollective
         Puppet.settings[setting]
       end
 
+      # Creates a SSL Context which includes the AIO SSL files
+      #
+      # @return [OpenSSL::SSL::SSLContext]
+      def ssl_context
+        context = OpenSSL::SSL::SSLContext.new
+        context.ca_file = ca_path
+        context.cert = OpenSSL::X509::Certificate.new(File.read(client_public_cert))
+        context.key = OpenSSL::PKey::RSA.new(File.read(client_private_key))
+        context.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+        context
+      end
+
       # The directory where SSL related files live
       #
       # This is configurable using choria.ssldir which should be a
