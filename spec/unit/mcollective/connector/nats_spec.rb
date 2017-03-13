@@ -204,7 +204,7 @@ module MCollective
         msg.collective = "mcollective"
         msg.agent = "rspec_agent"
         msg.type = :request
-        choria.expects(:federation_networks).returns(["net_a", "net_b"])
+        choria.expects(:federation_collectives).returns(["net_a", "net_b"])
 
         msg1 = {
           "data" => "rspec",
@@ -233,7 +233,7 @@ module MCollective
         msg.discovered_hosts = (0..300).to_a.map {|i| "#{i}.example"}
         msg.type = :direct_request
 
-        choria.expects(:federation_networks).returns(["net_a", "net_b"])
+        choria.expects(:federation_collectives).returns(["net_a", "net_b"])
         msg1 = {
           "data" => "rspec",
           "headers" => {

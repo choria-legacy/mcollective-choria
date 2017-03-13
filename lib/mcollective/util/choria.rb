@@ -26,17 +26,17 @@ module MCollective
       #
       # @return [Boolean]
       def federated?
-        !federation_networks.empty?
+        !federation_collectives.empty?
       end
 
-      # List of named federations
+      # List of active collectives that form the federation
       #
       # @return [Array<String>]
-      def federation_networks
-        if override_networks = env_fetch("CHORIA_NETWORK", nil)
+      def federation_collectives
+        if override_networks = env_fetch("CHORIA_FED_COLLECTIVE", nil)
           override_networks.split(",").map(&:strip).reject(&:empty?)
         else
-          get_option("choria.federation.networks", "").split(",").map(&:strip).reject(&:empty?)
+          get_option("choria.federation.collectives", "").split(",").map(&:strip).reject(&:empty?)
         end
       end
 
