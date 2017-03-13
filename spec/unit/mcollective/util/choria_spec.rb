@@ -147,10 +147,10 @@ module MCollective
         end
       end
 
-      describe "#middleware_servers" do
+      describe "#server_resolver" do
         it "should support config" do
           Config.instance.stubs(:pluginconf).returns("choria.middleware_hosts" => "1.net:4222,2.net:4223")
-          expect(choria.middleware_servers("h", "1")).to eq(
+          expect(choria.server_resolver("choria.middleware_hosts", ["srv_record"], "h", "1")).to eq(
             [
               ["1.net", "4222"],
               ["2.net", "4223"]
@@ -166,7 +166,7 @@ module MCollective
             [{:target => "1.net", :port => "4222"}, {:target => "2.net", :port => "4223"}]
           )
 
-          expect(choria.middleware_servers("h", "1")).to eq(
+          expect(choria.server_resolver("choria.middleware_hosts", ["_mcollective-server._tcp", "_x-puppet-mcollective._tcp"], "h", "1")).to eq(
             [
               ["1.net", "4222"],
               ["2.net", "4223"]
@@ -177,9 +177,37 @@ module MCollective
         it "should default" do
           Config.instance.stubs(:pluginconf).returns({})
           choria.stubs(:query_srv_records).returns([])
-          expect(choria.middleware_servers("1.net", "4222")).to eq(
+          expect(choria.server_resolver("choria.middleware_hosts", ["srv_record"], "1.net", "4222")).to eq(
             [["1.net", "4222"]]
           )
+        end
+      end
+
+      describe "#federation_middleware_servers" do
+        it "should be nil when not federated" do
+          expect(choria.federation_middleware_servers).to be(nil)
+        end
+
+        it "should resolve correctly" do
+          choria.expects(:federated?).returns(true)
+          choria.expects(:server_resolver).with(
+            "choria.federation_middleware_hosts",
+            ["_mcollective-federation_server._tcp", "_x-puppet-mcollective_federation._tcp"]
+          ).returns([["1.net", "42"]])
+
+          expect(choria.federation_middleware_servers).to eq([["1.net", "42"]])
+        end
+      end
+
+      describe "#middleware_servers" do
+        it "should support federations" do
+          choria.expects(:federation_middleware_servers).returns([["f1.net", "4222"], ["f2.net", "4222"]])
+          expect(choria.middleware_servers).to eq([["f1.net", "4222"], ["f2.net", "4222"]])
+        end
+
+        it "should resolve correctly" do
+          choria.expects(:server_resolver).with("choria.middleware_hosts", ["_mcollective-server._tcp", "_x-puppet-mcollective._tcp"], "puppet", "4222").returns([["1.net", "42"]])
+          expect(choria.middleware_servers).to eq([["1.net", "42"]])
         end
       end
 
@@ -530,7 +558,7 @@ module MCollective
 
           expect {
             choria.check_ssl_setup
-          }.to raise_error("Client SSL is not correctly setup, please use 'mco choria request_cert'")
+          }.to raise_error("SSL is not correctly setup, please use 'mco choria request_cert' or place certs in the expected paths")
         end
       end
 

@@ -64,6 +64,7 @@ task :release do
   sh("rm -rf module/files/mcollective/*")
   sh("cp -rv lib/mcollective/* module/files/mcollective/")
   sh("cp CHANGELOG.md COPYING module")
+  sh("cp .gitignore module")
   Dir.chdir("module") do
     sh("/opt/puppetlabs/bin/puppet module build")
   end

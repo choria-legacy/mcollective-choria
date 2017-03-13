@@ -295,15 +295,52 @@ module MCollective
           end
         end.all?
 
-        raise(UserError, "Client SSL is not correctly setup, please use 'mco choria request_cert'") unless valid
+        raise(UserError, "SSL is not correctly setup, please use 'mco choria request_cert' or place certs in the expected paths") unless valid
 
         true
+      end
+
+      # Resolves server lists based on config and SRV records
+      #
+      # Attempts to find server in the following order:
+      #
+      #   * Configured hosts in `config_option`
+      #   * SRV lookups of `srv_records`
+      #   * Defaults
+      #   * nil otherwise
+      #
+      # @param config_option [String] config to lookup
+      # @param srv_records [Array<String>] list of SRV records to query
+      # @param default_host [String] host to use when not found
+      # @param default_port [String] port to use when not found
+      # @return [Array, nil] groups of host and port pairs
+      def server_resolver(config_option, srv_records, default_host=nil, default_port=nil)
+        if servers = get_option(config_option, nil)
+          hosts = servers.split(",").map do |server|
+            server.split(":")
+          end
+
+          return hosts
+        end
+
+        srv_answers = query_srv_records(srv_records)
+
+        unless srv_answers.empty?
+          hosts = srv_answers.map do |answer|
+            [answer[:target], answer[:port]]
+          end
+
+          return hosts
+        end
+
+        [[default_host, default_port]] if default_host && default_port
       end
 
       # Finds the middleware hosts in config or DNS
       #
       # Attempts to find servers in the following order:
       #
+      #  * Any federation servers if in a federation
       #  * Configured hosts in choria.middleware_hosts
       #  * SRV lookups in _mcollective-server._tcp and _x-puppet-mcollective._tcp
       #  * Supplied defaults
@@ -315,25 +352,26 @@ module MCollective
       # @param default_port [String] default port
       # @return [Array<Array<String, String>>] groups of host and port
       def middleware_servers(default_host="puppet", default_port="4222")
-        if servers = get_option("choria.middleware_hosts", nil)
-          hosts = servers.split(",").map do |server|
-            server.split(":")
-          end
-
-          return hosts
+        if federation = federation_middleware_servers
+          return federation
         end
 
-        srv_answers = query_srv_records(["_mcollective-server._tcp", "_x-puppet-mcollective._tcp"])
+        server_resolver("choria.middleware_hosts", ["_mcollective-server._tcp", "_x-puppet-mcollective._tcp"], default_host, default_port)
+      end
 
-        unless srv_answers.empty?
-          hosts = srv_answers.map do |answer|
-            [answer[:target], answer[:port]]
-          end
+      # Looks for federation middleware servers when federated
+      #
+      # Attempts to find servers in the following order:
+      #
+      #  * Configured hosts in choria.federation_middleware_hosts
+      #  * SRV lookups in _mcollective-federation_server._tcp and _x-puppet-mcollective_federation._tcp
+      #
+      # @note you'd still want to only get your middleware servers from {#middleware_servers}
+      # @return [Array,nil] groups of host and port, nil when not found
+      def federation_middleware_servers
+        return unless federated?
 
-          return hosts
-        end
-
-        [[default_host, default_port]]
+        server_resolver("choria.federation_middleware_hosts", ["_mcollective-federation_server._tcp", "_x-puppet-mcollective_federation._tcp"])
       end
 
       # Determines if servers should be randomized
