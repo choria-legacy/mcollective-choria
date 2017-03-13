@@ -223,7 +223,8 @@ module MCollective
             "data" => msg.payload,
             "headers" => {
               "federation" => {
-                "target" => node_targets
+                "target" => node_targets,
+                "req" => msg.requestid
               }
             }.merge(target[:headers])
           }
@@ -268,7 +269,8 @@ module MCollective
           "data" => msg.payload,
           "headers" => {
             "federation" => {
-              "target" => [target[:name]]
+              "target" => [target[:name]],
+              "req" => msg.requestid
             }
           }.merge(target[:headers])
         }
