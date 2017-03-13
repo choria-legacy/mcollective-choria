@@ -22,28 +22,28 @@ module MCollective
         end
       end
 
-      describe "#federation_networks" do
+      describe "#federation_collectives" do
         it "should correctly interpret federations config" do
-          Config.instance.stubs(:pluginconf).returns("choria.federation.networks" => "          ")
-          expect(choria.federation_networks).to eq([])
+          Config.instance.stubs(:pluginconf).returns("choria.federation.collectives" => "          ")
+          expect(choria.federation_collectives).to eq([])
 
-          Config.instance.stubs(:pluginconf).returns("choria.federation.networks" => "net_a,net_b , net_c")
-          expect(choria.federation_networks).to eq(["net_a", "net_b", "net_c"])
+          Config.instance.stubs(:pluginconf).returns("choria.federation.collectives" => "net_a,net_b , net_c")
+          expect(choria.federation_collectives).to eq(["net_a", "net_b", "net_c"])
         end
 
         it "should support environment variable setting" do
-          Config.instance.stubs(:pluginconf).returns("choria.federation.networks" => "net_a,net_b,net_c")
-          choria.expects(:env_fetch).with("CHORIA_NETWORK", nil).returns("net_a, net_d")
-          expect(choria.federation_networks).to eq(["net_a", "net_d"])
+          Config.instance.stubs(:pluginconf).returns("choria.federation.collectives" => "net_a,net_b,net_c")
+          choria.expects(:env_fetch).with("CHORIA_FED_COLLECTIVE", nil).returns("net_a, net_d")
+          expect(choria.federation_collectives).to eq(["net_a", "net_d"])
         end
       end
 
       describe "#federated?" do
         it "should correctly report the config setting" do
-          choria.expects(:federation_networks).returns([])
+          choria.expects(:federation_collectives).returns([])
           expect(choria.federated?).to be(false)
 
-          choria.expects(:federation_networks).returns(["fed_a", "fed_b"])
+          choria.expects(:federation_collectives).returns(["fed_a", "fed_b"])
           expect(choria.federated?).to be(true)
         end
       end

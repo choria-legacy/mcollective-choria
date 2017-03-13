@@ -231,7 +231,7 @@ module MCollective
           messages << JSON.dump(data)
         end
 
-        choria.federation_networks.each do |network|
+        choria.federation_collectives.each do |network|
           messages.each do |data|
             network_target = "federation.network.%s" % network
 
@@ -275,10 +275,10 @@ module MCollective
 
         data = JSON.dump(data)
 
-        choria.federation_networks.each do |network|
+        choria.federation_collectives.each do |network|
           target[:name] = "federation.network.%s" % network
 
-          Log.warn("Sending a federated broadcast message to NATS target '%s' for message type %s" % [target.inspect, msg.type])
+          Log.debug("Sending a federated broadcast message to NATS target '%s' for message type %s" % [target.inspect, msg.type])
 
           connection.publish(target[:name], data, target[:headers]["reply-to"])
         end

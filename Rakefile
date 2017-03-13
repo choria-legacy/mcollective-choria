@@ -58,7 +58,7 @@ desc "Prepare and build the Puppet module"
 task :release do
   Rake::Task[:spec].execute
   Rake::Task[:rubocop].execute
-  Rake::Task[:prep_version].execute
+  Rake::Task[:prep_version].execute if ENV["CHORIA_VERSION"]
 
   sh("mkdir -p module/files/mcollective")
   sh("rm -rf module/files/mcollective/*")
