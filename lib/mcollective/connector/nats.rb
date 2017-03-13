@@ -234,7 +234,7 @@ module MCollective
 
         choria.federation_collectives.each do |network|
           messages.each do |data|
-            network_target = "federation.network.%s" % network
+            network_target = "choria.federation.%s.federation" % network
 
             Log.debug("Sending a federated direct message via NATS target '%s' for message type %s" % [target.inspect, msg.type])
 
@@ -278,7 +278,7 @@ module MCollective
         data = JSON.dump(data)
 
         choria.federation_collectives.each do |network|
-          target[:name] = "federation.network.%s" % network
+          target[:name] = "choria.federation.%s.federation" % network
 
           Log.debug("Sending a federated broadcast message to NATS target '%s' for message type %s" % [target.inspect, msg.type])
 
