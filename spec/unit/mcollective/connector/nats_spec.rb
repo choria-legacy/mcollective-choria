@@ -220,8 +220,8 @@ module MCollective
 
         JSON.expects(:dump).with(msg1).returns("msg_1")
 
-        connection.expects(:publish).with("federation.network.net_a", "msg_1", "mcollective.reply.rspec_identity.999999.0")
-        connection.expects(:publish).with("federation.network.net_b", "msg_1", "mcollective.reply.rspec_identity.999999.0")
+        connection.expects(:publish).with("choria.federation.net_a.federation", "msg_1", "mcollective.reply.rspec_identity.999999.0")
+        connection.expects(:publish).with("choria.federation.net_b.federation", "msg_1", "mcollective.reply.rspec_identity.999999.0")
 
         connector.publish_federated_broadcast(msg)
       end
@@ -262,10 +262,10 @@ module MCollective
         JSON.expects(:dump).with(msg1).returns("msg_1")
         JSON.expects(:dump).with(msg2).returns("msg_2")
 
-        connection.expects(:publish).with("federation.network.net_a", "msg_1", "mcollective.reply.rspec_identity.999999.0")
-        connection.expects(:publish).with("federation.network.net_a", "msg_2", "mcollective.reply.rspec_identity.999999.0")
-        connection.expects(:publish).with("federation.network.net_b", "msg_1", "mcollective.reply.rspec_identity.999999.0")
-        connection.expects(:publish).with("federation.network.net_b", "msg_2", "mcollective.reply.rspec_identity.999999.0")
+        connection.expects(:publish).with("choria.federation.net_a.federation", "msg_1", "mcollective.reply.rspec_identity.999999.0")
+        connection.expects(:publish).with("choria.federation.net_a.federation", "msg_2", "mcollective.reply.rspec_identity.999999.0")
+        connection.expects(:publish).with("choria.federation.net_b.federation", "msg_1", "mcollective.reply.rspec_identity.999999.0")
+        connection.expects(:publish).with("choria.federation.net_b.federation", "msg_2", "mcollective.reply.rspec_identity.999999.0")
 
         connector.publish_federated_directed(msg)
       end
