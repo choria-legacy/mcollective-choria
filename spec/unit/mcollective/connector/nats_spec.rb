@@ -7,7 +7,7 @@ module MCollective
     let(:connector) { Connector::Nats.new }
     let(:choria) { connector.choria }
     let(:connection) { connector.connection }
-    let(:msg) { Message.new(Base64.encode64("rspec"), mock, :base64 => true, :headers => {}) }
+    let(:msg) { Message.new(Base64.encode64("rspec"), mock, :base64 => true, :headers => {}, :requestid => "rspec.req.id") }
 
     before(:each) do
       connector.stubs(:current_time).returns(Time.at(1466589505))
@@ -212,6 +212,7 @@ module MCollective
             "mc_sender" => "rspec_identity",
             "reply-to" => "mcollective.reply.rspec_identity.999999.0",
             "federation" => {
+              "req" => "rspec.req.id",
               "target" => ["mcollective.broadcast.agent.rspec_agent"]
             }
           }
@@ -239,6 +240,7 @@ module MCollective
           "headers" => {
             "mc_sender" => "rspec_identity",
             "federation" => {
+              "req" => "rspec.req.id",
               "target" => (0..199).to_a.map {|i| "mcollective.node.#{i}.example"}
             },
             "reply-to" => "mcollective.reply.rspec_identity.999999.0"
@@ -250,6 +252,7 @@ module MCollective
           "headers" => {
             "mc_sender" => "rspec_identity",
             "federation" => {
+              "req" => "rspec.req.id",
               "target" => (200..300).to_a.map {|i| "mcollective.node.#{i}.example"}
             },
             "reply-to" => "mcollective.reply.rspec_identity.999999.0"
