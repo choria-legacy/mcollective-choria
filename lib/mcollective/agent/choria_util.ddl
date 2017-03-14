@@ -21,9 +21,13 @@ action "info", :description => "Choria related information from the running Daem
          :description => "Active OS PATH",
          :display_as => "Path"
 
+  output :choria_version,
+         :description => "Choria version",
+         :display_as => "Choria Version"
+
   output :client_version,
-         :description => "Client gem version",
-         :display_as => "Client Version"
+         :description => "Client library version",
+         :display_as => "Client Library Version"
 
   output :client_flavour,
          :description => "Client gem flavour",
@@ -62,6 +66,7 @@ action "info", :description => "Choria related information from the running Daem
          :display_as => "Middleware"
 
   summarize do
+    aggregate summary(:choria_version)
     aggregate summary(:client_version)
     aggregate summary(:client_flavour)
     aggregate summary(:connected_server)
