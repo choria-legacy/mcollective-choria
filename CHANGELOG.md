@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/03/14|229   |Update the NATS gem to 0.2.2                                                                             |
 |2017/03/11|213   |Add federation support to the NATS connector                                                             |
 |2017/03/08|      |Release 0.0.24                                                                                           |
 |2017/03/07|204   |Add a `choria_util` agent that extract running info out of the mcollective daemon                        |
