@@ -86,12 +86,17 @@ module MCollective
 
     describe "#subscribe" do
       it "should subscribe only once" do
-        client.stubs(:subscribe).yields("msg", "x", "sub").returns(1).once
+        client.stubs(:subscribe).with("rspec.dest", {}).yields("msg", "x", "sub").returns(1).once
 
         wrapper.subscribe("rspec.dest")
         expect(wrapper.subscriptions).to have_key("rspec.dest")
         wrapper.subscribe("rspec.dest")
         expect(wrapper.receive).to eq("msg")
+      end
+
+      it "should support options" do
+        client.expects(:subscribe).with("x", :queue => "y").returns(1)
+        wrapper.subscribe("x", :queue => "y")
       end
     end
 

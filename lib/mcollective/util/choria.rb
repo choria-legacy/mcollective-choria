@@ -1,5 +1,6 @@
 require_relative "choria/puppet_v3_environment"
 require_relative "choria/orchestrator"
+require_relative "federation_broker"
 
 require "net/http"
 require "resolv"
@@ -10,16 +11,24 @@ module MCollective
       class UserError < StandardError; end
       class Abort < StandardError; end
 
-      VERSION = "0.0.24".freeze
+      VERSION = "0.0.24".freeze unless defined?(Choria::VERSION)
 
       attr_writer :ca
 
-      def initialize(environment, application=nil, check_ssl=true)
+      def initialize(environment="production", application=nil, check_ssl=true)
         @environment = environment
         @application = application
         @config = Config.instance
 
         check_ssl_setup if check_ssl
+      end
+
+      # Which port to provide stats over HTTP on
+      #
+      # @return [Integer,nil]
+      # @raise [StandardError] when not numeric
+      def stats_port
+        Integer(get_option("choria.stats_port", "")) if has_option?("choria.stats_port")
       end
 
       # Determines if there are any federations configured
@@ -352,7 +361,7 @@ module MCollective
       # @param default_port [String] default port
       # @return [Array<Array<String, String>>] groups of host and port
       def middleware_servers(default_host="puppet", default_port="4222")
-        if federation = federation_middleware_servers
+        if federated? && federation = federation_middleware_servers
           return federation
         end
 
@@ -369,9 +378,14 @@ module MCollective
       # @note you'd still want to only get your middleware servers from {#middleware_servers}
       # @return [Array,nil] groups of host and port, nil when not found
       def federation_middleware_servers
-        return unless federated?
-
         server_resolver("choria.federation_middleware_hosts", ["_mcollective-federation_server._tcp", "_x-puppet-mcollective_federation._tcp"])
+      end
+
+      # Determines if the full connectivity route should be recorded
+      #
+      # @return [Boolean]
+      def record_nats_route?
+        Util.str_to_bool(get_option("nats.record_route", "n"))
       end
 
       # Determines if servers should be randomized
