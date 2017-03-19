@@ -119,7 +119,7 @@ module MCollective
 
       # Starts the EM based NATS connection
       #
-      # @param options [Hash] Options as per {#NATS.start}
+      # @param options [Hash] Options as per {#NATS::IO::Client#connect}
       def start(options={})
         # Client connects pretty much soon as it's initialized which is very early
         # and some applications like 'request_cert' just doesnt need/want a client
@@ -128,7 +128,7 @@ module MCollective
         return if @force_Stop
 
         @client.on_reconnect do
-          Log.warn("Reconnected after connection failure: %s" % @client.connected_server)
+          Log.warn("Reconnected after connection failure: %s" % connected_server)
           log_nats_pool
           @backoffcount = 1
         end
@@ -204,12 +204,13 @@ module MCollective
       # Subscribes to a message source
       #
       # @param source_name [String]
-      def subscribe(source_name)
+      # @param options [Hash] options as accepted by {NATS::IO::Client#subscribe}
+      def subscribe(source_name, options={})
         @subscription_mutex.synchronize do
           Log.debug("Subscribing to %s" % source_name)
 
           unless @subscriptions.include?(source_name)
-            @subscriptions[source_name] = @client.subscribe(source_name) do |msg, _, sub|
+            @subscriptions[source_name] = @client.subscribe(source_name, options) do |msg, _, sub|
               Log.debug("Received a message on %s" % [sub])
               @received_queue << msg
             end

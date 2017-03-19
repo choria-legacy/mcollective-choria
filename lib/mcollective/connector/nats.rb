@@ -355,7 +355,7 @@ module MCollective
           end
         end
 
-        if Util.str_to_bool(get_option("nats.record_route", "n"))
+        if choria.record_nats_route?
           headers = msg["headers"]
           (headers["seen-by"] ||= []) << connected_server
         end

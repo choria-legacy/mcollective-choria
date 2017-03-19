@@ -7,6 +7,35 @@ module MCollective
       let(:choria) { Choria.new("production", nil, false) }
       let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
+      describe "#stats_port" do
+        it "should be nil when the option is not present" do
+          Config.instance.stubs(:pluginconf).returns({})
+          expect(choria.stats_port).to be(nil)
+        end
+
+        it "should fail for non numbers" do
+          Config.instance.stubs(:pluginconf).returns("choria.stats_port" => "a")
+          expect { choria.stats_port }.to raise_error(/invalid value/)
+        end
+
+        it "should return valid numbers" do
+          Config.instance.stubs(:pluginconf).returns("choria.stats_port" => "2")
+          expect(choria.stats_port).to be(2)
+        end
+      end
+
+      describe "#record_nats_route?" do
+        it "should default to false" do
+          Config.instance.stubs(:pluginconf).returns({})
+          expect(choria.record_nats_route?).to be(false)
+        end
+
+        it "should support being set" do
+          Config.instance.stubs(:pluginconf).returns("nats.record_route" => "y")
+          expect(choria.record_nats_route?).to be(true)
+        end
+      end
+
       describe "#ssl_context" do
         it "should create a valid ssl context" do
           choria.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
@@ -184,12 +213,7 @@ module MCollective
       end
 
       describe "#federation_middleware_servers" do
-        it "should be nil when not federated" do
-          expect(choria.federation_middleware_servers).to be(nil)
-        end
-
         it "should resolve correctly" do
-          choria.expects(:federated?).returns(true)
           choria.expects(:server_resolver).with(
             "choria.federation_middleware_hosts",
             ["_mcollective-federation_server._tcp", "_x-puppet-mcollective_federation._tcp"]
@@ -201,8 +225,15 @@ module MCollective
 
       describe "#middleware_servers" do
         it "should support federations" do
+          choria.expects(:federated?).returns(true)
           choria.expects(:federation_middleware_servers).returns([["f1.net", "4222"], ["f2.net", "4222"]])
           expect(choria.middleware_servers).to eq([["f1.net", "4222"], ["f2.net", "4222"]])
+        end
+
+        it "should only attempt federation lookups when federated" do
+          choria.expects(:federated?).returns(false)
+          choria.expects(:federation_middleware_servers).never
+          choria.middleware_servers
         end
 
         it "should resolve correctly" do

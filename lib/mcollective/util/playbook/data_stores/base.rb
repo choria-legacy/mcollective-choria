@@ -42,7 +42,7 @@ module MCollective
           #
           # @note when the lock does not exist it should not raise an error
           # @param key [String] the lock name
-          # @raize [StandardError] when releaging fails
+          # @raise [StandardError] when releaging fails
           def release(key)
             raise(NotImplementedError, "release not implemented in %s" % [self.class], caller)
           end

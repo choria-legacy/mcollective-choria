@@ -15,6 +15,7 @@ mcollective_choria::server_files:
 mcollective_choria::client_files:
  - application/choria.rb
  - application/playbook.rb
+ - application/federation.rb
  - discovery/choria.ddl
  - discovery/choria.rb
  - util/playbook/data_stores/base.rb
@@ -48,12 +49,18 @@ mcollective_choria::client_files:
  - util/playbook/uses.rb
 mcollective_choria::common_directories:
  - util/choria
+ - util/choria/federation_broker
 mcollective_choria::common_files:
  - agent/choria_util.ddl
  - connector/nats.ddl
  - connector/nats.rb
  - security/choria.rb
  - util/choria/orchestrator.rb
+ - util/choria/federation_broker.rb
+ - util/choria/federation_broker/base.rb
+ - util/choria/federation_broker/collective_processor.rb
+ - util/choria/federation_broker/federation_processor.rb
+ - util/choria/federation_broker/stats.rb
  - util/choria/puppet_v3_environment.rb
  - util/choria.rb
  - util/natswrapper.rb

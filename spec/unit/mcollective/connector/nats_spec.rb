@@ -407,7 +407,7 @@ module MCollective
       end
 
       it "should support recording the route" do
-        connector.stubs(:get_option).with("nats.record_route", "n").returns("y")
+        choria.stubs(:record_nats_route?).returns(true)
         connector.stubs(:connected_server).returns("nats.example")
         connection.expects(:receive).returns({"data" => "rspec", "headers" => {}}.to_json)
         result = connector.receive
