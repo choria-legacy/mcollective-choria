@@ -60,9 +60,22 @@ module MCollective
 
         # Processor specific process logic
         #
+        # @abstract
         # @param msg [Hash] message from the wire
         def process(msg)
           raise(NotImplementedError, "%s does not implement the #process method" % [self.class])
+        end
+
+        # Determines if a message should be processed
+        #
+        # This should do validity checks, structure tests, security checks against the reply-to etc
+        #
+        # @abstract
+        # @param msg [Hash] the message to test
+        # @return [Boolean]
+        def should_process?(msg)
+          Log.warn("%s did not override should_process?, denying all messages" % [self.class])
+          false
         end
 
         # Processor statistics
@@ -241,7 +254,7 @@ module MCollective
             local_stats["received"] += 1
             local_stats["last_message"] = Time.now.to_i
 
-            process(msg)
+            process(msg) if should_process?(msg)
           end
         end
 

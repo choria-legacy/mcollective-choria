@@ -11,6 +11,53 @@ module MCollective
         let(:nats) { stub(:connected_server => "rspec.local") }
         let(:cp) { CollectiveProcessor.new(fb, inbox, outbox) }
 
+        describe "#should_process?" do
+          it "should not accept !hashes" do
+            Log.expects(:warn).with(regexp_matches(/Received a non hash message/))
+            expect(cp.should_process?("X")).to be(false)
+          end
+
+          it "should only accept messages with headers" do
+            Log.expects(:warn).with(regexp_matches(/Received a message without headers/))
+            expect(cp.should_process?({})).to be(false)
+          end
+
+          it "should only accept messages with federation markup" do
+            Log.expects(:warn).with(regexp_matches(/Received an unfederated message/))
+            expect(cp.should_process?("headers" => {})).to be(false)
+          end
+
+          it "should only accept messages with a reply-to federation header" do
+            Log.expects(:warn).with(regexp_matches(/Received an invalid reply to header in the federation structure/))
+            expect(cp.should_process?("headers" => {"federation" => {}})).to be(false)
+          end
+
+          it "should only accept messages with valid reply headers" do
+            msg = {
+              "headers" => {
+                "federation" => {
+                  "reply-to" => "choria.federation.production.federation"
+                }
+              }
+            }
+
+            Log.expects(:warn).with(regexp_matches(/Received a collective message with an unexpected reply to target 'choria.federation.production.federation'/))
+            expect(cp.should_process?(msg)).to be(false)
+          end
+
+          it "should accept valid messages" do
+            msg = {
+              "headers" => {
+                "federation" => {
+                  "reply-to" => "rspec.reply.x.y.z"
+                }
+              }
+            }
+
+            expect(cp.should_process?(msg)).to be(true)
+          end
+        end
+
         describe "#process" do
           it "should add the correct message to the outbox" do
             msg = {
@@ -18,7 +65,7 @@ module MCollective
               "headers" => {
                 "federation" => {
                   "req" => "rspecreq",
-                  "reply-to" => "x.y.z"
+                  "reply-to" => "rspec.reply.foo.1.1"
                 }
               }
             }
@@ -34,7 +81,7 @@ module MCollective
             ).returns("dumped_json")
 
             outbox.expects(:<<).with(
-              :targets => ["x.y.z"],
+              :targets => ["rspec.reply.foo.1.1"],
               :req => "rspecreq",
               :data => "dumped_json"
             )

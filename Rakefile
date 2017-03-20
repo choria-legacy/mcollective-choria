@@ -1,5 +1,7 @@
 require "rspec/core/rake_task"
 
+ENV["CHORIA_RAKE"] = $$.to_s
+
 RSpec::Core::RakeTask.new(:spec) do |t|
   t.rspec_opts = "--profile" if ENV["TRAVIS"] == "true"
 end

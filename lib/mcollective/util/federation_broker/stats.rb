@@ -70,7 +70,7 @@ module MCollective
         end
 
         def stats_target
-          "federation.%s.stats" % [@broker.cluster_name]
+          "choria.federation.%s.stats" % [@broker.cluster_name]
         end
 
         # Starts a thread that publishes the broker stats every 10 seconds
@@ -118,7 +118,7 @@ module MCollective
 
               server.mount_proc("/stats") {|req, res| serve_stats(req, res) }
 
-              server.start unless ENV["TRAVIS"]
+              server.start unless ENV["CHORIA_RAKE"]
             rescue
               Log.error("Could not start stats server: %s: %s" % [$!.class, $!.to_s])
               Log.debug($!.backtrace.join("\n\t"))

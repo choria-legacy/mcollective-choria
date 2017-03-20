@@ -1,6 +1,5 @@
 require_relative "choria/puppet_v3_environment"
 require_relative "choria/orchestrator"
-require_relative "federation_broker"
 
 require "net/http"
 require "resolv"
@@ -21,6 +20,21 @@ module MCollective
         @config = Config.instance
 
         check_ssl_setup if check_ssl
+      end
+
+      # Factory for Federation Brokers
+      #
+      # We do it here to avoid always requiring all the federation broker code
+      # when its not needed
+      #
+      # @param cluster_name [String] the name of the federation broker cluster
+      # @param instance_name [String, nil] the name of this specific instance in the cluster
+      # @param stats_port [Integer] the port to listen to for stats, uses choria.stats_port when nil
+      # @return [FederationBroker]
+      def federation_broker(cluster_name, instance_name, stats_port)
+        require_relative "federation_broker"
+
+        FederationBroker.new(cluster_name, instance_name, stats_port)
       end
 
       # Which port to provide stats over HTTP on

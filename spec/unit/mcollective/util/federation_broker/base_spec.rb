@@ -23,7 +23,15 @@ module MCollective
         describe "#consume" do
           it "should consume from the queue and process messages" do
             base.expects(:consume_from).with(base.queue).yields(JSON.dump("x" => "y"))
+            base.expects(:should_process?).with("x" => "y").returns(true)
             base.expects(:process).with("x" => "y")
+            base.consume
+          end
+
+          it "should not process message that do not validate" do
+            base.expects(:consume_from).with(base.queue).yields(JSON.dump("x" => "y"))
+            base.expects(:should_process?).with("x" => "y").returns(false)
+            base.expects(:process).never
             base.consume
           end
         end

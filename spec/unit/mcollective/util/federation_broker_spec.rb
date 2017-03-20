@@ -34,18 +34,12 @@ module MCollective
 
       describe "#ok?" do
         it "should be success if all alive" do
-          t = Thread.new { sleep 10 }
-          fb.record_thread("rspec", t)
+          fb.record_thread("rspec", stub(:alive? => true, :[]= => nil))
           expect(fb.ok?).to be(true)
         end
 
         it "should not be ok when not all are alive" do
-          t = Thread.new { raise }
-          Thread.kill(t)
-
-          10.times { Thread.pass }
-
-          fb.record_thread("rspec", t)
+          fb.record_thread("rspec", stub(:alive? => false, :[]= => nil))
           expect(fb.ok?).to be(false)
         end
       end

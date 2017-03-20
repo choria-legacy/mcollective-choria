@@ -91,7 +91,7 @@ module MCollective
       # Connect to the federation and observes published stats
       #
       # This will yield a hash of stats for every instance in the
-      # Federation Broker in {@cluster_name}
+      # Federation Broker in {cluster_name}
       def observe_stats
         ENV["CHORIA_FED_COLLECTIVE"] = @cluster_name
 
