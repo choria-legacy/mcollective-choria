@@ -11,6 +11,74 @@ module MCollective
         let(:nats) { stub(:connected_server => "rspec.local") }
         let(:fp) { FederationProcessor.new(fb, inbox, outbox) }
 
+        describe "#should_process?" do
+          it "should not accept !hashes" do
+            Log.expects(:warn).with(regexp_matches(/Received a non hash message/))
+            expect(fp.should_process?("X")).to be(false)
+          end
+
+          it "should only accept messages with headers" do
+            Log.expects(:warn).with(regexp_matches(/Received a message without headers/))
+            expect(fp.should_process?({})).to be(false)
+          end
+
+          it "should only accept messages with federation markup" do
+            Log.expects(:warn).with(regexp_matches(/Received an unfederated message/))
+            expect(fp.should_process?("headers" => {})).to be(false)
+          end
+
+          it "should only accept messages with a reply-to header" do
+            Log.expects(:warn).with(regexp_matches(/Received an invalid reply to header/))
+            expect(fp.should_process?("headers" => {"federation" => {}})).to be(false)
+          end
+
+          it "should only accept messages with a valid reply-to header" do
+            msg = {
+              "headers" => {
+                "reply-to" => "rspec.x",
+                "federation" => {}
+              }
+            }
+
+            Log.expects(:warn).with(regexp_matches(/Received an invalid reply to target/))
+            expect(fp.should_process?(msg)).to be(false)
+          end
+
+          it "should only accept valid targets" do
+            msg = {
+              "headers" => {
+                "reply-to" => "rspec.reply.x.y.z",
+                "federation" => {
+                  "target" => [
+                    "rspec.node.x.y",
+                    "choria.federation.foo"
+                  ]
+                }
+              }
+            }
+
+            Log.expects(:warn).with(regexp_matches(/Received an unexpected remote target 'choria.federation.foo/))
+            expect(fp.should_process?(msg)).to be(false)
+          end
+
+          it "should accept valid messages" do
+            msg = {
+              "headers" => {
+                "reply-to" => "rspec.reply.x.y.z",
+                "federation" => {
+                  "target" => [
+                    "rspec.node.x.y",
+                    "rspec.node.x.z",
+                    "rspec.broadcast.agent.discovery"
+                  ]
+                }
+              }
+            }
+
+            expect(fp.should_process?(msg)).to be(true)
+          end
+        end
+
         describe "#process" do
           it "should add the correct message to the outbox" do
             msg = {

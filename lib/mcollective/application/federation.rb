@@ -38,7 +38,7 @@ EOU
 
         Log.warn("Using a UUID based instance name, use --instance of plugin.choria.federation.instance") unless configuration[:instance]
 
-        broker = MCollective::Util::FederationBroker.new(
+        broker = choria.federation_broker(
           configuration[:cluster],
           configuration[:instance],
           configuration[:stats_port]
@@ -48,18 +48,17 @@ EOU
 
         sleep 10 while broker.ok?
 
-        Log.error("Some broker threads crashed, exiting")
-        Log.error(broker.thread_status.pretty_inspect)
+        Log.error("Some broker threads died, exiting: %s" % broker.thread_status.pretty_inspect)
 
         exit(1)
-      rescue Interrupt
-        exit
       end
 
       def observe_command
+        abort("Cannot observe using a client that is not configured for Federation, please set choria.federation.collectives or CHORIA_FED_COLLECTIVE") unless choria.federated?
+
         puts "Waiting for cluster stats to be published ...."
 
-        Util::FederationBroker.new(configuration[:cluster]).observe_stats do |stats|
+        choria.federation_broker(configuration[:cluster]).observe_stats do |stats|
           next if stats.empty?
 
           print "\e[H\e[2J"
@@ -67,7 +66,7 @@ EOU
           puts "Federation Broker: %s" % Util.colorize(:bold, configuration[:cluster])
           puts
 
-          ["collective", "federation"].each do |type|
+          ["federation", "collective"].each do |type|
             type_stats = {"sent" => 0, "received" => 0, "instances" => {}}
 
             stats.keys.sort.each do |instance|
@@ -115,8 +114,6 @@ EOU
           puts
           puts "Updated: %s" % Time.now.strftime("%F %T")
         end
-      rescue Interrupt
-        exit
       end
 
       # Creates and cache a Choria helper class
@@ -152,6 +149,8 @@ EOU
 
       def main
         send("%s_command" % configuration[:command])
+      rescue Interrupt
+        exit
       end
 
       # List of valid commands this application respond to
