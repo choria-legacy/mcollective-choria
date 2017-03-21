@@ -107,7 +107,7 @@ module MCollective
           "mc_sender" => @config.identity
         }
 
-        if Util.str_to_bool(get_option("nats.record_route", "n"))
+        if Util.str_to_bool(get_option("choria.record_route", "n"))
           headers["seen-by"] = [connected_server]
         end
 

@@ -399,7 +399,7 @@ module MCollective
       #
       # @return [Boolean]
       def record_nats_route?
-        Util.str_to_bool(get_option("nats.record_route", "n"))
+        Util.str_to_bool(get_option("choria.record_route", "n"))
       end
 
       # Determines if servers should be randomized
