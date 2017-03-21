@@ -123,7 +123,7 @@ module MCollective
       end
 
       it "should support recording the route" do
-        connector.stubs(:get_option).with("nats.record_route", "n").returns("y")
+        connector.stubs(:get_option).with("choria.record_route", "n").returns("y")
         connector.stubs(:connected_server).returns("nats1.example.net")
         expect(connector.headers_for(msg)).to eq(
           "mc_sender" => "rspec_identity",

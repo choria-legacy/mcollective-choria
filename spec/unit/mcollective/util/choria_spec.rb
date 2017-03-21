@@ -31,7 +31,7 @@ module MCollective
         end
 
         it "should support being set" do
-          Config.instance.stubs(:pluginconf).returns("nats.record_route" => "y")
+          Config.instance.stubs(:pluginconf).returns("choria.record_route" => "y")
           expect(choria.record_nats_route?).to be(true)
         end
       end

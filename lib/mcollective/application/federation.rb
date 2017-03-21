@@ -32,7 +32,7 @@ EOU
 
       def broker_command
         configuration[:cluster] = Config.instance.pluginconf["choria.federation.cluster"] unless configuration[:cluster]
-        configuration[:instance] = Config.instance.pluginconfig["choria.federation.instance"] unless configuration[:instance]
+        configuration[:instance] = Config.instance.pluginconf["choria.federation.instance"] unless configuration[:instance]
 
         abort("A cluster name is required, use --cluster or plugin.choria.federation.cluster") unless configuration[:cluster]
 

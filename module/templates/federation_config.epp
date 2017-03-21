@@ -1,0 +1,40 @@
+<%-
+  |
+    String $cluster,
+    Integer $instance,
+    Integer $stats_port,
+    Array[String] $federation_middleware_hosts,
+    Array[String] $collective_middleware_hosts,
+    String $srv_domain,
+    String $log_file,
+    Enum["debug", "info", "warn"] $log_level,
+    Boolean $record_route,
+    Boolean $randomize_middleware_hosts
+  |
+-%>
+libdir = /opt/puppetlabs/mcollective/plugins
+logfile = <%= $log_file %>
+loglevel = <%= $log_level %>
+
+securityprovider = choria
+connector = nats
+identity = <%= $facts["networking"]["fqdn"] %>
+
+plugin.choria.federation.cluster = <%= $cluster %>
+plugin.choria.federation.instance = <%= $instance %>
+plugin.choria.srv_domain = <%= $srv_domain %>
+<%- unless $federation_middleware_hosts.empty { -%>
+plugin.choria.federation_middleware_hosts = <%= $federation_middleware_hosts.join(", ") %>
+<%- } -%>
+<%- unless $collective_middleware_hosts.empty { -%>
+plugin.choria.middleware_hosts = <%= $collective_middleware_hosts.join(", ") %>
+<%- } -%>
+<%- if $record_route { -%>
+plugin.choria.record_route = true
+<%- } -%>
+<%- unless $stats_port == 0 { -%>
+plugin.choria.stats_port = <%= $stats_port %>
+<%- } -%>
+<%- if $randomize_middleware_hosts { -%>
+choria.randomize_middleware_hosts = true
+<%- } -%>
