@@ -38,6 +38,9 @@ EOU
 
         Log.warn("Using a UUID based instance name, use --instance of plugin.choria.federation.instance") unless configuration[:instance]
 
+        # app framework would set this to just 'federation' which is not helping
+        $0 = "choria %s_%s federation broker [%s]" % [configuration[:cluster], configuration[:instance], Config.instance.configfile]
+
         broker = choria.federation_broker(
           configuration[:cluster],
           configuration[:instance],
@@ -104,7 +107,7 @@ EOU
           puts Util.colorize(:bold, "Instances:")
 
           stats.keys.sort.each do |instance|
-            puts "  %s version %s started %s" % [
+            puts "  %s: version %s started %s" % [
               instance,
               stats[instance]["version"],
               Time.at(stats[instance]["start_time"]).strftime("%F %T")

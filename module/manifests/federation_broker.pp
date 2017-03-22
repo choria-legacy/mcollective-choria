@@ -46,8 +46,9 @@ define mcollective_choria::federation_broker (
       } ->
 
       service{"federation_broker@${name}_${instance}":
-        enable => true,
-        ensure => running
+        enable    => true,
+        ensure    => running,
+        subscribe => Class["mcollective::service"]
       }
     } else {
       service{"federation_broker@${name}_${instance}":
