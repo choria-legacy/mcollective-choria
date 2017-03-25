@@ -104,18 +104,18 @@ module MCollective
 
         # Records self in the seen-by headers
         #
-        # Should the configuration to record full NATS path be set this
-        # will additionally record the connected NATS server
-        #
         # @param headers [Hash]
         def record_seen(headers)
-          headers["seen-by"] ||= []
+          return unless headers.include?("seen-by")
 
-          if choria.record_nats_route?
-            headers["seen-by"] << connection.connected_server
-          end
+          c_out = processor_type == "federation" ? "collective" : "federation"
+          c_in = processor_type
 
-          headers["seen-by"] << "fedbroker_%s_%s" % [cluster_name, instance_name]
+          (headers["seen-by"] ||= []) << [
+            @broker.connections[c_in].connected_server.to_s,
+            "%s:%s @ %s" % [cluster_name, instance_name, @config.identity],
+            @broker.connections[c_out].connected_server.to_s
+          ]
         end
 
         # Handled a specific inbox item

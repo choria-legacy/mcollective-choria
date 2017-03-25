@@ -99,8 +99,7 @@ module MCollective
                   "req" => "rspecreq",
                   "reply-to" => "x.y.z"
                 },
-                "reply-to" => "choria.federation.rspec.collective",
-                "seen-by" => ["fedbroker_rspec_a"]
+                "reply-to" => "choria.federation.rspec.collective"
               }
             ).returns("dumped_json")
 

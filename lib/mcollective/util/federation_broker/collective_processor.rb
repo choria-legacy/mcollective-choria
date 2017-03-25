@@ -68,6 +68,7 @@ module MCollective
           headers = msg["headers"]
           federation = headers["federation"]
           reply_to = federation.delete("reply-to")
+          headers.delete("federation")
 
           Log.info("Collective received %s from %s" % [federation["req"], headers["mc_sender"]])
 

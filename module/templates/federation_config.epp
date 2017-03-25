@@ -8,7 +8,6 @@
     String $srv_domain,
     String $log_file,
     Enum["debug", "info", "warn"] $log_level,
-    Boolean $record_route,
     Boolean $randomize_middleware_hosts
   |
 -%>
@@ -28,9 +27,6 @@ plugin.choria.federation_middleware_hosts = <%= $federation_middleware_hosts.joi
 <%- } -%>
 <%- unless $collective_middleware_hosts.empty { -%>
 plugin.choria.middleware_hosts = <%= $collective_middleware_hosts.join(", ") %>
-<%- } -%>
-<%- if $record_route { -%>
-plugin.choria.record_route = true
 <%- } -%>
 <%- unless $stats_port == 0 { -%>
 plugin.choria.stats_port = <%= $stats_port %>

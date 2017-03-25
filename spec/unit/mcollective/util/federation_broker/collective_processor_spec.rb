@@ -72,12 +72,7 @@ module MCollective
 
             JSON.expects(:dump).with(
               "body" => "body",
-              "headers" => {
-                "seen-by" => ["fedbroker_rspec_a"],
-                "federation" => {
-                  "req" => "rspecreq"
-                }
-              }
+              "headers" => {}
             ).returns("dumped_json")
 
             outbox.expects(:<<).with(
