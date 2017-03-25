@@ -107,9 +107,7 @@ module MCollective
           "mc_sender" => @config.identity
         }
 
-        if Util.str_to_bool(get_option("choria.record_route", "n"))
-          headers["seen-by"] = [connected_server]
-        end
+        headers["seen-by"] = [] if msg.headers.include?("seen-by")
 
         if [:request, :direct_request].include?(msg.type)
           if msg.reply_to
@@ -120,6 +118,15 @@ module MCollective
             # we'll need to set a reply-to target that the daemon will
             # subscribe to
             headers["reply-to"] = make_target(msg.agent, :reply, msg.collective)
+          end
+
+          if msg.headers.include?("seen-by")
+            headers["seen-by"] << [@config.identity, connected_server.to_s]
+          end
+        elsif msg.type == :reply
+          if msg.request.headers.include?("seen-by")
+            headers["seen-by"] = msg.request.headers["seen-by"]
+            headers["seen-by"].last << connected_server.to_s
           end
         end
 
@@ -293,13 +300,10 @@ module MCollective
         target = target_for(msg)
         data = {"data" => msg.payload, "headers" => target[:headers]}
 
+        # only happens when replying
         if received_message = msg.request
           if received_message.headers.include?("federation")
             data["headers"]["federation"] = received_message.headers["federation"]
-          end
-
-          if received_message.headers.include?("seen-by")
-            data["headers"]["seen-by"] = received_message.headers["seen-by"]
           end
         end
 
@@ -355,9 +359,8 @@ module MCollective
           end
         end
 
-        if choria.record_nats_route?
-          headers = msg["headers"]
-          (headers["seen-by"] ||= []) << connected_server
+        if msg["headers"].include?("seen-by")
+          msg["headers"]["seen-by"] << [connected_server.to_s, @config.identity]
         end
 
         Message.new(msg["data"], msg, :base64 => true, :headers => msg["headers"])

@@ -64,16 +64,19 @@ module MCollective
         end
 
         describe "#record_seen" do
-          it "should add the normal seen headers" do
-            headers = {"seen-by" => ["x"]}
-            base.record_seen(headers)
-            expect(headers["seen-by"]).to eq(["x", "fedbroker_rspec_a"])
-          end
-
           it "should support recording the route" do
-            base.choria.expects(:record_nats_route?).returns(true)
-            base.record_seen(headers = {})
-            expect(headers["seen-by"]).to eq(["rspec.local", "fedbroker_rspec_a"])
+            fb.stubs(:connections).returns(
+              "federation" => stub(:connected_server => "fed_nats1"),
+              "collective" => stub(:connected_server => "c_nats1")
+            )
+
+            base.expects(:processor_type).returns("collective").twice
+            base.record_seen(headers = {"seen-by" => [["x", "y"]]})
+            expect(headers["seen-by"]).to eq([["x", "y"], ["c_nats1", "rspec:a @ rspec_identity", "fed_nats1"]])
+
+            base.expects(:processor_type).returns("federation").twice
+            base.record_seen(headers = {"seen-by" => [["x", "y"]]})
+            expect(headers["seen-by"]).to eq([["x", "y"], ["fed_nats1", "rspec:a @ rspec_identity", "c_nats1"]])
           end
         end
 

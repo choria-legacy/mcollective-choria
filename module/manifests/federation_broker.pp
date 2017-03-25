@@ -4,7 +4,6 @@ define mcollective_choria::federation_broker (
   Array[String] $federation_middleware_hosts = [],
   Array[String] $collective_middleware_hosts = [],
   String $srv_domain = $facts["networking"]["domain"],
-  Boolean $record_route = false,
   Boolean $randomize_middleware_hosts = false,
   Enum["debug", "info", "warn"] $log_level = "info",
   Enum["present", "absent"] $ensure = "present"
@@ -29,7 +28,6 @@ define mcollective_choria::federation_broker (
         "srv_domain"                  => $srv_domain,
         "log_file"                    => $log_file,
         "log_level"                   => $log_level,
-        "record_route"                => $record_route,
         "randomize_middleware_hosts"  => $randomize_middleware_hosts
       })
 

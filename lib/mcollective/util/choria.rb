@@ -395,13 +395,6 @@ module MCollective
         server_resolver("choria.federation_middleware_hosts", ["_mcollective-federation_server._tcp", "_x-puppet-mcollective_federation._tcp"])
       end
 
-      # Determines if the full connectivity route should be recorded
-      #
-      # @return [Boolean]
-      def record_nats_route?
-        Util.str_to_bool(get_option("choria.record_route", "n"))
-      end
-
       # Determines if servers should be randomized
       #
       # @return [Boolean]

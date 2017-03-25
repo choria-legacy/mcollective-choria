@@ -24,18 +24,6 @@ module MCollective
         end
       end
 
-      describe "#record_nats_route?" do
-        it "should default to false" do
-          Config.instance.stubs(:pluginconf).returns({})
-          expect(choria.record_nats_route?).to be(false)
-        end
-
-        it "should support being set" do
-          Config.instance.stubs(:pluginconf).returns("choria.record_route" => "y")
-          expect(choria.record_nats_route?).to be(true)
-        end
-      end
-
       describe "#ssl_context" do
         it "should create a valid ssl context" do
           choria.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")

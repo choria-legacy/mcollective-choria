@@ -109,6 +109,8 @@ module MCollective
 
     describe "#headers_for" do
       it "should support :reply" do
+        request = Message.new(Base64.encode64("rspec"), mock, :base64 => true, :headers => {}, :requestid => "rspec.req.id")
+        msg.stubs(:request).returns(request)
         msg.type = :reply
         expect(connector.headers_for(msg)).to eq("mc_sender" => "rspec_identity")
       end
@@ -122,12 +124,14 @@ module MCollective
         )
       end
 
-      it "should support recording the route" do
-        connector.stubs(:get_option).with("choria.record_route", "n").returns("y")
+      it "should support recording the route for requests with seen-by header" do
+        msg.stubs(:headers).returns("seen-by" => [])
+        msg.type = :request
         connector.stubs(:connected_server).returns("nats1.example.net")
         expect(connector.headers_for(msg)).to eq(
           "mc_sender" => "rspec_identity",
-          "seen-by" => ["nats1.example.net"]
+          "reply-to" => "mcollective.reply.rspec_identity.999999.0",
+          "seen-by" => [["rspec_identity", "nats1.example.net"]]
         )
       end
     end
@@ -305,10 +309,7 @@ module MCollective
             "reply-to" => "mcollective.reply.rspec_identity.999999.0",
             "federation" => {
               "reply-to" => "reply.example"
-            },
-            "seen-by" => [
-              "rspec.example"
-            ]
+            }
           }
         ).returns("json_stub")
 
@@ -387,7 +388,7 @@ module MCollective
     end
 
     describe "#receive" do
-      let(:rawmsg) { {"data" => "rspec"} }
+      let(:rawmsg) { {"data" => "rspec", "headers" => {}} }
       let(:connection) { stub }
 
       before(:each) do
@@ -407,15 +408,14 @@ module MCollective
       end
 
       it "should support recording the route" do
-        choria.stubs(:record_nats_route?).returns(true)
         connector.stubs(:connected_server).returns("nats.example")
-        connection.expects(:receive).returns({"data" => "rspec", "headers" => {}}.to_json)
+        connection.expects(:receive).returns({"data" => "rspec", "headers" => {"seen-by" => []}}.to_json)
         result = connector.receive
-        expect(result.headers).to eq("seen-by" => ["nats.example"])
+        expect(result.headers).to eq("seen-by" => [["nats.example", "rspec_identity"]])
 
-        connection.expects(:receive).returns({"data" => "rspec", "headers" => {"seen-by" => ["fed1"]}}.to_json)
+        connection.expects(:receive).returns({"data" => "rspec", "headers" => {"seen-by" => [["x", "y"]]}}.to_json)
         result = connector.receive
-        expect(result.headers).to eq("seen-by" => ["fed1", "nats.example"])
+        expect(result.headers).to eq("seen-by" => [["x", "y"], ["nats.example", "rspec_identity"]])
       end
     end
 
