@@ -29,9 +29,9 @@ module MCollective
       #
       # @param cluster_name [String] the name of the federation broker cluster
       # @param instance_name [String, nil] the name of this specific instance in the cluster
-      # @param stats_port [Integer] the port to listen to for stats, uses choria.stats_port when nil
+      # @param stats_port [Integer, nil] the port to listen to for stats, uses choria.stats_port when nil
       # @return [FederationBroker]
-      def federation_broker(cluster_name, instance_name, stats_port)
+      def federation_broker(cluster_name, instance_name=nil, stats_port=nil)
         require_relative "federation_broker"
 
         FederationBroker.new(cluster_name, instance_name, stats_port)

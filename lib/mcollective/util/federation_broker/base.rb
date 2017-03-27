@@ -273,7 +273,6 @@ module MCollective
             else
               connection.subscribe(queue[:name])
             end
-
           rescue
             Log.warn("Subscribing to %s failed: %s: %s" % [queue[:name], $!.class, $!.to_s])
             Log.debug($!.backtrace.join("\n\t"))

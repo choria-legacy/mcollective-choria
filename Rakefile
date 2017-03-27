@@ -41,11 +41,10 @@ task :prep_version do
   File.open("CHANGELOG.md", "w") do |cl|
     changelog.each do |line|
       # rubocop:disable Metrics/LineLength
+      cl.puts line
+
       if line =~ /^\|----------/
-        cl.puts line
         cl.puts "|%s|      |Release %s                                                                                           |" % [Time.now.strftime("%Y/%m/%d"), ENV["CHORIA_VERSION"]]
-      else
-        cl.puts line
       end
       # rubocop:enable Metrics/LineLength
     end

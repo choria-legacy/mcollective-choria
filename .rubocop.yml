@@ -140,3 +140,16 @@ Performance/Casecmp:
 
 Style/FrozenStringLiteralComment:
   Enabled: false
+
+Style/SymbolArray:
+  Enabled: false
+
+Security/MarshalLoad:
+  Enabled: false
+
+Style/IndentHeredoc:
+  Enabled: false
+
+# @todo use safe_load but its a big change
+Security/YAMLLoad:
+  Enabled: false

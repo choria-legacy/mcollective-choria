@@ -9,7 +9,6 @@ module MCollective
             @session_mutex = Mutex.new
             @session_manager = nil
             @session_id = nil
-
           rescue LoadError
             raise("Consul Data Store is not functional. Please install the diplomat Gem.")
           end
