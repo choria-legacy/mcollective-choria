@@ -77,10 +77,8 @@ module MCollective
 
       def main
         send("%s_command" % configuration[:command])
-
       rescue Util::Choria::UserError
         STDERR.puts("Encountered a critical error: %s" % Util.colorize(:red, $!.to_s))
-
       rescue Util::Choria::Abort
         exit(1)
       end
@@ -158,18 +156,30 @@ module MCollective
         puts "records and reading configuration files.  The below information shows the completely resolved"
         puts "configuration that will be used when running MCollective commands"
         puts
-        puts "MCollective selated:"
+        puts "MCollective related:"
         puts
-        puts " MCollective Version: %s" % MCollective::VERSION
-        puts "  Client Config File: %s" % Util.config_file_for_user
-        puts "  Active Config File: %s" % Config.instance.configfile
-        puts "   Plugin Config Dir: %s" % File.join(Config.instance.configdir, "plugin.d")
-        puts "   Using SRV Records: %s" % choria.should_use_srv?
-        puts "          SRV Domain: %s" % choria.srv_domain
+        puts "    MCollective Version: %s" % MCollective::VERSION
+        puts "     Client Config File: %s" % Util.config_file_for_user
+        puts "     Active Config File: %s" % Config.instance.configfile
+        puts "      Plugin Config Dir: %s" % File.join(Config.instance.configdir, "plugin.d")
+        puts "      Using SRV Records: %s" % choria.should_use_srv?
+        puts "              Federated: %s" % choria.federated?
+        puts "             SRV Domain: %s" % choria.srv_domain
 
         middleware_servers = choria.middleware_servers("puppet", 42222).map {|s, p| "%s:%s" % [s, p]}.join(", ")
 
-        puts "  Middleware Servers: %s" % middleware_servers
+        puts "     Middleware Servers: %s" % middleware_servers
+
+        if choria.federated?
+          fed_servers = choria.federation_middleware_servers
+          if fed_servers
+            puts "     Federation Servers: %s" % fed_servers.map {|s, p| "%s:%s" % [s, p]}.join(", ")
+          else
+            puts "     Federation Servers: %s (fallback to normal client settings)" % middleware_servers
+          end
+          puts " Federation Collectives: %s" % choria.federation_collectives.join(", ")
+        end
+
         puts
 
         puppet_server = "%s:%s" % [choria.puppet_server[:target], choria.puppet_server[:port]]

@@ -18,8 +18,8 @@ module MCollective
         #
         # @return [Array<String>]
         def static_keys
-          @inputs.select do |_, props|
-            !props[:dynamic]
+          @inputs.reject do |_, props|
+            props[:dynamic]
           end.keys
         end
 

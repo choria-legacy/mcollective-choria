@@ -1,3 +1,11 @@
+# @instances [Integer] How many federation brokers to run on this node
+# @stats_base_port [Integer] When not 0 start listening for stats on HTTP on this and every consecutive port for every instance
+# @federation_middleware_hosts [Array[$string]] host:port pairs for the federstion middleware when not using SRV records
+# @collective_middleware_hosts [Array[$string]] host:port pairs for the collective middleware when not using SRV records
+# @srv_domain [String] the domain to find SRV records in for this broker
+# @randomize_middleware_hosts [Boolean] Randomize configured or discovered middleware hosts
+# @log_level ["debug", "info", "warn"] MCollective log level
+# @ensure ["absent", "present"]
 define mcollective_choria::federation_broker (
   Integer $instances = 1,
   Integer $stats_base_port = 0,
