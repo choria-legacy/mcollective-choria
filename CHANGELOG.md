@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/03/27|228   |Support Federations of Collectives                                                                       |
 |2017/03/14|229   |Update the NATS gem to 0.2.2                                                                             |
 |2017/03/11|213   |Add federation support to the NATS connector                                                             |
 |2017/03/08|      |Release 0.0.24                                                                                           |
