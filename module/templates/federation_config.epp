@@ -17,10 +17,10 @@ loglevel = <%= $log_level %>
 
 securityprovider = choria
 connector = nats
-identity = <%= $facts["networking"]["fqdn"] %>
+identity = <%= $trusted["certname"] %>
 
 plugin.choria.federation.cluster = <%= $cluster %>
-plugin.choria.federation.instance = <%= $instance %>
+plugin.choria.federation.instance = <%= $instance %> @ <%= $facts["networking"]["fqdn"] %>
 plugin.choria.srv_domain = <%= $srv_domain %>
 <%- unless $federation_middleware_hosts.empty { -%>
 plugin.choria.federation_middleware_hosts = <%= $federation_middleware_hosts.join(", ") %>

@@ -113,7 +113,7 @@ module MCollective
 
           (headers["seen-by"] ||= []) << [
             @broker.connections[c_in].connected_server.to_s,
-            "%s:%s @ %s" % [cluster_name, instance_name, @config.identity],
+            "%s:%s" % [cluster_name, instance_name],
             @broker.connections[c_out].connected_server.to_s
           ]
         end

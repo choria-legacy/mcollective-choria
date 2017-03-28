@@ -72,11 +72,11 @@ module MCollective
 
             base.expects(:processor_type).returns("collective").twice
             base.record_seen(headers = {"seen-by" => [["x", "y"]]})
-            expect(headers["seen-by"]).to eq([["x", "y"], ["c_nats1", "rspec:a @ rspec_identity", "fed_nats1"]])
+            expect(headers["seen-by"]).to eq([["x", "y"], ["c_nats1", "rspec:a", "fed_nats1"]])
 
             base.expects(:processor_type).returns("federation").twice
             base.record_seen(headers = {"seen-by" => [["x", "y"]]})
-            expect(headers["seen-by"]).to eq([["x", "y"], ["fed_nats1", "rspec:a @ rspec_identity", "c_nats1"]])
+            expect(headers["seen-by"]).to eq([["x", "y"], ["fed_nats1", "rspec:a", "c_nats1"]])
           end
         end
 
