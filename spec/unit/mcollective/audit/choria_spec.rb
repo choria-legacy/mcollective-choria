@@ -15,14 +15,6 @@ module MCollective
           choria.audit_request(stub, stub)
         end
 
-        it "should warn when it cant write" do
-          Config.instance.stubs(:pluginconf).returns("rpcaudit.logfile" => "/nonexisting/audit.log")
-          File.expects(:writable?).with("/nonexisting/audit.log").returns(false)
-          Log.expects(:warn).with("Auditing is not functional because logfile '/nonexisting/audit.log' is not writable")
-
-          choria.audit_request(stub, stub)
-        end
-
         it "should log the correct data" do
           msg = {
             :msgtime => 1483774088,
@@ -37,7 +29,6 @@ module MCollective
           }
 
           Config.instance.stubs(:pluginconf).returns("rpcaudit.logfile" => "/nonexisting/audit.log")
-          File.expects(:writable?).with("/nonexisting/audit.log").returns(true)
           File.expects(:open).with("/nonexisting/audit.log", "a").yields(file = StringIO.new)
           Time.expects(:now).returns(Time.at(1483774088))
 
