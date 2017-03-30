@@ -28,6 +28,7 @@ module MCollective
           def create_and_configure_client
             client = RPC::Client.new(@agent, :configfile => Util.config_file_for_user)
             client.batch_size = @batch_size if @batch_size
+            client.batch_sleep_time = @batch_sleep_time if @batch_sleep_time
             client.discover(:nodes => @nodes)
             client.progress = false
             client
@@ -58,6 +59,7 @@ module MCollective
             @nodes = data.fetch("nodes", [])
             @agent, @action = parse_action(data["action"])
             @batch_size = data["batch_size"]
+            @batch_sleep_time = data["batch_sleep_time"]
             @properties = data.fetch("properties", {})
             @post = data.fetch("post", [])
             @log_replies = !data.fetch("silent", false)

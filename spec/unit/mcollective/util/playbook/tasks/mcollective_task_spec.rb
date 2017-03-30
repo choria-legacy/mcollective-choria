@@ -236,9 +236,11 @@ module MCollective
               RPC::Client.expects(:new).with("rspec", :configfile => "/nonexisting/client.cfg").returns(client = stub)
               task.instance_variable_set("@agent", "rspec")
               task.instance_variable_set("@batch_size", 10)
+              task.instance_variable_set("@batch_sleep_time", 90)
               task.instance_variable_set("@nodes", ["node1", "node2"])
               client.expects(:progress=).with(false)
               client.expects(:batch_size=).with(10)
+              client.expects(:batch_sleep_time=).with(90)
               client.expects(:discover).with(:nodes => ["node1", "node2"])
               expect(task.create_and_configure_client).to be(client)
             end
