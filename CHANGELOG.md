@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/03/30|244   |Show correct PuppetDB information in `mco choria show_config`                                            |
+|2017/03/30|243   |Show the Choria version in `mco choria show_config`                                                      |
 |2017/03/29|      |Release 0.0.25                                                                                           |
 |2017/03/27|228   |Support Federations of Collectives                                                                       |
 |2017/03/14|229   |Update the NATS gem to 0.2.2                                                                             |

@@ -159,6 +159,7 @@ module MCollective
         puts "MCollective related:"
         puts
         puts "    MCollective Version: %s" % MCollective::VERSION
+        puts "         Choria Version: %s" % Util::Choria::VERSION
         puts "     Client Config File: %s" % Util.config_file_for_user
         puts "     Active Config File: %s" % Config.instance.configfile
         puts "      Plugin Config Dir: %s" % File.join(Config.instance.configdir, "plugin.d")
@@ -182,15 +183,15 @@ module MCollective
 
         puts
 
-        puppet_server = "%s:%s" % [choria.puppet_server[:target], choria.puppet_server[:port]]
-        puppetca_server = "%s:%s" % [choria.puppetca_server[:target], choria.puppetca_server[:port]]
-        puppetdb_server = "%s:%s" % [choria.puppetca_server[:target], choria.puppetca_server[:port]]
+        puppet_server = choria.puppet_server
+        puppetca_server = choria.puppetca_server
+        puppetdb_server = choria.puppetdb_server
 
         puts "Puppet related:"
         puts
-        puts "       Puppet Server: %s" % puppet_server
-        puts "     PuppetCA Server: %s" % puppetca_server
-        puts "     PuppetDB Server: %s" % puppetdb_server
+        puts "       Puppet Server: %s:%s" % [puppet_server[:target], puppet_server[:port]]
+        puts "     PuppetCA Server: %s:%s" % [puppetca_server[:target], puppetca_server[:port]]
+        puts "     PuppetDB Server: %s:%s" % [puppetdb_server[:target], puppetdb_server[:port]]
         puts "      Facter Command: %s" % choria.facter_cmd
         puts "       Facter Domain: %s" % choria.facter_domain
         puts
