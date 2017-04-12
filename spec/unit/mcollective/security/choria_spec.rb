@@ -433,11 +433,11 @@ module MCollective
         body = security.empty_request
         body["message"] = "r_message"
 
-        %w(senderid requestid filter collective agent callerid ttl time).each do |k|
+        %w[senderid requestid filter collective agent callerid ttl time].each do |k|
           body["envelope"][k] = "r_%s" % k
         end
 
-        expected = Hash[%w(senderid requestid filter collective agent callerid ttl).map do |k|
+        expected = Hash[%w[senderid requestid filter collective agent callerid ttl].map do |k|
           [k.intern, "r_%s" % k]
         end]
 

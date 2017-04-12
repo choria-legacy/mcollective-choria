@@ -104,7 +104,7 @@ module MCollective
             end
 
             it "should accept valid keys" do
-              %w(foo_bar FOO_BAR FOO_bar 1FOO_bar FOO_bar1 1FOO1bar1).each do |test|
+              %w[foo_bar FOO_BAR FOO_bar 1FOO_bar FOO_bar1 1FOO1bar1].each do |test|
                 expect(ds.validate_key(test)).to be(true)
               end
             end
