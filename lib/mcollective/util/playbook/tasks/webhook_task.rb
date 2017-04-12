@@ -80,7 +80,7 @@ module MCollective
 
             Log.debug("%s request to %s returned code %s with body: %s" % [@method, uri.to_s, resp.code, resp.body])
 
-            if resp.code == "200" || resp.code == "201"
+            if ["200", "201"].include?(resp.code)
               [true, "Successfully sent %s request to webhook %s with id %s" % [@method, @uri, @request_id], [resp.body]]
             else
               [false, "Failed to send %s request to webhook %s with id %s: %s: %s" % [@method, @uri, @request_id, resp.code, resp.body], [resp.body]]
