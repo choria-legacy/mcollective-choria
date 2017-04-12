@@ -35,6 +35,20 @@ module MCollective
               )
             end
 
+            it "should handle 201 as success" do
+              task.expects(:choria).returns(choria = stub)
+              choria.expects(:https).with(:target => "localhost", :port => 80).returns(http = stub)
+              http.expects(:use_ssl=).with(false)
+              http.expects(:request).returns(stub(:code => "201", :body => "ok"))
+              expect(task.run).to eq(
+                [
+                  true,
+                  "Successfully sent POST request to webhook http://localhost/rspec?foo=bar with id 479d1982-120a-5ba8-8664-1f16a6504371",
+                  ["ok"]
+                ]
+              )
+            end
+
             it "should handle !200 as failure" do
               task.expects(:choria).returns(choria = stub)
               choria.expects(:https).with(:target => "localhost", :port => 80).returns(http = stub)
