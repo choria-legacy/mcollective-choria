@@ -20,12 +20,31 @@ module MCollective
             )
           end
 
+          describe "#http" do
+            it "should support https requests with and without SSL verification" do
+              http = task.http(URI("https://localhost"))
+              expect(http.verify_mode).to be(OpenSSL::SSL::VERIFY_PEER)
+              expect(http.use_ssl?).to be(true)
+
+              task.from_hash(
+                "verify_ssl" => false
+              )
+
+              http = task.http(URI("https://localhost"))
+              expect(http.verify_mode).to be(OpenSSL::SSL::VERIFY_NONE)
+              expect(http.use_ssl?).to be(true)
+            end
+
+            it "should support http requests" do
+              http = task.http(URI("http://localhost"))
+              expect(http.use_ssl?).to be(false)
+            end
+          end
+
           describe "#run" do
             it "should handle 200 as success" do
-              task.expects(:choria).returns(choria = stub)
-              choria.expects(:https).with(:target => "localhost", :port => 80).returns(http = stub)
-              http.expects(:use_ssl=).with(false)
-              http.expects(:request).returns(stub(:code => "200", :body => "ok"))
+              stub_request(:post, "http://localhost/rspec?foo=bar").to_return(:status => 200, :body => "ok")
+
               expect(task.run).to eq(
                 [
                   true,
@@ -36,10 +55,8 @@ module MCollective
             end
 
             it "should handle 201 as success" do
-              task.expects(:choria).returns(choria = stub)
-              choria.expects(:https).with(:target => "localhost", :port => 80).returns(http = stub)
-              http.expects(:use_ssl=).with(false)
-              http.expects(:request).returns(stub(:code => "201", :body => "ok"))
+              stub_request(:post, "http://localhost/rspec?foo=bar").to_return(:status => 201, :body => "ok")
+
               expect(task.run).to eq(
                 [
                   true,
@@ -50,10 +67,7 @@ module MCollective
             end
 
             it "should handle !200 as failure" do
-              task.expects(:choria).returns(choria = stub)
-              choria.expects(:https).with(:target => "localhost", :port => 80).returns(http = stub)
-              http.expects(:use_ssl=).with(false)
-              http.expects(:request).returns(stub(:code => "404", :body => "not found"))
+              stub_request(:post, "http://localhost/rspec?foo=bar").to_return(:status => 404, :body => "not found")
               expect(task.run).to eq(
                 [
                   false,
