@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/04/12|248   |Allow cert validation to be disabled in webhook                                                          |
 |2017/03/30|212   |Add batch_sleep_time to mcollective playbook task                                                        |
 |2017/03/30|244   |Show correct PuppetDB information in `mco choria show_config`                                            |
 |2017/03/30|243   |Show the Choria version in `mco choria show_config`                                                      |

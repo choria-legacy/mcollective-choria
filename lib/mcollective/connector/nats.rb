@@ -243,7 +243,7 @@ module MCollective
           messages.each do |data|
             network_target = "choria.federation.%s.federation" % network
 
-            Log.debug("Sending a federated direct message via NATS target '%s' for message type %s" % [target.inspect, msg.type])
+            Log.debug("Sending a federated direct message via NATS target '%s' for message type %s" % [network_target, msg.type])
 
             connection.publish(network_target, data, target[:headers]["reply-to"])
           end

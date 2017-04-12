@@ -8,6 +8,8 @@ module MCollective
         class WebhookTask < Base
           USER_AGENT = "Choria Playbooks http://choria.io".freeze
 
+          attr_reader :verify_ssl
+
           def validate_configuration!
             raise("A uri is required") unless @uri
             raise("Only GET and POST is supported as methods") unless ["GET", "POST"].include?(@method)
@@ -19,6 +21,7 @@ module MCollective
             @uri = data["uri"]
             @method = data.fetch("method", "POST").upcase
             @request_id = SSL.uuid
+            @verify_ssl = Util.str_to_bool(data.fetch("verify_ssl", true))
 
             self
           end
@@ -70,13 +73,23 @@ module MCollective
             @_choria ||= Util::Choria.new("production", nil, false)
           end
 
-          def run
-            uri = create_uri
+          def http(uri)
+            http = choria.https({:target => uri.host, :port => uri.port}, false)
 
-            http = choria.https(:target => uri.host, :port => uri.port)
+            if verify_ssl
+              http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+            else
+              http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+            end
+
             http.use_ssl = false if uri.scheme == "http"
 
-            resp = http.request(http_request(uri))
+            http
+          end
+
+          def run
+            uri = create_uri
+            resp = http(uri).request(http_request(uri))
 
             Log.debug("%s request to %s returned code %s with body: %s" % [@method, uri.to_s, resp.code, resp.body])
 
