@@ -7,6 +7,46 @@ module MCollective
       let(:choria) { Choria.new("production", nil, false) }
       let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
+      describe "#have_ssl_files?" do
+        before(:each) do
+          choria.stubs(:client_public_cert).returns(File.expand_path("spec/fixtures/rip.mcollective.pem"))
+          choria.stubs(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key"))
+          choria.stubs(:ca_path).returns(File.expand_path("spec/fixtures/ca_crt.pem"))
+        end
+
+        it "should by default find all files" do
+          expect(choria.have_ssl_files?).to be_truthy
+        end
+
+        it "fail if any files are missing" do
+          choria.expects(:client_public_cert).returns("/nonexisting")
+          expect(choria.have_ssl_files?).to be_falsey
+        end
+      end
+
+      describe "#valid_certificate?" do
+        it "should fail without a CA" do
+          choria.expects(:ca_path).returns("/nonexisting").twice
+
+          expect {
+            choria.valid_certificate?("x")
+          }.to raise_error("Cannot find or read the CA in /nonexisting, cannot verify public certificate")
+        end
+
+        it "should fail for CA missmatches" do
+          choria.stubs(:ca_path).returns("spec/fixtures/other_ca.pem")
+          expect(choria.valid_certificate?(File.read("spec/fixtures/rip.mcollective.pem"))).to be_falsey
+
+          choria.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
+          expect(choria.valid_certificate?(File.read("spec/fixtures/other.mcollective.pem"))).to be_falsey
+        end
+
+        it "should pass for valid cert/ca combos" do
+          choria.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
+          expect(choria.valid_certificate?(File.read("spec/fixtures/rip.mcollective.pem"))).to be_truthy
+        end
+      end
+
       describe "#stats_port" do
         it "should be nil when the option is not present" do
           Config.instance.stubs(:pluginconf).returns({})
@@ -564,20 +604,33 @@ module MCollective
       describe "check_ssl_setup" do
         before(:each) do
           choria.stubs(:client_public_cert).returns(File.expand_path("spec/fixtures/rip.mcollective.pem"))
-          choria.stubs(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key"))
           choria.stubs(:ca_path).returns(File.expand_path("spec/fixtures/ca_crt.pem"))
         end
 
-        it "should by default find all files" do
-          expect(choria.check_ssl_setup).to be_truthy
+        it "should fail if files are missing" do
+          choria.expects(:have_ssl_files?).returns(false)
+          expect { choria.check_ssl_setup }.to raise_error("Not all required SSL files exist")
         end
 
-        it "fail if any files are missing" do
-          choria.expects(:client_public_cert).returns("/nonexisting")
+        it "should fail if the cert is not signed by the CA" do
+          choria.expects(:have_ssl_files?).returns(true)
+          pub_cert = File.read(choria.client_public_cert)
+          choria.expects(:valid_certificate?).with(pub_cert).raises("rspec fail")
+          expect { choria.check_ssl_setup }.to raise_error("The public certificate was not signed by the configured CA")
+        end
 
-          expect {
-            choria.check_ssl_setup
-          }.to raise_error("SSL is not correctly setup, please use 'mco choria request_cert' or place certs in the expected paths")
+        it "should fail if the certname isnt the same as configured" do
+          choria.expects(:have_ssl_files?).returns(true)
+          choria.expects(:valid_certificate?).returns("rspec")
+          expect { choria.check_ssl_setup }.to raise_error("The certname rspec found in %s does not match the configured certname of %s" % [
+            choria.client_public_cert, choria.certname
+          ])
+        end
+
+        it "should pass when ok" do
+          choria.expects(:have_ssl_files?).returns(true)
+          choria.expects(:valid_certificate?).returns(choria.certname)
+          expect(choria.check_ssl_setup).to be(true)
         end
       end
 

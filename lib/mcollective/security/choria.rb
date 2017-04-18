@@ -277,7 +277,7 @@ module MCollective
       # @param callerid [String] callerid who sent this cert
       # @return [Boolean]
       def should_cache_certname?(pubcert, callerid)
-        certname = valid_certificate?(pubcert)
+        certname = choria.valid_certificate?(pubcert)
         callerid_certname = certname_from_callerid(callerid)
         valid_regex = certname_whitelist_regex
 
@@ -305,20 +305,13 @@ module MCollective
         true
       end
 
-      def parse_pubcert(pubcert)
-        OpenSSL::X509::Certificate.new(pubcert)
-      rescue OpenSSL::X509::CertificateError
-        Log.warn("Received certificate is not a valid x509 certificate: %s: %s" % [$!.class, $!.to_s])
-        false
-      end
-
       # Metadata about a pubcert based on the envelope
       #
       # @param envelope [Hash] the envelope from a mcollective:request:3
       # @param pubcert [String] PEM encoded X509 public certificate
       # @return [Hash]
       def client_pubcert_metadata(envelope, pubcert)
-        cert = parse_pubcert(pubcert)
+        cert = choria.parse_pubcert(pubcert)
 
         {
           "create_time" => current_timestamp,
@@ -380,41 +373,6 @@ module MCollective
             false
           end
         end
-      end
-
-      # Validates a certificate against the CA
-      #
-      # @param pubcert [String] PEM encoded X509 public certificate
-      # @return [String,false] when succesful, the certname else false
-      # @raise [StandardError] in case OpenSSL fails to open the various certificates
-      def valid_certificate?(pubcert)
-        unless File.readable?(ca_path)
-          raise("Cannot find or read the CA in %s, cannot verify public certificate" % ca_path)
-        end
-
-        incoming = parse_pubcert(pubcert)
-
-        return false unless incoming
-
-        begin
-          ca = OpenSSL::X509::Certificate.new(File.read(ca_path))
-        rescue OpenSSL::X509::CertificateError
-          Log.warn("Failed to load CA from %s: %s: %s" % [ca_path, $!.class, $!.to_s])
-          raise
-        end
-
-        unless incoming.issuer.to_s == ca.subject.to_s && incoming.verify(ca.public_key)
-          Log.warn("Failed to verify certificate %s against CA %s in %s" % [incoming.subject.to_s, ca.subject.to_s, ca_path])
-          return false
-        end
-
-        Log.info("Verified certificate %s against CA %s" % [incoming.subject.to_s, ca.subject.to_s])
-
-        cn_parts = incoming.subject.to_a.select {|c| c[0] == "CN"}.flatten
-
-        raise("Could not parser certificate with subject %s as it has no CN part" % [incoming.subject.to_s]) if cn_parts.empty?
-
-        cn_parts[1]
       end
 
       # Determines the path to a cached certificate for a caller
@@ -479,11 +437,6 @@ module MCollective
         FileUtils.mkdir_p(dir) unless File.directory?(dir)
 
         dir
-      end
-
-      # (see Util::Choria#ca_path)
-      def ca_path
-        choria.ca_path
       end
 
       # (see Util::Choria#ssl_dir)
