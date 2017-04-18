@@ -303,13 +303,12 @@ module MCollective
         JSON.parse(data || resp.body)
       end
 
-      # Checks all the required SSL files exist
+      # Checks if all the required SSL files exist
       #
       # @param log [Boolean] log warnings when true
       # @return [Boolean]
-      # @raise [StandardError] on failure
-      def check_ssl_setup(log=true)
-        valid = [client_public_cert, client_private_key, ca_path].map do |path|
+      def have_ssl_files?(log=true)
+        [client_public_cert, client_private_key, ca_path].map do |path|
           Log.debug("Checking for SSL file %s" % path)
 
           if File.exist?(path)
@@ -319,8 +318,76 @@ module MCollective
             false
           end
         end.all?
+      end
 
-        raise(UserError, "SSL is not correctly setup, please use 'mco choria request_cert' or place certs in the expected paths") unless valid
+      # Validates a certificate against the CA
+      #
+      # @param pubcert [String] PEM encoded X509 public certificate
+      # @param log [Boolean] log warnings when true
+      # @return [String,false] when succesful, the certname else false
+      # @raise [StandardError] in case OpenSSL fails to open the various certificates
+      # @raise [OpenSSL::X509::CertificateError] if the CA is invalid
+      def valid_certificate?(pubcert, log=true)
+        unless File.readable?(ca_path)
+          raise("Cannot find or read the CA in %s, cannot verify public certificate" % ca_path)
+        end
+
+        incoming = parse_pubcert(pubcert, log)
+
+        return false unless incoming
+
+        begin
+          ca = OpenSSL::X509::Certificate.new(File.read(ca_path))
+        rescue OpenSSL::X509::CertificateError
+          Log.warn("Failed to load CA from %s: %s: %s" % [ca_path, $!.class, $!.to_s]) if log
+          raise
+        end
+
+        unless incoming.issuer.to_s == ca.subject.to_s && incoming.verify(ca.public_key)
+          Log.warn("Failed to verify certificate %s against CA %s in %s" % [incoming.subject.to_s, ca.subject.to_s, ca_path]) if log
+          return false
+        end
+
+        Log.info("Verified certificate %s against CA %s" % [incoming.subject.to_s, ca.subject.to_s]) if log
+
+        cn_parts = incoming.subject.to_a.select {|c| c[0] == "CN"}.flatten
+
+        raise("Could not parse certificate with subject %s as it has no CN part" % [incoming.subject.to_s]) if cn_parts.empty?
+
+        cn_parts[1]
+      end
+
+      # Parses a public cert
+      #
+      # @param pubcert [String] PEM encoded public certificate
+      # @param log [Boolean] log warnings when true
+      # @return [OpenSSL::X509::Certificate,nil]
+      def parse_pubcert(pubcert, log=true)
+        OpenSSL::X509::Certificate.new(pubcert)
+      rescue OpenSSL::X509::CertificateError
+        Log.warn("Received certificate is not a valid x509 certificate: %s: %s" % [$!.class, $!.to_s]) if log
+        nil
+      end
+
+      # Checks all the required SSL files exist
+      #
+      # @param log [Boolean] log warnings when true
+      # @return [Boolean]
+      # @raise [StandardError] on failure
+      def check_ssl_setup(log=true)
+        raise(UserError, "Not all required SSL files exist") unless have_ssl_files?(log)
+
+        embedded_certname = nil
+
+        begin
+          embedded_certname = valid_certificate?(File.read(client_public_cert))
+        rescue
+          raise(UserError, "The public certificate was not signed by the configured CA")
+        end
+
+        unless embedded_certname == certname
+          raise(UserError, "The certname %s found in %s does not match the configured certname of %s" % [embedded_certname, client_public_cert, certname])
+        end
 
         true
       end
