@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/04/18|      |Release 0.0.26                                                                                           |
 |2017/04/18|254   |Improve sanity checks done when validating the overall SSL setup                                         |
 |2017/04/12|248   |Allow cert validation to be disabled in webhook                                                          |
 |2017/04/12|250   |Accept http code 201 as a valid return code for the webhook playbook task                                |
