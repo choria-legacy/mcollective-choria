@@ -5,6 +5,7 @@ require "mcollective/security/choria"
 module MCollective
   describe Security::Choria do
     let(:security) { Security::Choria.new }
+    let(:choria) { security.choria }
 
     before(:each) do
       security.stubs(:current_timestamp).returns(1464002319)
@@ -241,46 +242,46 @@ module MCollective
 
     describe "#should_cache_certname?" do
       it "should not allow unvalidated certs" do
-        security.expects(:valid_certificate?).with("x").returns(false)
+        choria.expects(:valid_certificate?).with("x").returns(false)
         Log.expects(:warn).with("Received a certificate for 'rspec' that is not signed by a known CA, discarding")
         expect(security.should_cache_certname?("x", "choria=rspec")).to be_falsey
       end
 
       it "should allow callers to cache only their own certs" do
-        security.expects(:valid_certificate?).with("x").returns("bob")
+        choria.expects(:valid_certificate?).with("x").returns("bob")
         Log.expects(:warn).with("Received a certificate called 'bob' that does not match the received callerid of 'rspec'")
         expect(security.should_cache_certname?("x", "choria=rspec")).to be_falsey
       end
 
       it "should reject certnames based on a whitelist" do
-        security.stubs(:valid_certificate?).returns("rspec")
+        choria.stubs(:valid_certificate?).returns("rspec")
         security.stubs(:certname_whitelist_regex).returns(/\.rspec$/)
         Log.expects(:warn).with("Received certificate name 'rspec' does not match (?-mix:\\.rspec$)")
         expect(security.should_cache_certname?("x", "choria=rspec")).to be_falsey
       end
 
       it "should accept certnames based on a whitelist" do
-        security.stubs(:valid_certificate?).returns("x.rspec")
+        choria.stubs(:valid_certificate?).returns("x.rspec")
         security.stubs(:certname_whitelist_regex).returns(/\.rspec$/)
         expect(security.should_cache_certname?("rspec", "choria=x.rspec")).to be_truthy
       end
 
       it "should allow a privileged user certname regardless of callerid" do
-        security.stubs(:valid_certificate?).returns("rest_server2.privileged.mcollective")
+        choria.stubs(:valid_certificate?).returns("rest_server2.privileged.mcollective")
         expect(security.should_cache_certname?("rspec", "choria=x.rspec")).to be_truthy
         expect(security.should_cache_certname?("rspec", "choria=rest_server1")).to be_truthy
       end
 
       it "should only allow the privileged user cert to override callerids" do
-        security.stubs(:valid_certificate?).returns("bob.mcollective")
-        security.expects(:valid_certificate?).with("rest_server2.privileged.mcollective").never
+        choria.stubs(:valid_certificate?).returns("bob.mcollective")
+        choria.expects(:valid_certificate?).with("rest_server2.privileged.mcollective").never
         security.stubs(:privilegeduser_certs).returns(["rest_server2.privileged.mcollective"])
         expect(security.should_cache_certname?("rspec", "choria=x.rspec")).to be_falsey
       end
 
       it "should still allow non privileged user certs when a privileged user is defined" do
         security.stubs(:privilegeduser_certs).returns(["root"])
-        security.stubs(:valid_certificate?).returns("rspec.mcollective")
+        choria.stubs(:valid_certificate?).returns("rspec.mcollective")
         expect(security.should_cache_certname?("rspec", "choria=rspec.mcollective")).to be_truthy
       end
     end
@@ -307,29 +308,6 @@ module MCollective
       it "should be a noop otherwise" do
         security.stubs(:public_certfile).returns("spec/fixtures/rip.mcollective.pem")
         expect(security.cache_client_pubcert({"callerid" => "choria=rip.mcollective"}, "x")).to be_falsey
-      end
-    end
-
-    describe "#valid_certificate?" do
-      it "should fail without a CA" do
-        security.expects(:ca_path).returns("/nonexisting").twice
-
-        expect {
-          security.valid_certificate?("x")
-        }.to raise_error("Cannot find or read the CA in /nonexisting, cannot verify public certificate")
-      end
-
-      it "should fail for CA missmatches" do
-        security.stubs(:ca_path).returns("spec/fixtures/other_ca.pem")
-        expect(security.valid_certificate?(File.read("spec/fixtures/rip.mcollective.pem"))).to be_falsey
-
-        security.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
-        expect(security.valid_certificate?(File.read("spec/fixtures/other.mcollective.pem"))).to be_falsey
-      end
-
-      it "should pass for valid cert/ca combos" do
-        security.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
-        expect(security.valid_certificate?(File.read("spec/fixtures/rip.mcollective.pem"))).to be_truthy
       end
     end
 
