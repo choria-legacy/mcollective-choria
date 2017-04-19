@@ -204,15 +204,22 @@ module MCollective
         if valid_ssl
           puts "     Valid SSL Setup: %s" % [Util.colorize(:green, "yes")]
         else
-          puts "     Valid SSL Setup: %s run 'mco choria request_cert'" % [Util.colorize(:red, "no")]
+          puts "     Valid SSL Setup: %s try running 'mco choria request_cert'" % [Util.colorize(:red, "no")]
         end
 
-        puts "            Certname: %s" % choria.certname
+        puts "            Certname: %s" % [choria.certname]
         puts "       SSL Directory: %s (%s)" % [choria.ssl_dir, File.exist?(choria.ssl_dir) ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
         puts "  Client Public Cert: %s (%s)" % [choria.client_public_cert, choria.has_client_public_cert? ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
         puts "  Client Private Key: %s (%s)" % [choria.client_private_key, choria.has_client_private_key? ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
         puts "             CA Path: %s (%s)" % [choria.ca_path, choria.has_ca? ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
         puts "            CSR Path: %s (%s)" % [choria.csr_path, choria.has_csr? ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
+
+        if choria.has_client_public_cert?
+          cn = choria.valid_certificate?(File.read(choria.client_public_cert), false)
+
+          puts "      Public Cert CN: %s (%s)" % [cn, cn == choria.certname ? Util.colorize(:green, "match") : Util.colorize(:red, "does not match certname")]
+        end
+
         puts
 
         puts "Active Choria configuration settings as found in configuration files:"
