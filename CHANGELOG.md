@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/05/04|152   |Add a etcd data store                                                                                    |
 |2017/04/19|258   |Show the embedded certname and compare it with the configured certname                                   |
 |2017/04/18|      |Release 0.0.26                                                                                           |
 |2017/04/18|254   |Improve sanity checks done when validating the overall SSL setup                                         |
