@@ -525,11 +525,13 @@ module MCollective
       #
       # @return [Hash] with :target and :port
       def puppetca_server
+        d_port = get_option("choria.puppetca_port", "8140")
+
         if @ca
-          {:target => @ca, :port => "8140"}
+          {:target => @ca, :port => d_port}
         else
           d_host = get_option("choria.puppetca_host", "puppet")
-          try_srv(["_x-puppet-ca._tcp", "_x-puppet._tcp"], d_host, "8140")
+          try_srv(["_x-puppet-ca._tcp", "_x-puppet._tcp"], d_host, d_port)
         end
       end
 

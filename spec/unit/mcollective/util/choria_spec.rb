@@ -579,10 +579,10 @@ module MCollective
         it "should query SRV" do
           Config.instance.stubs(:pluginconf).returns(
             "choria.puppetca_host" => "rspec.puppetca",
-            "choria.puppetca_port" => "8140"
+            "choria.puppetca_port" => "8141"
           )
           resolved = {:target => "rspec.puppetca", :port => 8144}
-          choria.expects(:try_srv).with(["_x-puppet-ca._tcp", "_x-puppet._tcp"], "rspec.puppetca", "8140").returns(resolved)
+          choria.expects(:try_srv).with(["_x-puppet-ca._tcp", "_x-puppet._tcp"], "rspec.puppetca", "8141").returns(resolved)
 
           expect(choria.puppetca_server).to eq(resolved)
         end
