@@ -256,9 +256,33 @@ module MCollective
       # @param path [String]
       # @return [Net::HTTP::Get]
       def http_get(path, headers=nil)
-        headers ||= {"Accept" => "application/json"}
+        headers ||= {}
+        headers = {
+          "Accept" => "application/json",
+          "User-Agent" => "Choria version %s http://choria.io" % VERSION
+        }.merge(headers)
 
         Net::HTTP::Get.new(path, headers)
+      end
+
+      # Does a proxied discovery request
+      #
+      # @param query [Hash] Discovery query as per pdbproxy standard
+      # @return [Array] JSON parsed result set
+      # @raise [StandardError] on any failures
+      def proxy_discovery_query(query)
+        transport = https(discovery_server, true)
+        request = http_get("/v1/discover")
+        request.body = query.to_json
+        request["Content-Type"] = "application/json"
+
+        resp, data = transport.request(request)
+
+        raise("Failed to make request to Discovery Proxy: %s: %s" % [resp.code, resp.body]) unless resp.code == "200"
+
+        result = JSON.parse(data || resp.body)
+
+        result["nodes"]
       end
 
       # Extract certnames from PQL results, deactivated nodes are ignored
@@ -553,6 +577,31 @@ module MCollective
         answer[:port] = d_port
 
         answer
+      end
+
+      # Looks for discovery proxy servers
+      #
+      # Attempts to find servers in the following order:
+      #
+      #  * If choria.discovery_proxy is set to false, returns nil
+      #  * Configured hosts in choria.discovery_proxies
+      #  * SRV lookups in _mcollective-discovery._tcp
+      #
+      # @return [Hash] with :target and :port
+      def discovery_server
+        return unless proxied_discovery?
+
+        d_host = get_option("choria.discovery_host", "puppet")
+        d_port = get_option("choria.discovery_port", "8082")
+
+        try_srv(["_mcollective-discovery._tcp"], d_host, d_port)
+      end
+
+      # Determines if this is using a discovery proxy
+      #
+      # @return [Boolean]
+      def proxied_discovery?
+        has_option?("choria.discovery_host") || has_option?("choria.discovery_port") || Util.str_to_bool(get_option("choria.discovery_proxy", "false"))
       end
 
       # The certname of the current context

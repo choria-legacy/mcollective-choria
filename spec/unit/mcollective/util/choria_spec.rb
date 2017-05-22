@@ -7,6 +7,49 @@ module MCollective
       let(:choria) { Choria.new("production", nil, false) }
       let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
 
+      describe "#proxied_discovery?" do
+        it "should correctly detect if proxied" do
+          expect(choria.proxied_discovery?).to be(false)
+
+          Config.instance.expects(:pluginconf).returns(
+            "choria.discovery_host" => "9292"
+          )
+          expect(choria.proxied_discovery?).to be(true)
+
+          Config.instance.expects(:pluginconf).returns(
+            "choria.discovery_port" => "9292"
+          ).twice
+          expect(choria.proxied_discovery?).to be(true)
+
+          Config.instance.expects(:pluginconf).returns(
+            "choria.discovery_proxy" => "true"
+          ).times(4)
+          expect(choria.proxied_discovery?).to be(true)
+        end
+      end
+
+      describe "#discovery_server" do
+        it "should query SRV" do
+          choria.stubs(:proxied_discovery?).returns(true)
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.discovery_host" => "rspec.discovery",
+            "choria.discovery_port" => "9292"
+          )
+          resolved = {:target => "rspec.puppet", :port => 8144}
+          choria.expects(:try_srv).with(["_mcollective-discovery._tcp"], "rspec.discovery", "9292").returns(resolved)
+
+          expect(choria.discovery_server).to eq(resolved)
+        end
+      end
+
+      describe "#proxied_discovery?" do
+        it "should correctly determine if proxied" do
+          expect(choria.proxied_discovery?).to be(false)
+          Config.instance.stubs(:pluginconf).returns("choria.discovery_proxy" => "true")
+          expect(choria.proxied_discovery?).to be(true)
+        end
+      end
+
       describe "#have_ssl_files?" do
         before(:each) do
           choria.stubs(:client_public_cert).returns(File.expand_path("spec/fixtures/rip.mcollective.pem"))
@@ -357,7 +400,57 @@ module MCollective
           end
         end
 
+        describe "#proxy_discovery_query" do
+          let(:req) { {"classes" => ["rpcutil"]} }
+
+          before(:each) do
+            choria.stubs(:check_ssl_setup).returns(true)
+            choria.stubs(:discovery_server).returns(:target => "discovery", :port => 8082)
+          end
+
+          it "should request discovery and return found nodes" do
+            res = {
+              "status" => 200,
+              "nodes" => [
+                "web1.example.net",
+                "web2.example.net"
+              ]
+            }
+
+            stub_request(:get, "https://discovery:8082/v1/discover")
+              .with(:headers => {"Content-Type" => "application/json"})
+              .with(:body => req.to_json)
+              .to_return(:status => 200, :body => res.to_json)
+
+            expect(choria.proxy_discovery_query(req)).to eq(["web1.example.net", "web2.example.net"])
+          end
+
+          it "should handle failures" do
+            res = {
+              "status" => 400,
+              "message" => "rspec error"
+            }
+
+            stub_request(:get, "https://discovery:8082/v1/discover")
+              .with(:headers => {"Content-Type" => "application/json"})
+              .with(:body => req.to_json)
+              .to_return(:status => 400, :body => res.to_json)
+
+            expect {
+              choria.proxy_discovery_query(req)
+            }.to raise_error('Failed to make request to Discovery Proxy: 400: {"status":400,"message":"rspec error"}')
+          end
+        end
+
         describe "#attempt_fetch_cert" do
+          let(:headers) do
+            {
+              "Accept" => "text/plain",
+              "User-Agent" => "Choria version %s http://choria.io" % Choria::VERSION,
+              "Accept-Encoding" => "gzip;q=1.0,deflate;q=0.6,identity;q=0.3"
+            }
+          end
+
           it "should not overwrite existing certs" do
             choria.expects(:has_client_public_cert?).returns(true)
             choria.expects(:https).never
@@ -367,7 +460,7 @@ module MCollective
           it "should return false on failure" do
             choria.expects(:has_client_public_cert?).returns(false)
             stub_request(:get, "https://puppetca:8140/puppet-ca/v1/certificate/rspec.cert")
-              .with(:headers => {"Accept" => "text/plain"})
+              .with(:headers => headers)
               .to_return(:status => 404, :body => "success")
 
             File.expects(:open).never
@@ -382,7 +475,7 @@ module MCollective
 
             choria.expects(:has_client_public_cert?).returns(false)
             stub_request(:get, "https://puppetca:8140/puppet-ca/v1/certificate/rspec.cert")
-              .with(:headers => {"Accept" => "text/plain"})
+              .with(:headers => headers)
               .to_return(:status => 200, :body => cert)
 
             expect(choria.attempt_fetch_cert).to be_truthy

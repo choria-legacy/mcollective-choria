@@ -8,7 +8,8 @@ module MCollective
         Choria.new(filter, timeout, limit, client).discover
       end
 
-      attr_reader :filter, :timeout, :limit, :client, :config
+      attr_reader :timeout, :limit, :client, :config
+      attr_accessor :filter
 
       def initialize(filter, timeout, limit, client)
         @filter = filter
@@ -24,17 +25,35 @@ module MCollective
       def discover
         queries = []
 
-        if filter["fact"].empty? && filter["cf_class"].empty? && filter["agent"].empty? && filter["identity"].empty?
-          queries << discover_nodes([])
+        if choria.proxied_discovery?
+          Log.debug("Performing discovery against a PuppetDB Proxy")
+
+          choria.proxy_discovery_query(proxy_request)
         else
+          Log.debug("Performing direct discovery against PuppetDB")
           queries << discover_collective(filter["collective"]) if filter["collective"]
           queries << discover_nodes(filter["identity"]) unless filter["identity"].empty?
           queries << discover_classes(filter["cf_class"]) unless filter["cf_class"].empty?
           queries << discover_facts(filter["fact"]) unless filter["fact"].empty?
           queries << discover_agents(filter["agent"]) unless filter["agent"].empty?
-        end
 
-        choria.pql_query(node_search_string(queries.compact), true)
+          choria.pql_query(node_search_string(queries.compact), true)
+        end
+      end
+
+      # Creates a request hash for the discovery proxy
+      #
+      # @return [Hash]
+      def proxy_request
+        request = {}
+
+        request["collective"] = filter["collective"] if filter["collective"]
+        request["identities"] = filter["identity"] unless filter["identity"].empty?
+        request["classes"] = filter["cf_class"] unless filter["cf_class"].empty?
+        request["facts"] = filter["fact"] unless filter["fact"].empty?
+        request["agents"] = filter["agent"] unless filter["agent"].empty?
+
+        request
       end
 
       # Discovers nodes in a specific collective
