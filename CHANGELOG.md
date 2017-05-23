@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/05/22|271   |Support Choria Discovery Proxy                                                                           |
 |2017/05/08|265   |Consult `choria.puppetca_port` configuration when resolving the CA                                       |
 |2017/05/04|152   |Add a etcd data store                                                                                    |
 |2017/04/19|258   |Show the embedded certname and compare it with the configured certname                                   |

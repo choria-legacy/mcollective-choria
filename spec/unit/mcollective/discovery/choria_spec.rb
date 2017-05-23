@@ -4,7 +4,19 @@ require "mcollective/discovery/choria"
 
 module MCollective
   describe Discovery::Choria do
-    let(:discovery) { Discovery::Choria.new({}, 10, 1, stub) }
+    let(:discovery) { Discovery::Choria.new(Util.empty_filter, 10, 1, stub) }
+    let(:choria) { discovery.choria }
+
+    describe "#discover" do
+      it "should support proxy discoveries" do
+        choria.expects(:proxied_discovery?).returns(true)
+
+        discovery.filter["cf_class"] << "puppet"
+
+        choria.expects(:proxy_discovery_query).with("classes" => ["puppet"]).returns(["node1.example.net"])
+        expect(discovery.discover).to eq(["node1.example.net"])
+      end
+    end
 
     describe "#capitalize_resource" do
       it "should correctly capitalize resources" do
