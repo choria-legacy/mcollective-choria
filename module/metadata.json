@@ -16,6 +16,5 @@
     { "name": "choria/mcollective_util_actionpolicy", "version_requirement": ">= 2.1.0" },
     { "name": "choria/nats", "version_requirement": ">= 0.0.6" },
     { "name": "camptocamp/systemd", "version_requirement": ">= 0.3.0 < 1.0.0" }
-  ],
-  "data_provider": "hiera"
+  ]
 }
