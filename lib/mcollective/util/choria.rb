@@ -592,7 +592,7 @@ module MCollective
         return unless proxied_discovery?
 
         d_host = get_option("choria.discovery_host", "puppet")
-        d_port = get_option("choria.discovery_port", "8082")
+        d_port = get_option("choria.discovery_port", "8085")
 
         try_srv(["_mcollective-discovery._tcp"], d_host, d_port)
       end
