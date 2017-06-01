@@ -1,5 +1,9 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/06/01|      |Release 0.0.27                                                                                           |
+|2017/06/01|267   |Support a pure JSON transport in preparation for a upcoming MCollective release                          |
+|2017/06/01|273   |Correctly report paths when doing a federation trace to the host the client runs on                      |
+|2017/05/28|274   |Update for version 5 of Hiera and require Puppet >= 4.9.0                                                |
 |2017/05/22|271   |Support Choria Discovery Proxy                                                                           |
 |2017/05/08|265   |Consult `choria.puppetca_port` configuration when resolving the CA                                       |
 |2017/05/04|152   |Add a etcd data store                                                                                    |
