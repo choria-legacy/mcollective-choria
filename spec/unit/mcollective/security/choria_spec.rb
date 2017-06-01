@@ -13,6 +13,20 @@ module MCollective
       RSpec.configuration.json_schemas["mcollective::security::choria:reply:1"] = "schemas/mcollective__security__choria_reply_1.json"
     end
 
+    describe "#default_serializer" do
+      it "should default to yaml" do
+        expect(security.default_serializer).to be(:yaml)
+      end
+
+      it "should support JSON" do
+        Config.instance.expects(:pluginconf).returns(
+          "choria.security.serializer" => "JSON"
+        )
+
+        expect(security.default_serializer).to be(:json)
+      end
+    end
+
     describe "#client_pubcert_metadata" do
       it "should return correct metadata" do
         envelope = security.empty_request["envelope"]
