@@ -192,15 +192,16 @@ module MCollective
         puts "       Puppet Server: %s:%s" % [puppet_server[:target], puppet_server[:port]]
         puts "     PuppetCA Server: %s:%s" % [puppetca_server[:target], puppetca_server[:port]]
         puts "     PuppetDB Server: %s:%s" % [puppetdb_server[:target], puppetdb_server[:port]]
-        puts "      Facter Command: %s" % choria.facter_cmd
-        puts "       Facter Domain: %s" % choria.facter_domain
 
         if choria.proxied_discovery?
           proxy_server = choria.discovery_server
-          puts "    Discovery Server: %s:%s" % [proxy_server[:target], proxy_server[:port]]
+          puts "     Discovery Proxy: %s:%s" % [proxy_server[:target], proxy_server[:port]]
         else
-          puts "    Discovery Server: not using a proxy"
+          puts "     Discovery Proxy: not using a proxy"
         end
+
+        puts "      Facter Command: %s" % choria.facter_cmd
+        puts "       Facter Domain: %s" % choria.facter_domain
 
         puts
 

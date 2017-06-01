@@ -73,7 +73,7 @@ EOU
       end
 
       def route_back(route, destination)
-        route.reverse.take_while {|hop| hop[1] != destination}.reverse
+        route.reverse.take_while {|hop| hop.size == 2 || hop[1] != destination}.reverse
       end
 
       def destination_hop(route)
