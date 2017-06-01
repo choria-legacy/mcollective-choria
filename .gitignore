@@ -4,7 +4,7 @@ doc
 module/files/mcollective
 module/pkg
 module/CHANGELOG.md
-module/COPYING
+module/LICENSE.txt
 tmp
 coverage
 website/public

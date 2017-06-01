@@ -34,7 +34,7 @@ module MCollective
         request["envelope"]["ttl"] = ttl
         request["envelope"]["callerid"] = callerid
 
-        serialized_request = serialize(request, :yaml)
+        serialized_request = serialize(request, default_serializer)
 
         serialize(
           "protocol" => "mcollective::security::choria:request:1",
@@ -60,7 +60,7 @@ module MCollective
         reply["envelope"]["agent"] = sender_agent
         reply["message"] = msg
 
-        serialized_reply = serialize(reply, :yaml)
+        serialized_reply = serialize(reply, default_serializer)
 
         serialize(
           "protocol" => "mcollective::security::choria:reply:1",
@@ -101,7 +101,7 @@ module MCollective
       # @raise [SecurityValidationFailed] when the message does not pass security checks
       # @return [Hash] a legacy MCollective request structure, see {#to_legacy_request}
       def decode_request(message, secure_payload)
-        request = deserialize(secure_payload["message"], :yaml)
+        request = deserialize(secure_payload["message"], default_serializer)
 
         unless valid_protocol?(request, "mcollective:request:3", empty_request)
           raise(SecurityValidationFailed, "Unknown request body format received. Expected mcollective:request:3, cannot continue")
@@ -125,7 +125,7 @@ module MCollective
       # @raise [SecurityValidationFailed] when the message does not pass security checks
       # @return [Hash] a legacy MCollective reply structure, see {#to_legacy_reply}
       def decode_reply(secure_payload)
-        reply = deserialize(secure_payload["message"], :yaml)
+        reply = deserialize(secure_payload["message"], default_serializer)
 
         unless valid_protocol?(reply, "mcollective:reply:3", empty_reply)
           raise(SecurityValidationFailed, "Unknown reply body format received. Expected mcollective:reply:3, cannot continue")
@@ -424,6 +424,20 @@ module MCollective
         else
           JSON.parse(string)
         end
+      end
+
+      # Determines the default serializer
+      #
+      # As of MCollective 2.11.0 it will translate "package" into :package to
+      # faciliate JSON requests and other programming languages.  This is a super
+      # experimental feature but will allow us to ditch YAML for now.
+      #
+      # By setting `choria.security.serializer` to JSON this new behaviour can be
+      # tested
+      #
+      # @return [Symbol]
+      def default_serializer
+        @config.pluginconf.fetch("choria.security.serializer", "yaml").downcase.intern
       end
 
       # The path where a server caches client certificates
