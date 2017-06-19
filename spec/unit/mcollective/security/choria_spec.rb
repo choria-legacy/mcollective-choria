@@ -101,11 +101,11 @@ module MCollective
         message = YAML.load(request["message"])
 
         expect(encoded).to match_json_schema("mcollective::security::choria:request:1")
-        expect(request["signature"]).to match(/^CD526AL.+TUQNXWy97ku.+sTRh0hL\/3A=$/m)
+        expect(request["signature"]).to match(/^M5W5StAWgwRm.+fKbzzN5ptb8.+7NrosLnyBZePYWzqc=$/m)
         expect(request["pubcert"]).to match(File.read("spec/fixtures/rip.mcollective.pem").chomp)
         expect(message).to eq(
           "protocol" => "mcollective:request:3",
-          "message" => "rspec message",
+          "message" => YAML.dump("rspec message"),
           "envelope" =>
           {"requestid" => "requestid",
            "senderid" => "rspec_identity",
@@ -129,13 +129,24 @@ module MCollective
         expect(encoded).to match_json_schema("mcollective::security::choria:reply:1")
         expect(message).to eq(
           "protocol" => "mcollective:reply:3",
-          "message" => "rspec message",
+          "message" => YAML.dump("rspec message"),
           "envelope" =>
           {"senderid" => "rspec_identity",
            "requestid" => "123",
            "agent" => "rspec_agent",
            "time" => 1464002319}
         )
+      end
+
+      it "should support previously seen legacy messages" do
+        security.record_legacy_request("envelope" => {"requestid" => "123"})
+        expect(security.legacy_request?("123")).to be(true)
+        encoded = security.encodereply("rspec_agent", "rspec message", "123")
+        expect(security.legacy_request?("123")).to be(false)
+
+        reply = JSON.parse(encoded)
+        message = YAML.load(reply["message"])
+        expect(message["message"]).to eq("rspec message")
       end
     end
 
@@ -169,6 +180,11 @@ module MCollective
 
     describe "#decode_request" do
       let(:request) { security.empty_request }
+      let(:requestid) { SSL.uuid.delete("-") }
+
+      before(:each) do
+        request["envelope"]["requestid"] = requestid
+      end
 
       it "should fail for invalid protocol messages" do
         security.expects(:valid_protocol?).with({}, "mcollective:request:3", security.empty_request).returns(false)
@@ -191,6 +207,51 @@ module MCollective
         security.expects(:should_process_msg?).with(message, request["envelope"]["requestid"])
 
         security.decode_request(message, secure)
+      end
+
+      it "should support serialized message bodies" do
+        [:json, :yaml].each do |serializer|
+          ["ping", {"rspec" => "message"}].each do |body|
+            security.stubs(:default_serializer).returns(serializer)
+            request["message"] = security.serialize(body, serializer)
+
+            message = stub
+            secure = {
+              "message" => security.serialize(request, serializer),
+              "pubcert" => "rspec_pubcert"
+            }
+
+            security.initiated_by = :node
+            security.expects(:cache_client_pubcert).with(request["envelope"], secure["pubcert"])
+            security.expects(:validrequest?).with(secure, request)
+            security.expects(:should_process_msg?).with(message, request["envelope"]["requestid"])
+
+            result = security.decode_request(message, secure)
+
+            expect(result[:body]).to eq(body)
+            expect(security.legacy_request?(requestid)).to be(false)
+          end
+        end
+      end
+
+      it "should support unserialized messages" do
+        request["message"] = {"rspec" => "message"}
+
+        message = stub
+        secure = {
+          "message" => security.serialize(request, :yaml),
+          "pubcert" => "rspec_pubcert"
+        }
+
+        security.initiated_by = :node
+        security.expects(:cache_client_pubcert).with(request["envelope"], secure["pubcert"])
+        security.expects(:validrequest?).with(secure, request)
+        security.expects(:should_process_msg?).with(message, request["envelope"]["requestid"])
+
+        result = security.decode_request(message, secure)
+
+        expect(result[:body]).to eq("rspec" => "message")
+        expect(security.legacy_request?(requestid)).to be(true)
       end
     end
 
@@ -216,6 +277,40 @@ module MCollective
         expect {
           security.decode_reply("message" => {}.to_yaml)
         }.to raise_error("Unknown reply body format received. Expected mcollective:reply:3, cannot continue")
+      end
+
+      it "should support serialized message bodies" do
+        [:yaml, :json].each do |serializer|
+          security.stubs(:default_serializer).returns(serializer)
+
+          reply["message"] = security.serialize({"rspec" => "reply"}, serializer)
+          serialized_reply = security.serialize(reply, serializer)
+
+          message = {
+            "protocol" => "mcollective::security::puppet:reply:1",
+            "message" => serialized_reply,
+            "hash" => security.hash(serialized_reply)
+          }
+
+          result = security.decode_reply(message)
+          expect(result[:body]).to eq("rspec" => "reply")
+        end
+      end
+
+      it "should support unserialized messages" do
+        security.stubs(:default_serializer).returns(:yaml)
+        reply["message"] = {"rspec" => "reply"}
+
+        serialized_reply = security.serialize(reply, :yaml)
+
+        message = {
+          "protocol" => "mcollective::security::puppet:reply:1",
+          "message" => serialized_reply,
+          "hash" => security.hash(serialized_reply)
+        }
+
+        result = security.decode_reply(message)
+        expect(result[:body]).to eq("rspec" => "reply")
       end
     end
 

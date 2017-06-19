@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/06/18|288   |Serialize the innermost body seperately from the container messages                                      |
 |2017/06/01|      |Release 0.0.27                                                                                           |
 |2017/06/01|267   |Support a pure JSON transport in preparation for a upcoming MCollective release                          |
 |2017/06/01|273   |Correctly report paths when doing a federation trace to the host the client runs on                      |

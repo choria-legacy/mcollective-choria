@@ -7,6 +7,20 @@ require_relative "../util/choria"
 module MCollective
   module Security
     class Choria < Base
+      def initialize
+        super
+
+        # Stores lists of requests that came from legacy choria clients so they
+        # can be encoded appropriately for them on reply
+        #
+        # This has to be an expiring entity since not all requests make
+        # replies
+        #
+        # See issue 288 for background on this, this can be removed once we hit
+        # 1.0.0 along with the calls to the methods using this
+        Cache.setup(:choria_security, 3600)
+      end
+
       def choria
         @_choria ||= Util::Choria.new("production", nil, false)
       end
@@ -26,7 +40,7 @@ module MCollective
       # @return [String] serialized message to be transmitted over the wire
       def encoderequest(sender, msg, requestid, filter, target_agent, target_collective, ttl=60)
         request = empty_request
-        request["message"] = msg
+        request["message"] = serialize(msg, default_serializer)
         request["envelope"]["requestid"] = requestid
         request["envelope"]["filter"] = filter
         request["envelope"]["agent"] = target_agent
@@ -58,7 +72,13 @@ module MCollective
         reply = empty_reply
         reply["envelope"]["requestid"] = requestid
         reply["envelope"]["agent"] = sender_agent
-        reply["message"] = msg
+
+        if legacy_request?(requestid)
+          reply["message"] = msg
+          legacy_processed!(requestid)
+        else
+          reply["message"] = serialize(msg, default_serializer)
+        end
 
         serialized_reply = serialize(reply, default_serializer)
 
@@ -113,7 +133,48 @@ module MCollective
 
         should_process_msg?(message, request["envelope"]["requestid"])
 
+        if request["message"].is_a?(String)
+          # non json based things like 'mco ping' that just sends 'ping' will fail on JSON serialize
+          # while yaml would not fail and just return the string
+          #
+          # So we ensure the message is left as it was should json deserialize fail, tbh this a train wreck
+          # but it's how the original mcollective was designed, definitely need a bit of a rethink there as
+          # at core its not compatible with this JSON stuff as is
+          begin
+            request["message"] = deserialize(request["message"], default_serializer)
+          rescue # rubocop:disable Lint/HandleExceptions
+          end
+        else
+          record_legacy_request(request)
+        end
+
         to_legacy_request(request)
+      end
+
+      # Records the fact that a request is from a legacy client
+      #
+      # @param request [Hash] decoded request
+      def record_legacy_request(request)
+        if request["envelope"] && request["envelope"]["requestid"]
+          Cache.write(:choria_security, request["envelope"]["requestid"], true)
+        end
+      end
+
+      # Determines if a specific requestid was a previously seen legacy request
+      #
+      # @param requestid [String]
+      # @return [Boolean]
+      def legacy_request?(requestid)
+        !!Cache.read(:choria_security, requestid)
+      rescue
+        false
+      end
+
+      # Mark a request as processed and mark it for removal from the cache
+      #
+      # @param requestid [String]
+      def legacy_processed!(requestid)
+        Cache.invalidate!(:choria_security, requestid)
       end
 
       # Validates a received reply is in the correct format and passes security checks
@@ -126,6 +187,19 @@ module MCollective
       # @return [Hash] a legacy MCollective reply structure, see {#to_legacy_reply}
       def decode_reply(secure_payload)
         reply = deserialize(secure_payload["message"], default_serializer)
+
+        if reply["message"].is_a?(String)
+          # non json based things like 'mco ping' that just sends 'ping' will fail on JSON serialize
+          # while yaml would not fail and just return the string
+          #
+          # So we ensure the message is left as it was should json deserialize fail, tbh this a train wreck
+          # but it's how the original mcollective was designed, definitely need a bit of a rethink there as
+          # at core its not compatible with this JSON stuff as is
+          begin
+            reply["message"] = deserialize(reply["message"], default_serializer)
+          rescue # rubocop:disable Lint/HandleExceptions
+          end
+        end
 
         unless valid_protocol?(reply, "mcollective:reply:3", empty_reply)
           raise(SecurityValidationFailed, "Unknown reply body format received. Expected mcollective:reply:3, cannot continue")
