@@ -9,8 +9,8 @@ module MCollective
 
     before(:each) do
       security.stubs(:current_timestamp).returns(1464002319)
-      RSpec.configuration.json_schemas["mcollective::security::choria:request:1"] = "schemas/mcollective__security__choria_request_1.json"
-      RSpec.configuration.json_schemas["mcollective::security::choria:reply:1"] = "schemas/mcollective__security__choria_reply_1.json"
+      RSpec.configuration.json_schemas["choria:secure:request:1"] = "schemas/choria_secure_request_1.json"
+      RSpec.configuration.json_schemas["choria:secure:reply:1"] = "schemas/choria_secure_reply_1.json"
     end
 
     describe "#default_serializer" do
@@ -90,7 +90,7 @@ module MCollective
     end
 
     describe "#encoderequest" do
-      it "should produce a valid mcollective::security::choria:request:1" do
+      it "should produce a valid choria:secure:request:1" do
         security.initiated_by = :client
         security.stubs(:client_private_key).returns("spec/fixtures/rip.mcollective.key")
         security.stubs(:client_public_cert).returns("spec/fixtures/rip.mcollective.pem")
@@ -100,11 +100,11 @@ module MCollective
         request = JSON.parse(encoded)
         message = YAML.load(request["message"])
 
-        expect(encoded).to match_json_schema("mcollective::security::choria:request:1")
-        expect(request["signature"]).to match(/^M5W5StAWgwRm.+fKbzzN5ptb8.+7NrosLnyBZePYWzqc=$/m)
+        expect(encoded).to match_json_schema("choria:secure:request:1")
+        expect(request["signature"]).to match(/^r9F3fuTEv43JYzZJ6.+cHRWGmz0mxZmy5Us1xR2.+CMYUlTJIFfqNa4OEURpFybE=$/m)
         expect(request["pubcert"]).to match(File.read("spec/fixtures/rip.mcollective.pem").chomp)
         expect(message).to eq(
-          "protocol" => "mcollective:request:3",
+          "protocol" => "choria:request:1",
           "message" => YAML.dump("rspec message"),
           "envelope" =>
           {"requestid" => "requestid",
@@ -120,15 +120,15 @@ module MCollective
     end
 
     describe "#encodereply" do
-      it "should produce a valid mcollective::security::choria:reply:1" do
+      it "should produce a valid choria:secure:reply:1" do
         encoded = security.encodereply("rspec_agent", "rspec message", "123")
 
         reply = JSON.parse(encoded)
         message = YAML.load(reply["message"])
 
-        expect(encoded).to match_json_schema("mcollective::security::choria:reply:1")
+        expect(encoded).to match_json_schema("choria:secure:reply:1")
         expect(message).to eq(
-          "protocol" => "mcollective:reply:3",
+          "protocol" => "choria:reply:1",
           "message" => YAML.dump("rspec message"),
           "envelope" =>
           {"senderid" => "rspec_identity",
@@ -153,7 +153,7 @@ module MCollective
     describe "#decodemsg" do
       it "should decode requests" do
         payload = {
-          "protocol" => "mcollective::security::choria:request:1",
+          "protocol" => "choria:secure:request:1",
           "message" => security.serialize(security.empty_request),
           "hash" => security.hash(security.serialize(security.empty_request))
         }
@@ -166,7 +166,7 @@ module MCollective
 
       it "should decode replies" do
         payload = {
-          "protocol" => "mcollective::security::choria:reply:1",
+          "protocol" => "choria:secure:reply:1",
           "message" => security.serialize(security.empty_reply),
           "hash" => security.hash(security.serialize(security.empty_reply))
         }
@@ -187,11 +187,12 @@ module MCollective
       end
 
       it "should fail for invalid protocol messages" do
+        security.expects(:valid_protocol?).with({}, "choria:request:1", security.empty_request).returns(false)
         security.expects(:valid_protocol?).with({}, "mcollective:request:3", security.empty_request).returns(false)
 
         expect {
           security.decode_request({}, "message" => {}.to_yaml)
-        }.to raise_error("Unknown request body format received. Expected mcollective:request:3, cannot continue")
+        }.to raise_error("Unknown request body format received. Expected choria:request:1 or mcollective:request:3, cannot continue")
       end
 
       it "should return a valid legacy message" do
@@ -273,10 +274,11 @@ module MCollective
 
       it "should fail for invalid protocol messages" do
         security.expects(:valid_protocol?).with({}, "mcollective:reply:3", security.empty_reply).returns(false)
+        security.expects(:valid_protocol?).with({}, "choria:reply:1", security.empty_reply).returns(false)
 
         expect {
           security.decode_reply("message" => {}.to_yaml)
-        }.to raise_error("Unknown reply body format received. Expected mcollective:reply:3, cannot continue")
+        }.to raise_error("Unknown reply body format received. Expected choria:reply:1 or mcollective:reply:3, cannot continue")
       end
 
       it "should support serialized message bodies" do
@@ -287,7 +289,7 @@ module MCollective
           serialized_reply = security.serialize(reply, serializer)
 
           message = {
-            "protocol" => "mcollective::security::puppet:reply:1",
+            "protocol" => "choria:secure:reply:1",
             "message" => serialized_reply,
             "hash" => security.hash(serialized_reply)
           }

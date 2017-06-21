@@ -5,12 +5,12 @@
     "protocol": {
       "type": "string",
       "enum": [
-        "mcollective::security::choria:request:1"
+        "choria:secure:request:1"
       ]
     },
     "message": {
       "type": "string",
-      "description": "YAML encoded mcollective:request:3"
+      "description": "YAML encoded choria:request:1"
     },
     "signature": {
       "type": "string",

@@ -211,6 +211,7 @@ module MCollective
         choria.expects(:federation_collectives).returns(["net_a", "net_b"])
 
         msg1 = {
+          "protocol" => "choria:transport:4",
           "data" => "rspec",
           "headers" => {
             "mc_sender" => "rspec_identity",
@@ -240,6 +241,7 @@ module MCollective
 
         choria.expects(:federation_collectives).returns(["net_a", "net_b"])
         msg1 = {
+          "protocol" => "choria:transport:4",
           "data" => "rspec",
           "headers" => {
             "mc_sender" => "rspec_identity",
@@ -252,6 +254,7 @@ module MCollective
         }
 
         msg2 = {
+          "protocol" => "choria:transport:4",
           "data" => "rspec",
           "headers" => {
             "mc_sender" => "rspec_identity",
@@ -303,6 +306,7 @@ module MCollective
         msg.type = :request
 
         JSON.expects(:dump).with(
+          "protocol" => "choria:transport:4",
           "data" => "rspec",
           "headers" => {
             "mc_sender" => "rspec_identity",
