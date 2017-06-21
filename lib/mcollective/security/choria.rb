@@ -27,8 +27,8 @@ module MCollective
 
       # Encodes a request on behalf of the MCollective Client code
       #
-      # The request is turned into a `mcollective:request:3` message and then encoded in
-      # a `mcollective::security::choria:request:1` message prior to being serialized
+      # The request is turned into a `choria:request:1` message and then encoded in
+      # a `choria:secure:request:1` message prior to being serialized
       #
       # @param sender [String] the sender identity, typically @config.identity
       # @param msg [Object] message to be sent, there really is no actual standard to these, any Ruby Object
@@ -51,7 +51,7 @@ module MCollective
         serialized_request = serialize(request, default_serializer)
 
         serialize(
-          "protocol" => "mcollective::security::choria:request:1",
+          "protocol" => "choria:secure:request:1",
           "message" => serialized_request,
           "signature" => sign(serialized_request),
           "pubcert" => File.read(client_public_cert).chomp
@@ -60,8 +60,8 @@ module MCollective
 
       # Encodes a reply to a earlier received message
       #
-      # The reply is turned into a `mcollective:reply:3` and then encoded in
-      # a `mcollective::security::choria:reply:1` before being serialized
+      # The reply is turned into a `choria:reply:1` and then encoded in
+      # a `choria:secure:reply:1` before being serialized
       #
       # @param sender_agent [String] the agent sending the message
       # @param msg [Object] the message to send
@@ -83,7 +83,7 @@ module MCollective
         serialized_reply = serialize(reply, default_serializer)
 
         serialize(
-          "protocol" => "mcollective::security::choria:reply:1",
+          "protocol" => "choria:secure:reply:1",
           "message" => serialized_reply,
           "hash" => hash(serialized_reply)
         )
@@ -100,10 +100,10 @@ module MCollective
       def decodemsg(message)
         secure_payload = deserialize(message.payload)
 
-        if secure_payload["protocol"] == "mcollective::security::choria:request:1"
+        if secure_payload["protocol"] == "choria:secure:request:1"
           decode_request(message, secure_payload)
 
-        elsif secure_payload["protocol"] == "mcollective::security::choria:reply:1"
+        elsif secure_payload["protocol"] == "choria:secure:reply:1"
           decode_reply(secure_payload)
 
         else
@@ -117,14 +117,14 @@ module MCollective
       # During this the YAML encoded `message` held will be deserialized
       #
       # @param message [Message]
-      # @param secure_payload [Hash] A mcollective::security::choria:request:1 message
+      # @param secure_payload [Hash] A choria:secure:request:1 message
       # @raise [SecurityValidationFailed] when the message does not pass security checks
       # @return [Hash] a legacy MCollective request structure, see {#to_legacy_request}
       def decode_request(message, secure_payload)
         request = deserialize(secure_payload["message"], default_serializer)
 
-        unless valid_protocol?(request, "mcollective:request:3", empty_request)
-          raise(SecurityValidationFailed, "Unknown request body format received. Expected mcollective:request:3, cannot continue")
+        unless valid_protocol?(request, "choria:request:1", empty_request) || valid_protocol?(request, "mcollective:request:3", empty_request)
+          raise(SecurityValidationFailed, "Unknown request body format received. Expected choria:request:1 or mcollective:request:3, cannot continue")
         end
 
         cache_client_pubcert(request["envelope"], secure_payload["pubcert"]) if @initiated_by == :node
@@ -182,7 +182,7 @@ module MCollective
       # During this the YAML encoded `message` held will be deserialized
       #
       # @note right now no actual security checks are done on replies
-      # @param secure_payload [Hash] a mcollective::security::choria:reply:1 message
+      # @param secure_payload [Hash] a choria:secure:reply:1 message
       # @raise [SecurityValidationFailed] when the message does not pass security checks
       # @return [Hash] a legacy MCollective reply structure, see {#to_legacy_reply}
       def decode_reply(secure_payload)
@@ -201,8 +201,8 @@ module MCollective
           end
         end
 
-        unless valid_protocol?(reply, "mcollective:reply:3", empty_reply)
-          raise(SecurityValidationFailed, "Unknown reply body format received. Expected mcollective:reply:3, cannot continue")
+        unless valid_protocol?(reply, "choria:reply:1", empty_reply) || valid_protocol?(reply, "mcollective:reply:3", empty_reply)
+          raise(SecurityValidationFailed, "Unknown reply body format received. Expected choria:reply:1 or mcollective:reply:3, cannot continue")
         end
 
         to_legacy_reply(reply)
@@ -210,8 +210,8 @@ module MCollective
 
       # Verifies the request by checking it's been signed with the cached certificate of the claimed callerid
       #
-      # @param secure_payload [Hash] a mcollective::security::choria:request:1 message
-      # @param request [Hash] a mcollective:request:3 message
+      # @param secure_payload [Hash] a choria:secure:request:1 message
+      # @param request [Hash] a choria:request:1 message
       # @return [Boolean]
       # @raise [SecurityValidationFailed] when the message cannot be decoded
       def validrequest?(secure_payload, request)
@@ -231,7 +231,7 @@ module MCollective
       # Checks the structure of a message is well formed
       #
       # @todo this really should be json schema or even better protobufs
-      # @param body [Hash] a mcollective:request:3 or mcollective:reply:3
+      # @param body [Hash] a choria:request:1 or choria:reply:1
       # @param protocol [String] the expected protocol
       # @param template [Hash] a template message to check against {#empty_reply} or {#empty_request}
       # @return [Boolean]
@@ -381,7 +381,7 @@ module MCollective
 
       # Metadata about a pubcert based on the envelope
       #
-      # @param envelope [Hash] the envelope from a mcollective:request:3
+      # @param envelope [Hash] the envelope from a choria:request:1
       # @param pubcert [String] PEM encoded X509 public certificate
       # @return [Hash]
       def client_pubcert_metadata(envelope, pubcert)
@@ -415,7 +415,7 @@ module MCollective
       # If there is not yet a cached certificate for the callerid a new one
       # is saved after first checking it against our CA
       #
-      # @param envelope [Hash] the envelope from a mcollective:request:3
+      # @param envelope [Hash] the envelope from a choria:request:1
       # @param pubcert [String] a X509 public certificate in PEM format
       # @return [Boolean] true when the cert was cached, false when already cached
       # @raise [StandardError] when an invalid cert was received
@@ -626,14 +626,14 @@ module MCollective
         Integer(Time.now.utc)
       end
 
-      # Creates a empty mcollective:request:3
+      # Creates a empty choria:request:1
       #
       # Some envelope fields like time are set to sane defautls
       #
       # @return [Hash]
       def empty_request
         {
-          "protocol" => "mcollective:request:3",
+          "protocol" => "choria:request:1",
           "message" => nil,
           "envelope" => {
             "requestid" => nil,
@@ -648,14 +648,14 @@ module MCollective
         }
       end
 
-      # Creates a empty mcollective:reply:3
+      # Creates a empty choria:reply:1
       #
       # Some envelope fields like time are set to sane defautls
       #
       # @return [Hash]
       def empty_reply
         {
-          "protocol" => "mcollective:reply:3",
+          "protocol" => "choria:reply:1",
           "message" => nil,
           "envelope" => {
             "senderid" => @config.identity,
@@ -666,7 +666,7 @@ module MCollective
         }
       end
 
-      # Converts a mcollective:request:3 to a legacy format
+      # Converts a choria:request:1 to a legacy format
       #
       # @return [Hash]
       def to_legacy_request(body)
@@ -683,7 +683,7 @@ module MCollective
         }
       end
 
-      # Converts a mcollective:reply:3 to a legacy format
+      # Converts a choria:reply:1 to a legacy format
       #
       # @return [Hash]
       def to_legacy_reply(body)
