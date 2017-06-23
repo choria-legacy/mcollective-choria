@@ -227,7 +227,7 @@ module MCollective
           end
 
           data = {
-            "protocol" => "choria:transport:4",
+            "protocol" => "choria:transport:1",
             "data" => msg.payload,
             "headers" => {
               "federation" => {
@@ -258,7 +258,7 @@ module MCollective
         msg.discovered_hosts.each do |node|
           target = target_for(msg, node)
           data = {
-            "protocol" => "choria:transport:4",
+            "protocol" => "choria:transport:1",
             "data" => msg.payload,
             "headers" => target[:headers]
           }
@@ -275,7 +275,7 @@ module MCollective
       def publish_federated_broadcast(msg)
         target = target_for(msg)
         data = {
-          "protocol" => "choria:transport:4",
+          "protocol" => "choria:transport:1",
           "data" => msg.payload,
           "headers" => {
             "federation" => {
@@ -302,7 +302,7 @@ module MCollective
       def publish_connected_broadcast(msg)
         target = target_for(msg)
         data = {
-          "protocol" => "choria:transport:4",
+          "protocol" => "choria:transport:1",
           "data" => msg.payload,
           "headers" => target[:headers]
         }
