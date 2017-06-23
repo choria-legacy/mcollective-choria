@@ -20,6 +20,7 @@ mcollective_choria::client_files:
  - util/playbook/data_stores/base.rb
  - util/playbook/data_stores/consul_data_store.rb
  - util/playbook/data_stores/environment_data_store.rb
+ - util/playbook/data_stores/etcd_data_store.rb
  - util/playbook/data_stores/file_data_store.rb
  - util/playbook/data_stores/memory_data_store.rb
  - util/playbook/data_stores/shell_data_store.rb
