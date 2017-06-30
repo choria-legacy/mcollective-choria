@@ -616,7 +616,7 @@ module MCollective
       # @param string [String] the string to hash
       # @return [String]
       def hash(string)
-        OpenSSL::Digest.new("sha256", string).to_s
+        OpenSSL::Digest.new("sha256", string).base64digest
       end
 
       # Retrieves the current time in UTC

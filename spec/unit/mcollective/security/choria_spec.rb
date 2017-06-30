@@ -513,7 +513,7 @@ module MCollective
 
     describe "#hash" do
       it "should produce a valid SHA256 hash" do
-        expect(security.hash("too many secrets")).to eq("624fa374a759deff04da9e9d99b7e7f9937d9410401c421c38ca78973b98293a")
+        expect(security.hash("too many secrets")).to eq("Yk+jdKdZ3v8E2p6dmbfn+ZN9lBBAHEIcOMp4lzuYKTo=")
       end
     end
 
