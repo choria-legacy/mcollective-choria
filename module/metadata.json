@@ -15,7 +15,8 @@
     { "name": "choria/mcollective_agent_filemgr", "version_requirement": ">= 1.1.0" },
     { "name": "choria/mcollective_util_actionpolicy", "version_requirement": ">= 2.1.0" },
     { "name": "choria/nats", "version_requirement": ">= 0.0.6" },
-    { "name": "camptocamp/systemd", "version_requirement": ">= 0.3.0 < 1.0.0" }
+    { "name": "camptocamp/systemd", "version_requirement": ">= 0.3.0 < 1.0.0" },
+    { "name": "ajcrowe/supervisord", "version_requirement": ">= 0.6.1" }
   ],
   "requirements": [
     {
