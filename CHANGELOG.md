@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/08/02|305   |Handle the case where node inventory data is JSON encoded correctly in playbooks                         |
 |2017/08/02|      |Release 0.0.28                                                                                           |
 |2017/07/27|301   |Support using supervisord to manage the federation brokers                                               |
 |2017/08/02|298   |Update `nats-pure` gem to `0.2.4`                                                                        |

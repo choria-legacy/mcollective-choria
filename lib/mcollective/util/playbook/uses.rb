@@ -28,7 +28,21 @@ module MCollective
             "silent" => true
           )
 
-          rpc.run
+          success, msg, inventory = rpc.run
+
+          # rpcutil#agent_inventory is a hash in a hash not managed by the DDL
+          # this is not handled by the JSON encoding magic that does DDL based
+          # symbol and string conversion so we normalise the data always to symbol
+          # based structures
+          inventory.each do |node|
+            node["data"][:agents].each do |agent|
+              agent.keys.each do |key|
+                agent[key.intern] = agent.delete(key) if key.is_a?(String)
+              end
+            end
+          end
+
+          [success, msg, inventory]
         end
 
         # Validates agent versions on nodes
