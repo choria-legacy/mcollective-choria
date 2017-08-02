@@ -142,6 +142,7 @@ module MCollective
         end
 
         answers = Array(srv_records(records)).map do |record|
+          Log.debug("Attempting to resolve SRV record %s" % record)
           answers = resolver.getresources(record, Resolv::DNS::Resource::IN::SRV)
           Log.debug("Found %d SRV records for %s" % [answers.size, record])
           answers
