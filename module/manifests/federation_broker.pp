@@ -6,6 +6,8 @@
 # @randomize_middleware_hosts [Boolean] Randomize configured or discovered middleware hosts
 # @log_level ["debug", "info", "warn"] MCollective log level
 # @ensure ["absent", "present"]
+# @service_provider ["systemd", "supervisord"] What service management backend to create services with
+# @manage_supervisord [Boolean] If true will manage the supervisord class here, set to false to manage it elsewhere
 define mcollective_choria::federation_broker (
   Integer $instances = 1,
   Integer $stats_base_port = 0,
@@ -14,7 +16,9 @@ define mcollective_choria::federation_broker (
   String $srv_domain = $facts["networking"]["domain"],
   Boolean $randomize_middleware_hosts = false,
   Enum["debug", "info", "warn"] $log_level = "info",
-  Enum["present", "absent"] $ensure = "present"
+  Enum["present", "absent"] $ensure = "present",
+  Enum["systemd", "supervisord"] $service_provider = "systemd",
+  Boolean $manage_supervisord = true
 ) {
   range(1, $instances).each |$instance| {
     $config_file = "${mcollective::configdir}/federation/${name}_${instance}.cfg"
@@ -44,17 +48,32 @@ define mcollective_choria::federation_broker (
         group   => $mcollective::plugin_group,
         mode    => $mcollective::plugin_mode,
         content => $config,
-        notify  => Service["federation_broker@${name}_${instance}"]
-      } ->
+      }
 
-      systemd::unit_file{"federation_broker@${name}_${instance}.service":
-        source => "puppet:///modules/mcollective_choria/federation_broker.service"
-      } ->
+      if ($service_provider == "systemd") {
+        systemd::unit_file{"federation_broker@${name}_${instance}.service":
+          source  => "puppet:///modules/mcollective_choria/federation_broker.service",
+          require => Mcollective::Config_file[$config_file],
+        } ->
 
-      service{"federation_broker@${name}_${instance}":
-        enable    => true,
-        ensure    => running,
-        subscribe => Class["mcollective::service"]
+        service{"federation_broker@${name}_${instance}":
+          ensure    => running,
+          enable    => true,
+          subscribe => [ Class["mcollective::service"], Mcollective::Config_file[$config_file], ],
+        }
+      } else {
+        if $manage_supervisord {
+          include ::supervisord
+        }
+
+        Mcollective::Config_file[$config_file] ~> Class[::supervisord::service]
+
+        supervisord::program { "federation_broker@${name}_${instance}":
+          command         => "/opt/puppetlabs/bin/mco federation broker --config ${config_file}",
+          autostart       => true,
+          autorestart     => true,
+          redirect_stderr => true,
+        }
       }
     } else {
       service{"federation_broker@${name}_${instance}":
