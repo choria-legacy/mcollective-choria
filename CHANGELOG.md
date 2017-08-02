@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/08/02|298   |Update `nats-pure` gem to `0.2.4`                                                                        |
 |2017/06/30|296   |Use base64 not hex encoding for reply hashes                                                             |
 |2017/06/18|288   |Serialize the innermost body seperately from the container messages                                      |
 |2017/06/01|      |Release 0.0.27                                                                                           |
