@@ -20,6 +20,8 @@ module MCollective
             @expression = data["expression"] || []
             @description = data.fetch("description", "Wait until %s matches %s %s %s" % [@action, @expression[0], @expression[1], @expression[2]])
 
+            Log.warn("Using the mcollective_assert task is deprecated, use the assert option to the mcollective task instead")
+
             self
           end
 

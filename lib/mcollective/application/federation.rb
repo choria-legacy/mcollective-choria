@@ -185,7 +185,7 @@ EOU
         puts
         if choria.federated?
           extract_federation_brokers(result[:route], configuration[:host]).sort.uniq.each do |broker|
-            puts"  %s" % broker
+            puts "  %s" % broker
           end
         else
           puts "  Unfederated"

@@ -297,7 +297,7 @@ module MCollective
 
         STDOUT.flush
 
-        exit(1) unless STDIN.gets.strip =~ /^(?:y|yes)$/i
+        exit(1) unless STDIN.gets.strip.match?(/^(?:y|yes)$/i)
       end
     end
   end

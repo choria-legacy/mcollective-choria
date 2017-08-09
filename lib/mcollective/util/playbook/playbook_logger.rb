@@ -37,7 +37,7 @@ module MCollective
         end
 
         def should_show?
-          !caller[1..5].grep(/playbook/).empty?
+          !caller(1..5).grep(/playbook/).empty?
         end
       end
     end
