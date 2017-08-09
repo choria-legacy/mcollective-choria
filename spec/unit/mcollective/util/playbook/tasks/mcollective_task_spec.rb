@@ -12,6 +12,62 @@ module MCollective
             task.description = "Rspec Task"
           end
 
+          describe "#parse_assertion" do
+            it "should correctly validate expressions" do
+              task.from_hash(
+                "action" => "puppet.status",
+                "assert" => "x=1"
+              )
+
+              expect(task.parse_assertion).to eq(true)
+
+              task.from_hash(
+                "action" => "puppet.status",
+                "assert" => "x 1"
+              )
+
+              expect(task.parse_assertion).to start_with("Error")
+            end
+          end
+
+          describe "#assert_replies" do
+            let(:replies) do
+              [
+                stub(:results => {:data => {:x => 1}}),
+                stub(:results => {:data => {:x => 1}}),
+                stub(:results => {:data => {:x => 1}})
+              ]
+            end
+
+            it "should be false when there are no assertion" do
+              task.from_hash(
+                "action" => "puppet.status"
+              )
+
+              expect(task.assert_replies(replies)).to eq([false, 3])
+            end
+
+            it "should be false when all results werent found" do
+              task.from_hash(
+                "action" => "puppet.status",
+                "assert" => "x=1"
+              )
+
+              replies[2].results[:data][:x] = 0
+
+              expect(task.assert_replies(replies)).to eq([false, 1])
+            end
+
+            it "should be true when all results match" do
+              task.from_hash(
+                "action" => "puppet.status",
+                "assert" => "x=1"
+              )
+
+              expect(task.assert_replies(replies)).to eq([true, 0])
+            end
+          end
+
           describe "#should_summarize?" do
             it "should detect when it should" do
               task.from_hash(
@@ -141,6 +197,8 @@ module MCollective
             it "should create a correct fail result set" do
               stats = stub(:requestid => "123", :failcount => 1, :noresponsefrom => [], :okcount => 0)
 
+              task.expects(:assert_replies).never
+
               expect(task.run_result(stats, [rpc_result])).to eq(
                 [
                   false,
@@ -163,6 +221,8 @@ module MCollective
             it "should create a correct success result set" do
               stats = stub(:requestid => "123", :failcount => 0, :noresponsefrom => [], :okcount => 1, :totaltime => 2)
 
+              task.expects(:assert_replies).never
+
               expect(task.run_result(stats, [rpc_result])).to eq(
                 [
                   true,
@@ -180,6 +240,28 @@ module MCollective
                   ]
                 ]
               )
+            end
+
+            it "should validate assertions for succesful requests" do
+              stats = stub(:requestid => "123", :failcount => 0, :noresponsefrom => [], :okcount => 1, :totaltime => 2)
+              task.instance_variable_set("@assertion", "enabled=false")
+              task.expects(:assert_replies).with([rpc_result]).returns([true, 1])
+
+              rr = task.run_result(stats, [rpc_result])
+
+              expect(rr[0]).to be(true)
+              expect(rr[1]).to eq("Successful request 123 for puppet#disable in 2.00s against 1 node(s)")
+            end
+
+            it "should log failed assertions" do
+              stats = stub(:requestid => "123", :failcount => 0, :noresponsefrom => [], :okcount => 2, :totaltime => 2)
+              task.instance_variable_set("@assertion", "enabled=false")
+              task.expects(:assert_replies).with([rpc_result, rpc_result]).returns([false, 1])
+
+              rr = task.run_result(stats, [rpc_result, rpc_result])
+
+              expect(rr[0]).to be(false)
+              expect(rr[1]).to eq("Failed request 123 for puppet#disable assertion failed on 1 node(s)")
             end
           end
 

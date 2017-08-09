@@ -54,7 +54,7 @@ Style/HashSyntax:
 Style/WordArray:
   Enabled: false
 
-Style/SpaceAroundEqualsInParameterDefault:
+Layout/SpaceAroundEqualsInParameterDefault:
   EnforcedStyle: no_space
 
 Style/SignalException:
@@ -63,13 +63,10 @@ Style/SignalException:
 Style/RescueModifier:
   Enabled: false
 
-Style/SpaceInsideBlockBraces:
+Layout/SpaceInsideBlockBraces:
   Enabled: false
 
-Style/SpaceInsideHashLiteralBraces:
-  EnforcedStyle: no_space
-
-Style/SpaceAroundEqualsInParameterDefault:
+Layout/SpaceInsideHashLiteralBraces:
   EnforcedStyle: no_space
 
 Style/Documentation:
@@ -147,9 +144,13 @@ Style/SymbolArray:
 Security/MarshalLoad:
   Enabled: false
 
-Style/IndentHeredoc:
+Layout/IndentHeredoc:
   Enabled: false
 
 # @todo use safe_load but its a big change
 Security/YAMLLoad:
   Enabled: false
+
+Performance/RegexpMatch:
+  Enabled: false
+
