@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/08/11|310   |Support dot notation for facts when using choria discovery method                                        |
 |2017/08/09|192   |Add an `assert` option to the `mcollective` task using JGrep, deprecate `mcollective_assert`             |
 |2017/08/02|305   |Handle the case where node inventory data is JSON encoded correctly in playbooks                         |
 |2017/08/02|      |Release 0.0.28                                                                                           |
