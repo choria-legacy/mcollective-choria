@@ -130,19 +130,17 @@ module MCollective
           when "=~"
             regex = string_regexi(value)
 
-            'facts {name = "%s" and value ~ "%s"}' % [fact, regex]
+            'inventory {facts.%s ~ "%s"}' % [fact, regex]
           when "=="
-            'facts {name = "%s" and value = "%s"}' % [fact, value]
+            'inventory {facts.%s = "%s"}' % [fact, value]
           when "!="
-            'facts {name = "%s" and !(value = "%s")}' % [fact, value]
+            'inventory {!(facts.%s = "%s")}' % [fact, value]
           when ">=", ">", "<=", "<"
-            if numeric?(value)
-              'facts {name = "%s" and value %s %s}' % [fact, operator, value]
-            else
-              'facts {name = "%s" and value %s "%s"}' % [fact, operator, value]
-            end
+            raise("Do not know how to do string fact comparisons using the '%s' operator with PuppetDB" % operator) unless numeric?(value)
+
+            "inventory {facts.%s %s %s}" % [fact, operator, value]
           else
-            raise("Do not know how to do fact comparisons using operator `%s` using PuppetDB" % operator)
+            raise("Do not know how to do fact comparisons using the '%s' operator with PuppetDB" % operator)
           end
         end
 

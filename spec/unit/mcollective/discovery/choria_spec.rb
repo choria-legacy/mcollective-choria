@@ -63,29 +63,31 @@ module MCollective
       it "should support =~" do
         expect(
           discovery.discover_facts([:fact => "f", :operator => "=~", :value => "v"])
-        ).to eq('facts {name = "f" and value ~ "[vV]"}')
+        ).to eq('inventory {facts.f ~ "[vV]"}')
       end
 
       it "should support ==" do
         expect(
           discovery.discover_facts([:fact => "f", :operator => "==", :value => "v"])
-        ).to eq('facts {name = "f" and value = "v"}')
+        ).to eq('inventory {facts.f = "v"}')
       end
 
       it "should support !=" do
         expect(
           discovery.discover_facts([:fact => "f", :operator => "!=", :value => "v"])
-        ).to eq('facts {name = "f" and !(value = "v")}')
+        ).to eq('inventory {!(facts.f = "v")}')
+      end
+
+      it "should fail for other operators when comparing strings" do
+        expect do
+          discovery.discover_facts([:fact => "f", :operator => ">=", :value => "v"])
+        end.to raise_error("Do not know how to do string fact comparisons using the '>=' operator with PuppetDB")
       end
 
       it "should support other operators" do
         expect(
-          discovery.discover_facts([:fact => "f", :operator => ">=", :value => "v"])
-        ).to eq('facts {name = "f" and value >= "v"}')
-
-        expect(
           discovery.discover_facts([:fact => "f", :operator => ">=", :value => 1])
-        ).to eq('facts {name = "f" and value >= 1}')
+        ).to eq("inventory {facts.f >= 1}")
       end
     end
 
