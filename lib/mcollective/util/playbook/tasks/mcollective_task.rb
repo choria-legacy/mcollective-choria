@@ -119,14 +119,14 @@ module MCollective
             end
 
             success = request_success?(stats)
-            assert_matched = -1
+            assert_failed = -1
 
             if @assertion && success
-              passed, assert_matched = assert_replies(replies)
+              passed, assert_failed = assert_replies(replies)
               if passed
-                Log.info("Assertion '%s' passed on all %d nodes" % [@assertion, assert_matched])
+                Log.info("Assertion '%s' passed on all %d nodes" % [@assertion, replies.size])
               else
-                Log.warn("Assertion '%s' matched on %d/%d nodes" % [@assertion, assert_matched, replies.size])
+                Log.warn("Assertion '%s' failed on %d/%d nodes" % [@assertion, assert_failed, replies.size])
                 success = false
               end
             end
@@ -138,9 +138,8 @@ module MCollective
               msg = success_message(stats) unless msg
 
               [true, msg, reply_data]
-            elsif assert_matched > -1
-              failed = stats.okcount - assert_matched
-              [false, "Failed request %s for %s#%s assertion failed on %d node(s)" % [stats.requestid, @agent, @action, failed], reply_data]
+            elsif assert_failed > -1
+              [false, "Failed request %s for %s#%s assertion failed on %d node(s)" % [stats.requestid, @agent, @action, assert_failed], reply_data]
             else
               failed = stats.failcount + stats.noresponsefrom.size
               [false, "Failed request %s for %s#%s on %d failed node(s)" % [stats.requestid, @agent, @action, failed], reply_data]

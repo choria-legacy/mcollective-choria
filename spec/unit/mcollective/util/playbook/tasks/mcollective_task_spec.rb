@@ -245,7 +245,7 @@ module MCollective
             it "should validate assertions for succesful requests" do
               stats = stub(:requestid => "123", :failcount => 0, :noresponsefrom => [], :okcount => 1, :totaltime => 2)
               task.instance_variable_set("@assertion", "enabled=false")
-              task.expects(:assert_replies).with([rpc_result]).returns([true, 1])
+              task.expects(:assert_replies).with([rpc_result]).returns([true, 0])
 
               rr = task.run_result(stats, [rpc_result])
 
@@ -256,12 +256,12 @@ module MCollective
             it "should log failed assertions" do
               stats = stub(:requestid => "123", :failcount => 0, :noresponsefrom => [], :okcount => 2, :totaltime => 2)
               task.instance_variable_set("@assertion", "enabled=false")
-              task.expects(:assert_replies).with([rpc_result, rpc_result]).returns([false, 1])
+              task.expects(:assert_replies).with([rpc_result, rpc_result]).returns([false, 2])
 
               rr = task.run_result(stats, [rpc_result, rpc_result])
 
               expect(rr[0]).to be(false)
-              expect(rr[1]).to eq("Failed request 123 for puppet#disable assertion failed on 1 node(s)")
+              expect(rr[1]).to eq("Failed request 123 for puppet#disable assertion failed on 2 node(s)")
             end
           end
 
