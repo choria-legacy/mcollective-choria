@@ -694,10 +694,16 @@ module MCollective
         end
       end
 
-      describe "check_ssl_setup" do
+      describe "#check_ssl_setup" do
         before(:each) do
+          PluginManager.stubs(:[]).with("security_plugin").returns(stub(:initiated_by => :client))
           choria.stubs(:client_public_cert).returns(File.expand_path("spec/fixtures/rip.mcollective.pem"))
           choria.stubs(:ca_path).returns(File.expand_path("spec/fixtures/ca_crt.pem"))
+        end
+
+        it "should fail on clients running as root" do
+          Process.stubs(:uid).returns(0)
+          expect { choria.check_ssl_setup }.to raise_error("The Choria client cannot be run as root")
         end
 
         it "should fail if files are missing" do

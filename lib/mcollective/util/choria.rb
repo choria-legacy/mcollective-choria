@@ -400,6 +400,10 @@ module MCollective
       # @return [Boolean]
       # @raise [StandardError] on failure
       def check_ssl_setup(log=true)
+        if Process.uid == 0 && PluginManager["security_plugin"].initiated_by == :client
+          raise(UserError, "The Choria client cannot be run as root")
+        end
+
         raise(UserError, "Not all required SSL files exist") unless have_ssl_files?(log)
 
         embedded_certname = nil
