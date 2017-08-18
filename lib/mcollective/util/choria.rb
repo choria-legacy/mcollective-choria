@@ -373,7 +373,7 @@ module MCollective
           return false
         end
 
-        Log.info("Verified certificate %s against CA %s" % [incoming.subject.to_s, ca.subject.to_s]) if log
+        Log.debug("Verified certificate %s against CA %s" % [incoming.subject.to_s, ca.subject.to_s]) if log
 
         cn_parts = incoming.subject.to_a.select {|c| c[0] == "CN"}.flatten
 

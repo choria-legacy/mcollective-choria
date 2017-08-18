@@ -666,6 +666,34 @@ module MCollective
         }
       end
 
+      # Converts a choria filter into a legacy format
+      #
+      # Choria filters have strings for fact filter keys, mcollective expect symbols
+      #
+      # @param filter [Hash] the input filter
+      # @return [Hash] a new filter converted to legacy format
+      def to_legacy_filter(filter)
+        return filter unless filter.include?("fact")
+
+        new = {}
+
+        filter.each do |key, value|
+          new[key] = value
+
+          next unless key == "fact"
+
+          new["fact"] = value.map do |ff|
+            {
+              :fact => ff.fetch(:fact, ff["fact"]),
+              :operator => ff.fetch(:operator, ff["operator"]),
+              :value => ff.fetch(:value, ff["value"])
+            }
+          end
+        end
+
+        new
+      end
+
       # Converts a choria:request:1 to a legacy format
       #
       # @return [Hash]
@@ -674,7 +702,7 @@ module MCollective
           :body => body["message"],
           :senderid => body["envelope"]["senderid"],
           :requestid => body["envelope"]["requestid"],
-          :filter => body["envelope"]["filter"],
+          :filter => to_legacy_filter(body["envelope"]["filter"]),
           :collective => body["envelope"]["collective"],
           :agent => body["envelope"]["agent"],
           :callerid => body["envelope"]["callerid"],

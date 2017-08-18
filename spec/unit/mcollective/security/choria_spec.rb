@@ -537,6 +537,34 @@ module MCollective
       end
     end
 
+    describe "#to_legacy_filter" do
+      let(:legacy) do
+        {
+          "agent" => ["rspec"],
+          "fact" => [
+            {:fact => "rspec", :operator => "==", :value => "1"},
+            {:fact => "rspec", :operator => "==", :value => "2"}
+          ]
+        }
+      end
+
+      it "should convert choria filters" do
+        cf = {
+          "agent" => ["rspec"],
+          "fact" => [
+            {"fact" => "rspec", "operator" => "==", "value" => "1"},
+            {"fact" => "rspec", "operator" => "==", "value" => "2"}
+          ]
+        }
+
+        expect(security.to_legacy_filter(cf)).to eq(legacy)
+      end
+
+      it "should leave legacy filters alone" do
+        expect(security.to_legacy_filter(legacy)).to eq(legacy)
+      end
+    end
+
     describe "#to_legacy_reply" do
       it "should produce a valid reply" do
         body = security.empty_reply
