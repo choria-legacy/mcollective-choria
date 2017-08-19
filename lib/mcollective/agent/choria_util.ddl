@@ -2,7 +2,7 @@ metadata    :name        => "choria_util",
             :description => "Choria Utilities",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "Apache-2.0",
-            :version     => "0.0.28",
+            :version     => "0.1.0",
             :url         => "http:/choria.io",
             :timeout     => 5
 
