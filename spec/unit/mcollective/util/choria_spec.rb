@@ -249,11 +249,12 @@ module MCollective
 
       describe "#server_resolver" do
         it "should support config" do
-          Config.instance.stubs(:pluginconf).returns("choria.middleware_hosts" => "1.net:4222,2.net:4223")
+          Config.instance.stubs(:pluginconf).returns("choria.middleware_hosts" => "1.net:4222,2.net:4223, 3.net:4224 ")
           expect(choria.server_resolver("choria.middleware_hosts", ["srv_record"], "h", "1")).to eq(
             [
               ["1.net", "4222"],
-              ["2.net", "4223"]
+              ["2.net", "4223"],
+              ["3.net", "4224"]
             ]
           )
         end

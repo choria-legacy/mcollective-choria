@@ -438,7 +438,7 @@ module MCollective
       def server_resolver(config_option, srv_records, default_host=nil, default_port=nil)
         if servers = get_option(config_option, nil)
           hosts = servers.split(",").map do |server|
-            server.split(":")
+            server.split(":").map(&:strip)
           end
 
           return hosts

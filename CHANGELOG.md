@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/08/19|290   |Strip spaces off comma separated host lists to allow for space between hosts
 |2017/08/18|314   |Fix fact filters in JSON transport mode                                                                  |
 |2017/08/18|307   |When the client is run as root raise an informative error rather than fail silently                      |
 |2017/08/16|308   |Remove hard dependency on ajcrowe/supervisord                                                            |
