@@ -460,7 +460,7 @@ module MCollective
 
           it "should return false on failure" do
             choria.expects(:has_client_public_cert?).returns(false)
-            stub_request(:get, "https://puppetca:8140/puppet-ca/v1/certificate/rspec.cert")
+            stub_request(:get, "https://puppetca:8140/puppet-ca/v1/certificate/rspec.cert?environment=production")
               .with(:headers => headers)
               .to_return(:status => 404, :body => "success")
 
@@ -475,7 +475,7 @@ module MCollective
             File.expects(:open).with("/ssl/certs/rspec.cert.pem", "w", 0o0644).yields(file)
 
             choria.expects(:has_client_public_cert?).returns(false)
-            stub_request(:get, "https://puppetca:8140/puppet-ca/v1/certificate/rspec.cert")
+            stub_request(:get, "https://puppetca:8140/puppet-ca/v1/certificate/rspec.cert?environment=production")
               .with(:headers => headers)
               .to_return(:status => 200, :body => cert)
 

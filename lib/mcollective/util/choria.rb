@@ -854,7 +854,7 @@ module MCollective
 
         server = puppetca_server
 
-        req = http_get("/puppet-ca/v1/certificate/ca", "Content-Type" => "text/plain")
+        req = http_get("/puppet-ca/v1/certificate/ca?environment=production", "Accept" => "text/plain")
         resp, _ = https(server).request(req)
 
         if resp.code == "200"
@@ -896,7 +896,7 @@ module MCollective
       def attempt_fetch_cert
         return true if has_client_public_cert?
 
-        req = http_get("/puppet-ca/v1/certificate/%s" % certname, "Accept" => "text/plain")
+        req = http_get("/puppet-ca/v1/certificate/%s?environment=production" % certname, "Accept" => "text/plain")
         resp, _ = https(puppetca_server).request(req)
 
         if resp.code == "200"
