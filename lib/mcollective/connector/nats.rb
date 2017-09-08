@@ -77,6 +77,11 @@ module MCollective
           }
         }
 
+        if $choria_unsafe_disable_nats_tls # rubocop:disable Style/GlobalVars
+          Log.warn("Disabling TLS in NATS connector, this is not a production supported setup")
+          parameters.delete(:tls)
+        end
+
         servers = server_list
 
         unless servers.empty?
