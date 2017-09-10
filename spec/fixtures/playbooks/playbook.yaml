@@ -54,6 +54,13 @@ inputs:
     dynamic: true
     data: "mem_store/data_backed"
 
+  data_backed_save:
+    description: data source backed input
+    type: String
+    save: true
+    validation: ":string"
+    data: "mem_store/data_backed"
+
 nodes:
   load_balancers:
     type: mcollective

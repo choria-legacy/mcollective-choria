@@ -2,9 +2,12 @@ module MCollective
   module Util
     class Playbook
       class Inputs
+        attr_accessor :save_during_prepare
+
         def initialize(playbook)
           @playbook = playbook
           @inputs = {}
+          @save_during_prepare = true
         end
 
         # List of known input names
@@ -18,9 +21,7 @@ module MCollective
         #
         # @return [Array<String>]
         def static_keys
-          @inputs.reject do |_, props|
-            props[:dynamic]
-          end.keys
+          keys - dynamic_keys
         end
 
         # List of known input names that have dynamic values
@@ -78,19 +79,27 @@ module MCollective
 
         # Attempts to find values for all declared inputs
         #
-        # @param data [Hash] input data
+        # During tests saving to the ds can be skipped by setting
+        # @save_during_prepare to false
+        #
+        # @param data [Hash] input data from CLI etc
         # @return [void]
         # @raise [StandardError] when required data could not be found
         # @raise [StandardError] when validation fails for any data
         def prepare(data={})
-          @inputs.each do |input, _|
+          @inputs.each do |input, props|
             next unless data.include?(input)
             next if data[input].nil?
-            next if @inputs[input][:properties]["dynamic"]
+            next if props[:properties]["dynamic"]
 
             validate_data(input, data[input])
-            @inputs[input][:value] = data[input]
-            @inputs[input][:dynamic] = false
+
+            props[:value] = data[input]
+            props[:dynamic] = false
+
+            if @save_during_prepare && props[:properties]["save"] && props[:properties]["data"]
+              save_to_datastore(input)
+            end
           end
 
           validate_requirements
@@ -131,6 +140,20 @@ module MCollective
           Log.warn("Could not find %s, returning default value" % properties["data"])
 
           properties["default"]
+        end
+
+        # Saves the value of a input to the data entry associated with it
+        #
+        # @param input [String] input name
+        # @raise [StandardError] for invalid inputs and ds errors
+        def save_to_datastore(input)
+          raise("Unknown input %s" % input) unless include?(input)
+
+          i_data = @inputs[input]
+
+          raise("Input %s has no value, cannot store it" % input) unless i_data.include?(:value)
+
+          @playbook.data_stores.write(i_data[:properties]["data"], i_data[:value])
         end
 
         # Retrieves the value for a specific input
