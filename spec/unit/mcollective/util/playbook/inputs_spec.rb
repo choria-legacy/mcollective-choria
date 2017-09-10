@@ -10,21 +10,12 @@ module MCollective
         let(:inputs) { Inputs.new(playbook) }
         let(:playbook_fixture) { YAML.load(File.read("spec/fixtures/playbooks/playbook.yaml")) }
 
-        describe "#save_to_datastore" do
-          it "should not attempt to save without a specific value" do
+        describe "#save_input_data" do
+          it "should save all static inputs with save set" do
             inputs.from_hash(playbook_fixture["inputs"])
-            expect { inputs.save_to_datastore("cluster") }.to raise_error("Input cluster has no value, cannot store it")
-          end
-
-          it "should save the right key and value" do
-            inputs.from_hash(playbook_fixture["inputs"])
-            inputs.save_during_prepare = false
-
-            inputs.prepare("cluster" => "beta", "two" => "foo", "data_backed_save" => "set_value")
-
-            ds.expects(:write).with("mem_store/data_backed", "set_value")
-
-            inputs.save_to_datastore("data_backed_save")
+            inputs.prepare("cluster" => "beta", "two" => "foo", "data_backed_save" => "data_to_save")
+            ds.expects(:write).with("mem_store/data_backed", "data_to_save")
+            inputs.save_input_data
           end
         end
 
@@ -180,12 +171,6 @@ module MCollective
             expect(inputs.dynamic_keys).to include("forced_dynamic")
             ds.expects(:read).with("mem_store/data_backed").returns("rspec_ds")
             expect(inputs["forced_dynamic"]).to eq("rspec_ds")
-          end
-
-          it "should save static inputs with save set" do
-            inputs.from_hash(playbook_fixture["inputs"])
-            ds.expects(:write).with("mem_store/data_backed", "data_to_save")
-            inputs.prepare("cluster" => "beta", "two" => "foo", "forced_dynamic" => "rspec_override", "data_backed_save" => "data_to_save")
           end
         end
 

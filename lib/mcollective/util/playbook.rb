@@ -136,11 +136,18 @@ module MCollective
         prepare_inputs
 
         prepare_data_stores
+        save_input_data
+
         obtain_playbook_locks
 
         prepare_uses
         prepare_nodes
         prepare_tasks
+      end
+
+      # Saves data from any inputs that requested they be written to data stores
+      def save_input_data
+        @inputs.save_input_data
       end
 
       # Derives a playbook lock from a given lock
