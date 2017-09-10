@@ -2,12 +2,9 @@ module MCollective
   module Util
     class Playbook
       class Inputs
-        attr_accessor :save_during_prepare
-
         def initialize(playbook)
           @playbook = playbook
           @inputs = {}
-          @save_during_prepare = true
         end
 
         # List of known input names
@@ -96,10 +93,6 @@ module MCollective
 
             props[:value] = data[input]
             props[:dynamic] = false
-
-            if @save_during_prepare && props[:properties]["save"] && props[:properties]["data"]
-              save_to_datastore(input)
-            end
           end
 
           validate_requirements
@@ -142,8 +135,21 @@ module MCollective
           properties["default"]
         end
 
+        # Saves static property values in their associated data stores for any keys with save set
+        def save_input_data
+          @inputs.each do |input, props|
+            next unless props[:properties]["save"]
+            next unless props[:properties]["data"]
+            next unless props[:value]
+            next if props[:dynamic]
+
+            save_to_datastore(input)
+          end
+        end
+
         # Saves the value of a input to the data entry associated with it
         #
+        # @see #save_input_data
         # @param input [String] input name
         # @raise [StandardError] for invalid inputs and ds errors
         def save_to_datastore(input)
@@ -152,6 +158,8 @@ module MCollective
           i_data = @inputs[input]
 
           raise("Input %s has no value, cannot store it" % input) unless i_data.include?(:value)
+
+          Log.debug("Saving value for input %s to data item %s" % [input, i_data[:properties]["data"]])
 
           @playbook.data_stores.write(i_data[:properties]["data"], i_data[:value])
         end
