@@ -150,7 +150,7 @@ module MCollective
 
             report.store_dynamic_inputs
 
-            expect(report.instance_variable_get("@inputs")["dynamic"]).to eq(["data_backed", "forced_dynamic"])
+            expect(report.instance_variable_get("@inputs")["dynamic"]).to eq(["data_backed", "forced_dynamic", "data_backed_save"])
           end
         end
 
