@@ -3,7 +3,7 @@ module MCollective
     class Playbook < Application
       description "Choria Playbook Runner"
 
-      usage <<-EOU
+      usage <<-USAGE
   mco playbook [OPTIONS] <ACTION> <PLAYBOOK>
 
   The ACTION can be one of the following:
@@ -20,7 +20,7 @@ module MCollective
 
   A report can be produced using the --report argument
   when running a playbook
-  EOU
+  USAGE
 
       exclude_argument_sections "common", "filter", "rpc"
 
@@ -123,7 +123,7 @@ module MCollective
 
       def run_command
         pb_config = configuration.clone
-        pb_config.keys.each {|k| k.to_s.start_with?("__") && pb_config.delete(k)}
+        pb_config.each_key {|k| k.to_s.start_with?("__") && pb_config.delete(k)}
 
         pb = playbook(configuration[:__playbook_file], configuration[:__loglevel])
 

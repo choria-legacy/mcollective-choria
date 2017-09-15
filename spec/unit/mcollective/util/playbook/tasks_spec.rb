@@ -205,7 +205,7 @@ module MCollective
         describe "#reset" do
           it "should reset tasks" do
             tasks.reset
-            tasks.tasks.keys.each {|key| expect(tasks.tasks[key]).to be_empty }
+            tasks.tasks.each_key {|key| expect(tasks.tasks[key]).to be_empty }
           end
         end
       end

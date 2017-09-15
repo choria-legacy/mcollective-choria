@@ -180,7 +180,7 @@ module MCollective
         # @return [void]
         def satisfy_dependencies!(pending_nodes, completed_nodes)
           completed_nodes.flatten.each do |node|
-            pending_nodes.each do |_, p_node|
+            pending_nodes.each_value do |p_node|
               p_node[:consumes] -= site_nodes[node][:produces]
             end
           end

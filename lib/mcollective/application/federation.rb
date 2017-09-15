@@ -3,7 +3,7 @@ module MCollective
     class Federation < Application
       description "Choria Federation Brokers"
 
-      usage <<-EOU
+      usage <<-USAGE
 mco federation [OPTIONS] <ACTION>
 
 The ACTION can be one of the following:
@@ -12,7 +12,7 @@ The ACTION can be one of the following:
    trace         - trace the path to a client
    broker        - start a Federation Broker instance
 
-EOU
+USAGE
 
       exclude_argument_sections "common", "filter", "rpc"
 

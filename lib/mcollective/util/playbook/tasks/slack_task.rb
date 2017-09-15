@@ -1,4 +1,4 @@
-require "uri"
+require "cgi"
 require "json"
 
 module MCollective
@@ -53,11 +53,11 @@ module MCollective
           def run
             https = choria.https(:target => "slack.com", :port => 443)
             path = "/api/chat.postMessage?token=%s&username=%s&channel=%s&icon_url=%s&attachments=%s" % [
-              URI.encode(@token),
-              URI.encode(@username),
-              URI.encode(@channel),
-              URI.encode(@icon),
-              URI.encode(attachments.to_json)
+              CGI.escape(@token),
+              CGI.escape(@username),
+              CGI.escape(@channel),
+              CGI.escape(@icon),
+              CGI.escape(attachments.to_json)
             ]
 
             resp, data = https.request(choria.http_get(path))

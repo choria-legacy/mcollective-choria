@@ -27,7 +27,7 @@ Lint/NonLocalExitFromIterator:
 Style/TrailingUnderscoreVariable:
   Enabled: false
 
-Style/ClassAndModuleCamelCase:
+Naming/ClassAndModuleCamelCase:
   Enabled: false
 
 Style/NumericLiterals:
@@ -152,5 +152,11 @@ Security/YAMLLoad:
   Enabled: false
 
 Performance/RegexpMatch:
+  Enabled: false
+
+Style/SafeNavigation:
+  Enabled: false
+
+Lint/RescueWithoutErrorClass:
   Enabled: false
 
