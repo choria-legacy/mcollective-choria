@@ -36,7 +36,7 @@ module MCollective
           # based structures
           inventory.each do |node|
             node["data"][:agents].each do |agent|
-              agent.keys.each do |key|
+              agent.each_key do |key|
                 agent[key.intern] = agent.delete(key) if key.is_a?(String)
               end
             end

@@ -135,7 +135,7 @@ module MCollective
               msg = nil
 
               msg = summary_message(stats) if should_summarize?
-              msg = success_message(stats) unless msg
+              msg ||= success_message(stats)
 
               [true, msg, reply_data]
             elsif assert_failed > -1

@@ -10,6 +10,8 @@ module MCollective
           let(:fixture) { File.expand_path("spec/fixtures/playbooks/shell_data.rb") }
 
           before(:each) do
+            File.unlink("/tmp/shell_data_tmp") if File.exist?("/tmp/shell_data_tmp")
+
             ds.from_hash("command" => fixture)
           end
 

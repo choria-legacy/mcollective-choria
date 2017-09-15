@@ -134,7 +134,7 @@ module MCollective
             expect(nodes["dev3.devco.net"][:resources]).to eq(["Lamp::Webapp[app2-2]", "Lamp::Webapp[app1-2]"])
             expect(nodes["dev4.devco.net"][:resources]).to eq(["Lamp::Webapp[app2-3]", "Lamp::Webapp[app1-3]"])
 
-            nodes.each do |_, data|
+            nodes.each_value do |data|
               expect(data[:applications]).to eq(["Lamp[app2]", "Lamp[app1]"])
             end
           end

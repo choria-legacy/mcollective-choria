@@ -3,7 +3,7 @@ module MCollective
     class Choria < Application
       description "Orchestrator for Puppet Applications"
 
-      usage <<-EOU
+      usage <<-USAGE
   mco choria [OPTIONS] <ACTION>
 
   The ACTION can be one of the following:
@@ -19,7 +19,7 @@ module MCollective
   The batching works a bit different than typical, it will only batch
   based on a sorted list of certificate names, this means the batches
   will always run in predictable order.
-  EOU
+  USAGE
 
       exclude_argument_sections "common", "filter", "rpc"
 

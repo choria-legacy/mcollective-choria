@@ -157,7 +157,7 @@ module MCollective
 
         # Prepares all the stores
         def prepare
-          @stores.each do |_, properties|
+          @stores.each_value do |properties|
             properties[:store].from_hash(properties[:properties]).prepare
           end
         end

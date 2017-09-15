@@ -1,4 +1,5 @@
 require "uri"
+require "cgi"
 require "json"
 
 module MCollective
@@ -33,7 +34,7 @@ module MCollective
               query = Array(uri.query)
 
               @data.each do |k, v|
-                query << "%s=%s" % [URI.escape(k), URI.escape(v.to_s)]
+                query << "%s=%s" % [CGI.escape(k), CGI.escape(v.to_s)]
               end
 
               uri.query = query.join("&") unless query.empty?

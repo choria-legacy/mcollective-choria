@@ -15,7 +15,7 @@ module MCollective
       include TemplateUtil
 
       attr_accessor :input_data, :context
-      attr_reader :loglevel, :metadata, :report, :data_stores
+      attr_reader :metadata, :report, :data_stores
 
       def initialize(loglevel=nil)
         @loglevel = loglevel

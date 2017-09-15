@@ -176,7 +176,7 @@ module MCollective
         sorted_answers = []
 
         # this is roughly based on the resolv-srv and supposedly mostly rfc2782 compliant
-        answers.each do |_, available|
+        answers.each do |_, available| # rubocop:disable Performance/HashEachMethods
           total_weight = available.inject(0) {|a, e| a + e.weight + 1 }
 
           until available.empty?
