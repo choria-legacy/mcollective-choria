@@ -1,7 +1,6 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    CFPropertyList (2.3.5)
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
     ast (2.3.0)
@@ -23,7 +22,6 @@ GEM
       faraday (= 0.11.0)
       grpc (= 1.2.5)
     facter (2.5.1)
-      CFPropertyList (~> 2.2)
     faraday (0.11.0)
       multipart-post (>= 1.2, < 3)
     fast_gettext (1.1.0)
@@ -36,7 +34,7 @@ GEM
       fast_gettext (~> 1.1.0)
       gettext (>= 3.0.2)
       locale
-    google-protobuf (3.4.1)
+    google-protobuf (3.4.1.1)
     googleauth (0.5.1)
       faraday (~> 0.9)
       jwt (~> 1.4)
@@ -112,7 +110,6 @@ GEM
       slop (~> 3.4)
     public_suffix (3.0.0)
     puppet (5.2.0)
-      CFPropertyList (~> 2.2)
       facter (> 2.0, < 4)
       gettext-setup (>= 0.10, < 1)
       hiera (>= 3.2.1, < 4)
@@ -198,4 +195,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   1.13.7
+   1.15.4
