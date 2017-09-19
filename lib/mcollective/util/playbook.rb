@@ -87,7 +87,7 @@ module MCollective
         in_context("validation") do
           failed = false
 
-          valid_keys = (@metadata.keys + ["uses", "inputs", "locks", "data_stores", "nodes", "tasks", "hooks", "macros"])
+          valid_keys = (@metadata.keys + ["uses", "inputs", "locks", "data_stores", "nodes", "tasks", "hooks", "macros", "$schema"])
           invalid_keys = @playbook_data.keys - valid_keys
 
           unless invalid_keys.empty?
