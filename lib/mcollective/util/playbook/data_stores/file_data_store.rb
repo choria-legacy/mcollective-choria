@@ -8,7 +8,7 @@ module MCollective
     class Playbook
       class DataStores
         class FileDataStore < Base
-          attr_accessor :file, :format
+          attr_accessor :file, :format, :create
 
           def startup_hook
             @file_mutex = Mutex.new
@@ -17,6 +17,7 @@ module MCollective
           def from_hash(properties)
             @file = properties["file"]
             @format = properties["format"]
+            @create = !!properties["create"]
 
             validate_configuration!
 
@@ -29,6 +30,8 @@ module MCollective
             raise("File format has to be one of 'json' or 'yaml'") unless ["json", "yaml"].include?(@format)
 
             @file = File.expand_path(@file)
+
+            FileUtils.touch(@file) if @create && !File.exist?(@file)
 
             raise("Cannot find data file %s" % @file) unless File.exist?(@file)
             raise("Cannot read data file %s" % @file) unless File.readable?(@file)

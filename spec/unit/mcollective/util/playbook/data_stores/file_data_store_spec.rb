@@ -132,6 +132,22 @@ module MCollective
               ds.expects(:data).returns({})
               ds.validate_configuration!
             end
+
+            it "should support creating a file" do
+              ds.file = "/tmp/ds_data_file_%s" % $$
+              ds.create = true
+              ds.format = "json"
+
+              begin
+                expect(File.exist?(ds.file)).to be(false)
+
+                ds.validate_configuration!
+
+                expect(File.exist?(ds.file)).to be(true)
+              ensure
+                File.unlink(ds.file) if File.exist?(ds.file)
+              end
+            end
           end
         end
       end
