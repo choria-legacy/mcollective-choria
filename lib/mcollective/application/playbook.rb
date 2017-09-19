@@ -123,7 +123,7 @@ module MCollective
 
       def run_command
         pb_config = configuration.clone
-        pb_config.each_key {|k| k.to_s.start_with?("__") && pb_config.delete(k)}
+        pb_config.delete_if {|k, _| k.to_s.start_with?("__")}
 
         pb = playbook(configuration[:__playbook_file], configuration[:__loglevel])
 
