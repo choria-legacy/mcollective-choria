@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/09/19|332   |Support creating data files in the file data store using the `create` property                           |
 |2017/09/10|325   |Support saving CLI provided inputs to the data stores automatically                                      |
 |2017/08/19|      |Release 0.1.0                                                                                            |
 |2017/08/19|290   |Strip spaces off comma separated host lists to allow for space between hosts                             |
