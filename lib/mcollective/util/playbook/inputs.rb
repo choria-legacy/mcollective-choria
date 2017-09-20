@@ -66,6 +66,8 @@ module MCollective
               :type => type
             }
 
+            option_params[:arguments] = ["--%s" % input.downcase] if type == :boolean
+
             if set_required && !i_props.include?("data")
               option_params[:required] = i_props["required"]
             end

@@ -119,7 +119,7 @@ module MCollective
 
             app.class.expects(:option).with("bool_input",
                                             :description => "bool input (boolean) ",
-                                            :arguments => ["--bool_input BOOL_INPUT"],
+                                            :arguments => ["--bool_input"],
                                             :type => :boolean,
                                             :required => true)
 
