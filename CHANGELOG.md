@@ -1,9 +1,13 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/09/21|      |Release 0.2.0                                                                                           |
 |2017/09/21|339   |Promote the `mcollective_assert` `pre_sleep` property to one that applies to all task types              |
 |2017/09/20|337   |Fix boolean inputs in playbooks                                                                          |
+|2017/09/19|329   |Allow `$schema` in playbook yaml files                                                                   |
 |2017/09/19|332   |Support creating data files in the file data store using the `create` property                           |
 |2017/09/10|325   |Support saving CLI provided inputs to the data stores automatically                                      |
+|2017/09/08|323   |Support disabling TLS programatically, this is not a configurable option                                 |
+|2017/09/06|322   |Fix fetching certificates from Ruby Puppet Master                                                        |
 |2017/08/19|      |Release 0.1.0                                                                                            |
 |2017/08/19|290   |Strip spaces off comma separated host lists to allow for space between hosts                             |
 |2017/08/18|314   |Fix fact filters in JSON transport mode                                                                  |
