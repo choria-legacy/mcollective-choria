@@ -7,16 +7,13 @@ module MCollective
             @properties = {}
             @nodes = []
             @action = nil
-            @pre_sleep = 10
             @expression = []
-            @pre_slept = false
           end
 
           def from_hash(data)
             @nodes = data.fetch("nodes", [])
             @action = data["action"]
             @properties = data.fetch("properties", {})
-            @pre_sleep = Integer(data.fetch("pre_sleep", 10))
             @expression = data["expression"] || []
             @description = data.fetch("description", "Wait until %s matches %s %s %s" % [@action, @expression[0], @expression[1], @expression[2]])
 
@@ -27,16 +24,6 @@ module MCollective
 
           def validate_configuration!
             raise("An expression should be 3 items exactly") unless @expression.size == 3
-          end
-
-          def perform_pre_sleep
-            return if @pre_slept || @pre_sleep <= 0
-
-            Log.info("Sleeping %d seconds before check" % [@pre_sleep])
-
-            sleep(@pre_sleep)
-
-            @pre_slept = true
           end
 
           def mcollective_task
@@ -106,8 +93,6 @@ module MCollective
           end
 
           def run
-            perform_pre_sleep
-
             success, msg, results = mcollective_task.run
 
             return([false, "Request %s failed: %s" % [@action, msg], []]) unless success

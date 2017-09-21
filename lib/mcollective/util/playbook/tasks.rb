@@ -65,6 +65,11 @@ module MCollective
             return false
           end
 
+          if properties["pre_sleep"]
+            Log.info("Sleeping %d seconds before check" % [properties["pre_sleep"]])
+            sleep(Integer(properties["pre_sleep"]))
+          end
+
           (1..properties["tries"]).each do |try|
             task_runner.from_hash(t(properties))
             task_runner.validate_configuration!
@@ -79,7 +84,7 @@ module MCollective
 
             if try != properties["tries"] && !result.success
               Log.warn("Task failed on try %d/%d, sleeping %ds: %s" % [try, properties["tries"], properties["try_sleep"], result.msg])
-              sleep(properties["try_sleep"])
+              sleep(Integer(properties["try_sleep"]))
             end
 
             break if result.success

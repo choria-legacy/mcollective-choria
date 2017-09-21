@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/09/21|339   |Promote the `mcollective_assert` `pre_sleep` property to one that applies to all task types              |
 |2017/09/20|337   |Fix boolean inputs in playbooks                                                                          |
 |2017/09/19|332   |Support creating data files in the file data store using the `create` property                           |
 |2017/09/10|325   |Support saving CLI provided inputs to the data stores automatically                                      |

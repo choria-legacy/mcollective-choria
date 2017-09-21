@@ -12,7 +12,6 @@ module MCollective
             task.from_hash(
               "nodes" => ["node1", "node2"],
               "action" => "puppet.status",
-              "pre_sleep" => 10,
               "description" => "test description",
               "expression" => [:idling, "==", true],
               "properties" => {"prop" => "rspec"}
@@ -22,7 +21,6 @@ module MCollective
           describe "#run" do
             it "should fail if the check fails" do
               task.stubs(:mcollective_task).returns(mct = stub)
-              task.stubs(:perform_pre_sleep)
               mct.stubs(:run).returns([true, "ok", [{"data" => {:idling => true}, "sender" => "rspec1"}]])
               task.expects(:check_results).with([{"data" => {:idling => true}, "sender" => "rspec1"}]).returns([true, "rspec", []])
 
@@ -33,7 +31,6 @@ module MCollective
               task.stubs(:mcollective_task).returns(mct = stub)
 
               seq = sequence(:s)
-              task.expects(:perform_pre_sleep).in_sequence(seq)
               mct.expects(:run).in_sequence(seq).returns([false, "rspec", []])
               expect(task.run).to eq([false, "Request puppet.status failed: rspec", []])
             end
@@ -162,16 +159,6 @@ module MCollective
             end
           end
 
-          describe "#perform_pre_sleep" do
-            it "should sleep once only" do
-              task.from_hash("pre_sleep" => 1)
-              task.expects(:sleep).with(1).once
-              task.perform_pre_sleep
-              task.perform_pre_sleep
-              task.perform_pre_sleep
-            end
-          end
-
           describe "#validate_configuration!" do
             it "should detect invalid expressions" do
               task.from_hash("expression" => nil)
@@ -183,7 +170,6 @@ module MCollective
             it "should hold correct values" do
               expect(task.instance_variable_get("@nodes")).to eq(["node1", "node2"])
               expect(task.instance_variable_get("@action")).to eq("puppet.status")
-              expect(task.instance_variable_get("@pre_sleep")).to eq(10)
               expect(task.instance_variable_get("@expression")).to eq([:idling, "==", true])
               expect(task.instance_variable_get("@description")).to eq("test description")
             end
