@@ -1,6 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
-|2017/09/21|      |Release 0.2.0                                                                                           |
+|2017/09/22|341   |Remove the Puppet Application Orchestrator                                                               |
+|2017/09/21|      |Release 0.2.0                                                                                            |
 |2017/09/21|339   |Promote the `mcollective_assert` `pre_sleep` property to one that applies to all task types              |
 |2017/09/20|337   |Fix boolean inputs in playbooks                                                                          |
 |2017/09/19|329   |Allow `$schema` in playbook yaml files                                                                   |

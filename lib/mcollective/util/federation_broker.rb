@@ -30,7 +30,7 @@ module MCollective
         @instance_name = instance_name || SSL.uuid
 
         @stats_port = stats_port
-        @choria = Choria.new(nil, nil, false)
+        @choria = Choria.new(false)
         @config = Config.instance
         @stats = Stats.new(self)
 
