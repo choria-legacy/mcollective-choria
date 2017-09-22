@@ -71,7 +71,7 @@ module MCollective
           end
 
           def choria
-            @_choria ||= Util::Choria.new("production", nil, false)
+            @_choria ||= Util::Choria.new(false)
           end
 
           def http(uri)

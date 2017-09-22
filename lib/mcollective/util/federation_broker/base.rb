@@ -15,7 +15,7 @@ module MCollective
           @inbox = inbox
           @config = Config.instance
           @connection = Util::NatsWrapper.new
-          @choria = Choria.new(nil, nil, false)
+          @choria = Choria.new(false)
         end
 
         def local_stats

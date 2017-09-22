@@ -4,8 +4,7 @@ require "mcollective/util/choria"
 module MCollective
   module Util
     describe Choria do
-      let(:choria) { Choria.new("production", nil, false) }
-      let(:parsed_app) { JSON.parse(File.read("spec/fixtures/sample_app.json")) }
+      let(:choria) { Choria.new(false) }
 
       describe "#proxied_discovery?" do
         it "should correctly detect if proxied" do
@@ -731,32 +730,6 @@ module MCollective
           choria.expects(:have_ssl_files?).returns(true)
           choria.expects(:valid_certificate?).returns(choria.certname)
           expect(choria.check_ssl_setup).to be(true)
-        end
-      end
-
-      describe "#fetch_environment" do
-        before(:each) do
-          choria.stubs(:client_public_cert).returns(File.expand_path("spec/fixtures/rip.mcollective.pem"))
-          choria.stubs(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key"))
-          choria.stubs(:ca_path).returns(File.expand_path("spec/fixtures/ca_crt.pem"))
-          choria.stubs(:puppet_server).returns(:target => "puppet", :port => "8140")
-        end
-
-        it "should fetch the right environment over https expecting JSON" do
-          stub_request(:get, "https://puppet:8140/puppet/v3/environment/production")
-            .with(:headers => {"Accept" => "application/json"})
-            .to_return(:status => [500, "Internal Server Error"], :body => "failed")
-
-          expect {
-            choria.fetch_environment
-          }.to raise_error("Failed to make request to Puppet: 500: Internal Server Error: failed")
-        end
-
-        it "should report error for non 200 replies" do
-          stub_request(:get, "https://puppet:8140/puppet/v3/environment/production")
-            .to_return(:status => 200, :body => File.read("spec/fixtures/sample_app.json"))
-
-          expect(choria.fetch_environment).to eq(parsed_app)
         end
       end
 

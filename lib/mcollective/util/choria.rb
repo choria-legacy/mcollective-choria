@@ -1,6 +1,3 @@
-require_relative "choria/puppet_v3_environment"
-require_relative "choria/orchestrator"
-
 require "net/http"
 require "resolv"
 
@@ -16,9 +13,7 @@ module MCollective
 
       attr_writer :ca
 
-      def initialize(environment="production", application=nil, check_ssl=true)
-        @environment = environment
-        @application = application
+      def initialize(check_ssl=true)
         @config = Config.instance
 
         check_ssl_setup if check_ssl
@@ -196,28 +191,6 @@ module MCollective
         sorted_answers
       end
 
-      # Wrapper around site data
-      #
-      # @return [PuppetV3Environment]
-      def puppet_environment
-        # at present only 1 format supported, but this will change
-        # soon with an additional format, here I guess we will detect
-        # the different version of the site data and load the right
-        # wrapper class
-        #
-        # For now there is only only
-        PuppetV3Environment.new(fetch_environment, @application)
-      end
-
-      # Orchastrator for Puppet Environment Data
-      #
-      # @param client [MCollective::RPC::Client] client set up for the puppet agent
-      # @param batch_size [Integer] batch size to run nodes in
-      # @return [Orchestrator]
-      def orchestrator(client, batch_size)
-        Orchestrator.new(self, client, batch_size)
-      end
-
       # Create a Net::HTTP instance optionally set up with the Puppet certs
       #
       # If the client_private_key and client_public_cert both exist they will
@@ -314,18 +287,6 @@ module MCollective
         Log.debug("Found %d records for query %s" % [result.size, query])
 
         only_certnames ? pql_extract_certnames(result) : result
-      end
-
-      # Fetch the environment data from `/puppet/v3/environment`
-      #
-      # @return [Hash] site data
-      def fetch_environment
-        path = "/puppet/v3/environment/%s" % @environment
-        resp, data = https(puppet_server).request(http_get(path))
-
-        raise(UserError, "Failed to make request to Puppet: %s: %s: %s" % [resp.code, resp.message, resp.body]) unless resp.code == "200"
-
-        JSON.parse(data || resp.body)
       end
 
       # Checks if all the required SSL files exist

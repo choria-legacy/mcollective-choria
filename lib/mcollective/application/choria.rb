@@ -8,8 +8,6 @@ module MCollective
 
   The ACTION can be one of the following:
 
-     plan         - view the plan for a specific environment
-     run          - run a the plan for a specific environment
      request_cert - requests a certificate from the Puppet CA
      show_config  - shows the active configuration parameters
 
@@ -22,21 +20,6 @@ module MCollective
   USAGE
 
       exclude_argument_sections "common", "filter", "rpc"
-
-      option :instance,
-             :arguments => ["--instance INSTANCE"],
-             :description => "Limit to a specific application instance",
-             :type => String
-
-      option :environment,
-             :arguments => ["--environment ENVIRONMENT"],
-             :description => "The environment to run, defaults to production",
-             :type => String
-
-      option :batch,
-             :arguments => ["--batch SIZE"],
-             :description => "Run the nodes in each group in batches of a certain size",
-             :type => Integer
 
       option :ca,
              :arguments => ["--ca SERVER"],
@@ -54,8 +37,6 @@ module MCollective
         else
           abort("Please specify a command, valid commands are: %s" % valid_commands.join(", "))
         end
-
-        configuration[:environment] ||= "production"
 
         ENV["MCOLLECTIVE_CERTNAME"] = configuration[:certname] if configuration[:certname]
       end
@@ -123,28 +104,6 @@ module MCollective
         end
 
         puts("Certificate %s has been stored in %s" % [certname, choria.ssl_dir])
-      end
-
-      # Shows the execution plan
-      #
-      # @return [void]
-      def plan_command
-        puts orchestrator.to_s
-      end
-
-      # Shows and run the plan
-      #
-      # @return [void]
-      def run_command
-        puts orchestrator.to_s
-
-        unless orchestrator.empty?
-          confirm("Are you sure you wish to run this plan?")
-
-          puts
-
-          orchestrator.run_plan
-        end
       end
 
       def show_config_command # rubocop:disable Metrics/MethodLength
@@ -248,36 +207,11 @@ module MCollective
         puts
       end
 
-      # Creates and cache a client to the Puppet RPC Agent
-      #
-      # @return [RPC::Client]
-      def puppet
-        return @client if @client
-
-        @client = rpcclient("puppet")
-
-        @client.limit_targets = false
-        @client.progress = false
-        @client.batch_size = 0
-
-        @client
-      end
-
       # Creates and cache a Choria helper class
       #
       # @return [Util::Choria]
       def choria
-        @_choria ||= Util::Choria.new(configuration[:environment], configuration[:instance], false)
-      end
-
-      # Creates and cache a Choria Orchastrator
-      #
-      # @return [Util::Choria::Orchestrator]
-      def orchestrator
-        @_orchestrator ||= begin
-                             choria.check_ssl_setup
-                             choria.orchestrator(puppet, configuration[:batch])
-                           end
+        @_choria ||= Util::Choria.new(false)
       end
 
       # List of valid commands this application respond to

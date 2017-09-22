@@ -16,7 +16,7 @@ module MCollective
           end
 
           def choria
-            @_choria ||= Util::Choria.new("production", nil, false)
+            @_choria ||= Util::Choria.new(false)
           end
 
           # Initialize the nodes source from a hash
