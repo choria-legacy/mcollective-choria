@@ -1,0 +1,13 @@
+{
+  "description": "Retrieve a value from a hash",
+  "params": {
+    "data": {
+      "description": "The Hash to get data from.",
+      "type": "Hash"
+    },
+    "key": {
+      "description": "The key to lookup.",
+      "type": "String"
+    }
+  }
+}
