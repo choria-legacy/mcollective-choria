@@ -1,6 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
-|2017/10/11|      |Release 0.3.0                                                                                           |
+|2017/10/11|349   |Update module metadata to install the right files                                                        |
+|2017/10/11|      |Release 0.3.0                                                                                            |
 |2017/10/10|345   |Support Bolt                                                                                             |
 |2017/09/22|341   |Remove the Puppet Application Orchestrator                                                               |
 |2017/09/21|      |Release 0.2.0                                                                                            |

@@ -44,7 +44,7 @@ task :prep_version do
       cl.puts line
 
       if line =~ /^\|----------/
-        cl.puts "|%s|      |Release %s                                                                                           |" % [Time.now.strftime("%Y/%m/%d"), ENV["CHORIA_VERSION"]]
+        cl.puts "|%s|      |Release %s                                                                                            |" % [Time.now.strftime("%Y/%m/%d"), ENV["CHORIA_VERSION"]]
       end
       # rubocop:enable Metrics/LineLength
     end
