@@ -4,6 +4,7 @@ AllCops:
   Exclude:
     - "module/**/*"
     - "vendor/**/*"
+    - "spec/fixtures/**/*"
 
 # restore pre 0.45 behaviour
 Style/SingleLineBlockParams:
@@ -78,7 +79,7 @@ Style/EachWithObject:
 Style/GuardClause:
   Enabled: false
 
-Style/PredicateName:
+Naming/PredicateName:
   Enabled: false
 
 Style/DoubleNegation:

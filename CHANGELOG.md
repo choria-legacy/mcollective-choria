@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/10/10|345   |Support Bolt                                                                                             |
 |2017/09/22|341   |Remove the Puppet Application Orchestrator                                                               |
 |2017/09/21|      |Release 0.2.0                                                                                            |
 |2017/09/21|339   |Promote the `mcollective_assert` `pre_sleep` property to one that applies to all task types              |
