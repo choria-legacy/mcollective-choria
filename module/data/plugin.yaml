@@ -38,6 +38,7 @@ mcollective_choria::client_files:
  - util/playbook/task_result.rb
  - util/playbook/tasks/base.rb
  - util/playbook/tasks/data_task.rb
+ - util/playbook/tasks/bolt_task.rb
  - util/playbook/tasks/graphite_event_task.rb
  - util/playbook/tasks/mcollective_assert_task.rb
  - util/playbook/tasks/mcollective_task.rb
@@ -56,12 +57,10 @@ mcollective_choria::common_files:
  - connector/nats.ddl
  - connector/nats.rb
  - security/choria.rb
- - util/choria/orchestrator.rb
  - util/federation_broker.rb
  - util/federation_broker/base.rb
  - util/federation_broker/collective_processor.rb
  - util/federation_broker/federation_processor.rb
  - util/federation_broker/stats.rb
- - util/choria/puppet_v3_environment.rb
  - util/choria.rb
  - util/natswrapper.rb
