@@ -175,6 +175,8 @@ module MCollective
               @tasks[set] << task_data
             end
           end
+
+          @tasks[set]
         end
 
         def from_hash(data)

@@ -137,6 +137,10 @@ module MCollective
             Time.now
           end
 
+          def to_execution_result(results)
+            results[2]
+          end
+
           def run
             results = []
             start = current_time

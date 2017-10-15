@@ -32,6 +32,20 @@ module MCollective
             raise("A value is needed when writing") if @action == "write" && @value.nil?
           end
 
+          def to_execution_result(results)
+            result = {
+              "value" => results[2].first,
+              "error" => {
+                "msg" => results[1]
+              }
+            }
+
+            result.delete("error") if results[0]
+            result.delete("value") if result["value"].nil?
+
+            {"localhost" => result}
+          end
+
           def from_hash(properties)
             @action = properties["action"]
             @key = properties["key"]

@@ -13,6 +13,27 @@ module MCollective
             PluginManager.stubs(:[]).with("security_plugin").returns(stub(:callerid => "choria=rspec"))
           end
 
+          describe "#to_execution_result" do
+            it "should support success" do
+              expect(task.to_execution_result([true, "Message submitted to slack channel rspec", [{}]])).to eq(
+                "slack.com" => {
+                  "value" => "Message submitted to slack channel rspec"
+                }
+              )
+            end
+
+            it "should support failure" do
+              expect(task.to_execution_result([false, "Failed to send message to slack channel X: xx", [{"rspec" => "failed"}]])).to eq(
+                "slack.com" => {
+                  "value" => {"rspec" => "failed"},
+                  "error" => {
+                    "msg" => "Failed to send message to slack channel X: xx"
+                  }
+                }
+              )
+            end
+          end
+
           describe "#attachments" do
             before(:each) do
               task.from_hash(

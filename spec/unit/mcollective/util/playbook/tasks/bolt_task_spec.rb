@@ -13,6 +13,12 @@ module MCollective
             task.stubs(:bolt_executor).returns(executor)
           end
 
+          describe "#to_execution_result" do
+            it "should return the result unmodified" do
+              expect(task.to_execution_result([true, "test", {"result" => "rspec"}])).to eq("result" => "rspec")
+            end
+          end
+
           describe "#run" do
             it "should run tasks" do
               task.stubs(:current_time).returns(Time.now - 1)

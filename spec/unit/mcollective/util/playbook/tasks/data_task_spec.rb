@@ -10,6 +10,26 @@ module MCollective
           let(:playbook) { stub(:data_stores => ds) }
           let(:task) { DataTask.new(playbook) }
 
+          describe "#to_execution_result" do
+            it "should support success results" do
+              expect(task.to_execution_result([true, "Wrote value to store/y", ["x"]])).to eq(
+                "localhost" => {
+                  "value" => "x"
+                }
+              )
+            end
+
+            it "should support error results" do
+              expect(task.to_execution_result([false, "Unknown action foo", []])).to eq(
+                "localhost" => {
+                  "error" => {
+                    "msg" => "Unknown action foo"
+                  }
+                }
+              )
+            end
+          end
+
           describe "#run" do
             it "should support writing" do
               task.from_hash("action" => "write", "key" => "store/y", "value" => "x")

@@ -8,6 +8,17 @@ module MCollective
         describe Graphite_eventTask do
           let(:task) { Graphite_eventTask.new(stub) }
 
+          describe "#to_execution_result" do
+            it "should delegate onto the webhook task" do
+              task.expects(:webhook_task).returns(wh = stub)
+
+              results = [true, "success", []]
+              wh.expects(:to_execution_result).with(results).returns(er = stub)
+
+              expect(task.to_execution_result(results)).to be(er)
+            end
+          end
+
           describe "#run" do
             it "should run the webhook" do
               task.expects(:webhook_task).returns(wh = stub)

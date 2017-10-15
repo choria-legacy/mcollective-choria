@@ -8,6 +8,27 @@ module MCollective
         describe ShellTask do
           let(:task) { ShellTask.new(stub) }
 
+          describe "#to_execution_result" do
+            it "should support success" do
+              expect(task.to_execution_result([true, "Command completed successfully", ["stdout"]])).to eq(
+                "localhost" => {
+                  "value" => "stdout"
+                }
+              )
+            end
+
+            it "should support errors" do
+              expect(task.to_execution_result([false, "Command failed with code 1", ["stdout"]])).to eq(
+                "localhost" => {
+                  "value" => "stdout",
+                  "error" => {
+                    "msg" => "Command failed with code 1"
+                  }
+                }
+              )
+            end
+          end
+
           describe "#run" do
             it "should detect failed scripts" do
               task.from_hash("command" => "/tmp/x.sh")

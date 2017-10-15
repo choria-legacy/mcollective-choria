@@ -33,6 +33,19 @@ module MCollective
             options
           end
 
+          def to_execution_result(results)
+            result = {
+              "value" => results[2].join("\r\n").chomp,
+              "error" => {
+                "msg" => results[1]
+              }
+            }
+
+            result.delete("error") if results[0]
+
+            {"localhost" => result}
+          end
+
           def run
             if @nodes
               Log.info("Starting command %s against %d nodes" % [@command, @nodes.size])

@@ -50,6 +50,17 @@ module MCollective
             ]
           end
 
+          def to_execution_result(results)
+            result = {"value" => results[1]}
+
+            unless results[0]
+              result["error"] = {"msg" => results[1]}
+              result["value"] = results[2].first
+            end
+
+            {"slack.com" => result}
+          end
+
           def run
             https = choria.https(:target => "slack.com", :port => 443)
             path = "/api/chat.postMessage?token=%s&username=%s&channel=%s&icon_url=%s&attachments=%s" % [
