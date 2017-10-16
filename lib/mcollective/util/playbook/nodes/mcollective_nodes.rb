@@ -34,7 +34,7 @@ module MCollective
           # @todo discovery
           # @return [RPC::Client]
           def create_and_configure_client
-            client = RPC::Client.new(@agents[0], :configfile => Util.config_file_for_user)
+            client = RPC::Client.new(@agents[0], :configfile => Util.config_file_for_user, :options => Util.default_options)
             client.progress = false
             client.discovery_method = @discovery_method
 

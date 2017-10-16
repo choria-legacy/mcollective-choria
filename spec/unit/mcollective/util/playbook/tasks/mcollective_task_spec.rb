@@ -12,6 +12,82 @@ module MCollective
             task.description = "Rspec Task"
           end
 
+          describe "#to_execution_result" do
+            it "should correctly transform results" do
+              results = [
+                true,
+                "Successful request 123 for puppet#disable in 2.00s against 1 node(s)",
+                [
+                  {
+                    "agent" => "puppet",
+                    "action" => "disable",
+                    "sender" => "pass.example.net",
+                    "statuscode" => 0,
+                    "statusmsg" => "OK",
+                    "data" => {"rspec" => "passed test"},
+                    "requestid" => "123"
+                  },
+                  {
+                    "agent" => "puppet",
+                    "action" => "disable",
+                    "sender" => "fail.example.net",
+                    "statuscode" => 1,
+                    "statusmsg" => "Simulated failure",
+                    "data" => {"rspec" => "failed test"},
+                    "requestid" => "123"
+                  }
+                ]
+              ]
+
+              task.stubs(:client).returns(stub)
+              task.client.stubs(:stats => stub(:noresponsefrom => ["nr1.example.net", "nr2.example.net"]))
+
+              expect(task.to_execution_result(results)).to eq(
+                "pass.example.net" => {
+                  "value" => {
+                    "agent" => "puppet",
+                    "action" => "disable",
+                    "sender" => "pass.example.net",
+                    "statuscode" => 0,
+                    "statusmsg" => "OK",
+                    "data" => {
+                      "rspec" => "passed test"
+                    },
+                    "requestid" => "123"
+                  }
+                },
+                "fail.example.net" => {
+                  "value" => {
+                    "agent" => "puppet",
+                    "action" => "disable",
+                    "sender" => "fail.example.net",
+                    "statuscode" => 1,
+                    "statusmsg" => "Simulated failure",
+                    "data" => {
+                      "rspec" => "failed test"
+                    },
+                    "requestid" => "123"
+                  },
+                  "error" => {
+                    "msg" => "Simulated failure"
+                  }
+                },
+                "nr1.example.net" => {
+                  "value" => {},
+                  "error" => {
+                    "msg" => "No response from node nr1.example.net"
+                  }
+                },
+                "nr2.example.net" => {
+                  "value" => {},
+                  "error" => {
+                    "msg" => "No response from node nr2.example.net"
+                  }
+                }
+              )
+            end
+          end
+
           describe "#parse_assertion" do
             it "should correctly validate expressions" do
               task.from_hash(
@@ -315,7 +391,7 @@ module MCollective
             end
 
             it "should create a client" do
-              RPC::Client.expects(:new).with("rspec", :configfile => "/nonexisting/client.cfg").returns(client = stub)
+              RPC::Client.expects(:new).with("rspec", :configfile => "/nonexisting/client.cfg", :options => Util.default_options).returns(client = stub)
               task.instance_variable_set("@agent", "rspec")
               task.instance_variable_set("@batch_size", 10)
               task.instance_variable_set("@batch_sleep_time", 90)

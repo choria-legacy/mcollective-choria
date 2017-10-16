@@ -45,7 +45,7 @@ module MCollective
           # @todo discovery
           # @return [RPC::Client]
           def create_and_configure_client
-            client = RPC::Client.new(@agent, :configfile => Util.config_file_for_user)
+            client = RPC::Client.new(@agent, :configfile => Util.config_file_for_user, :options => Util.default_options)
             client.batch_size = @batch_size if @batch_size
             client.batch_sleep_time = @batch_sleep_time if @batch_sleep_time
             client.discover(:nodes => @nodes)
@@ -144,6 +144,37 @@ module MCollective
               failed = stats.failcount + stats.noresponsefrom.size
               [false, "Failed request %s for %s#%s on %d failed node(s)" % [stats.requestid, @agent, @action, failed], reply_data]
             end
+          end
+
+          def to_execution_result(results)
+            e_result = {}
+
+            results[2].each do |data|
+              result = {
+                "value" => JSON.parse(JSON.dump(data))
+              }
+
+              unless data["statuscode"] == 0
+                result["error"] = {
+                  "msg" => data["statusmsg"]
+                }
+              end
+
+              e_result[data["sender"]] = result
+            end
+
+            if client.stats
+              client.stats.noresponsefrom.each do |nr|
+                e_result[nr] = {
+                  "value" => {},
+                  "error" => {
+                    "msg" => "No response from node %s" % nr
+                  }
+                }
+              end
+            end
+
+            e_result
           end
 
           # Logs the result of a request

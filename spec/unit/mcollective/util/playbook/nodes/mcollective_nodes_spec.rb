@@ -11,7 +11,7 @@ module MCollective
           describe "#create_and_configure_client" do
             it "should configure a client" do
               Util.stubs(:config_file_for_user).returns("/nonexisting/client.cfg")
-              RPC::Client.expects(:new).with("r_agent", :configfile => "/nonexisting/client.cfg").returns(c = stub)
+              RPC::Client.expects(:new).with("r_agent", :configfile => "/nonexisting/client.cfg", :options => Util.default_options).returns(c = stub)
 
               c.expects(:progress=).with(false)
               c.expects(:discovery_method=).with("rspec_dm")

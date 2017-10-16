@@ -88,6 +88,19 @@ module MCollective
             http
           end
 
+          def to_execution_result(results)
+            result = {
+              "value" => results[2].first,
+              "error" => {
+                "msg" => results[1]
+              }
+            }
+
+            result.delete("error") if results[0]
+
+            {create_uri.host => result}
+          end
+
           def run
             uri = create_uri
             resp = http(uri).request(http_request(uri))

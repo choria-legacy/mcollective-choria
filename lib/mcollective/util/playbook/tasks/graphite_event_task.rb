@@ -19,15 +19,19 @@ module MCollective
           end
 
           def webhook_task
-            webhook = Tasks::WebhookTask.new(@playbook)
+            return @__webhook if @__webhook
 
-            webhook.from_hash(
+            @__webhook = Tasks::WebhookTask.new(@playbook)
+
+            @__webhook.from_hash(
               "description" => @description,
               "headers" => @headers,
               "uri" => @graphite,
               "method" => "POST",
               "data" => request
             )
+
+            @__webhook
           end
 
           def validate_configuration!
@@ -37,6 +41,10 @@ module MCollective
             raise("'tags' should be an array") unless @tags.is_a?(Array)
             raise("'headers' should be a hash") unless @headers.is_a?(Hash)
             raise("The graphite url should be either http or https") unless ["http", "https"].include?(@uri.scheme)
+          end
+
+          def to_execution_result(results)
+            webhook_task.to_execution_result(results)
           end
 
           def from_hash(properties)

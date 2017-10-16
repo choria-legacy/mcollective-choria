@@ -20,6 +20,38 @@ module MCollective
             )
           end
 
+          describe "#to_execution_result" do
+            it "should support success" do
+              r = [
+                true,
+                "Successfully sent POST request to webhook http://localhost/rspec?foo=bar with id 479d1982-120a-5ba8-8664-1f16a6504371",
+                ["ok"]
+              ]
+
+              expect(task.to_execution_result(r)).to eq(
+                "localhost" => {
+                  "value" => "ok"
+                }
+              )
+            end
+
+            it "should support failure" do
+              r = [
+                false,
+                "Failed to send POST request to webhook http://localhost/rspec?foo=bar with id 479d1982-120a-5ba8-8664-1f16a6504371: 404: not found", ["not found"]
+              ]
+
+              expect(task.to_execution_result(r)).to eq(
+                "localhost" => {
+                  "value" => "not found",
+                  "error" => {
+                    "msg" => "Failed to send POST request to webhook http://localhost/rspec?foo=bar with id 479d1982-120a-5ba8-8664-1f16a6504371: 404: not found"
+                  }
+                }
+              )
+            end
+          end
+
           describe "#http" do
             it "should support https requests with and without SSL verification" do
               http = task.http(URI("https://localhost"))

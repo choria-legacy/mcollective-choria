@@ -2,7 +2,7 @@ Choria Orchestrator
 ===================
 
 A distribution of plugins for MCollective designed to give a very smooth and streamlined experience
-in getting started when using the Puppet 4 AIO connected to a Puppet Server.
+in getting started when using modern Puppet connected to a Puppet Server.
 
 See [choria.io](http://choria.io) for a deployment guide.
 
