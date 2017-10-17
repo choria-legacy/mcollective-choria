@@ -43,7 +43,7 @@ module MCollective
       # @return [Playbook]
       def playbook
         @_playbook ||= begin
-                         pb = Playbook.new("debug")
+                         pb = Playbook.new(self.class.loglevel)
                          pb.set_logger_level
                          pb
                        end
