@@ -1,6 +1,9 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/10/18|      |Release 0.4.0                                                                                            |
+|2017/10/16|348   |Allow Playbooks to be written using the Puppet Plan DSL                                                  |
 |2017/10/16|319   |Remove the `mcollective_assert` task                                                                     |
+|2017/10/12|351   |Update the systemd module dependencies to support the latest version                                     |
 |2017/10/11|      |Release 0.3.1                                                                                            |
 |2017/10/11|349   |Update module metadata to install the right files                                                        |
 |2017/10/11|      |Release 0.3.0                                                                                            |
