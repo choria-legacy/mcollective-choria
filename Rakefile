@@ -67,7 +67,7 @@ task :release do
   sh("cp CHANGELOG.md LICENSE.txt module")
   sh("cp .gitignore module")
   Dir.chdir("module") do
-    sh("/opt/puppetlabs/bin/puppet module build")
+    sh("/usr/bin/env -i PATH=/bin:/usr/bin bash -e /opt/puppetlabs/bin/puppet module build")
   end
   sh("rm -rf module/files/mcollective/*")
 end

@@ -8,11 +8,13 @@ module MCollective
       let(:cache) { "/tmp/tasks-cache-#{$$}" }
       let(:choria) { Choria.new(false) }
       let(:ts) { TasksSupport.new(choria, cache) }
-      let(:fixture) { JSON.parse(File.read("spec/fixtures/tasks/choria_ls_metadata.json")) }
-      let(:fixture_rb) { File.read("spec/fixtures/tasks/choria_ls.rb") }
-      let(:file) { fixture["files"].first }
+      let(:tasks_fixture) { JSON.parse(File.read("spec/fixtures/tasks/tasks_list.json")) }
+      let(:task_fixture) { JSON.parse(File.read("spec/fixtures/tasks/choria_ls_metadata.json")) }
+      let(:task_fixture_rb) { File.read("spec/fixtures/tasks/choria_ls.rb") }
+      let(:file) { task_fixture["files"].first }
 
       before(:each) do
+        choria.stubs(:puppet_server).returns(:target => "stubpuppet", :port => 8140)
         choria.stubs(:check_ssl_setup).returns(true)
       end
 
@@ -20,9 +22,27 @@ module MCollective
         FileUtils.rm_rf("/tmp/tasks-cache-#{$$}")
       end
 
+      describe "#tasks" do
+        it "should retrieve the tasks" do
+          stub_request(:get, "https://stubpuppet:8140/puppet/v3/tasks?environment=production")
+            .to_return(:status => 200, :body => tasks_fixture.to_json)
+
+          expect(ts.tasks("production")).to eq(tasks_fixture)
+        end
+      end
+
+      describe "#task_names" do
+        it "should retrieve the right task names" do
+          stub_request(:get, "https://stubpuppet:8140/puppet/v3/tasks?environment=production")
+            .to_return(:status => 200, :body => tasks_fixture.to_json)
+
+          expect(ts.task_names("production")).to eq(["choria::ls", "puppet_conf"])
+        end
+      end
+
       describe "#download_task" do
         it "should download every file" do
-          files = fixture["files"]
+          files = task_fixture["files"]
           files << files[0]
           files[1]["filename"] = "file2.rb"
 
@@ -31,25 +51,26 @@ module MCollective
 
           ts.expects(:cache_task_file).never
 
-          expect(ts.download_task(fixture)).to be(true)
+          expect(ts.download_task(task_fixture)).to be(true)
         end
 
         it "should support retries" do
           ts.expects(:cache_task_file).with(file).raises("test failure").then.returns(true).twice
           ts.expects(:task_file?).with(file).returns(false)
-          expect(ts.download_task(fixture)).to be(true)
+          expect(ts.download_task(task_fixture)).to be(true)
         end
 
         it "should attempt twice and fail after" do
           ts.expects(:cache_task_file).with(file).raises("test failure").twice
           ts.stubs(:task_file?).returns(false)
-          expect(ts.download_task(fixture)).to be(false)
+          expect do
+            ts.download_task(task_fixture)
+          end.to raise_error("Could not download task file: RuntimeError: test failure")
         end
       end
 
       describe "#cache_task_file" do
         before(:each) do
-          choria.expects(:puppet_server).returns(:target => "stubpuppet", :port => 8140)
           FileUtils.rm_rf(cache)
         end
 
@@ -58,7 +79,7 @@ module MCollective
 
           stub_request(:get, "https://stubpuppet:8140/puppet/v3/file_content/tasks/choria/ls.rb?environment=production")
             .with(:headers => {"Accept" => "application/octet-stream"})
-            .to_return(:status => 200, :body => fixture_rb)
+            .to_return(:status => 200, :body => task_fixture_rb)
 
           ts.cache_task_file(file)
 
@@ -136,17 +157,13 @@ module MCollective
 
       describe "#task_metadata" do
         it "should fetch and decode the task metadata" do
-          choria.expects(:puppet_server).returns(:target => "stubpuppet", :port => 8140)
-
           stub_request(:get, "https://stubpuppet:8140/puppet/v3/tasks/choria/ls?environment=production")
-            .to_return(:status => 200, :body => fixture.to_json)
+            .to_return(:status => 200, :body => task_fixture.to_json)
 
-          expect(ts.task_metadata("choria::ls", "production")).to eq(fixture)
+          expect(ts.task_metadata("choria::ls", "production")).to eq(task_fixture)
         end
 
         it "should handle failures correctly" do
-          choria.expects(:puppet_server).returns(:target => "stubpuppet", :port => 8140)
-
           stub_request(:get, "https://stubpuppet:8140/puppet/v3/tasks/choria/ls?environment=production")
             .to_return(:status => 404, :body => "Could not find module 'choria'")
 
@@ -158,8 +175,6 @@ module MCollective
 
       describe "#http_get" do
         it "should retrieve a file from the puppetserver" do
-          choria.expects(:puppet_server).returns(:target => "stubpuppet", :port => 8140)
-
           stub_request(:get, "https://stubpuppet:8140/test")
             .with(:headers => {"Test-Header" => "true"})
             .to_return(:status => 200, :body => "Test OK")
@@ -170,13 +185,13 @@ module MCollective
 
       describe "#task_file_name" do
         it "should determine the correct file name" do
-          expect(ts.task_file_name(fixture["files"][0])).to eq(File.join(cache, "f3b4821836cf7fe6fe17dfb2924ff6897eba43a44cc4cba0e0ed136b27934ede", "ls.rb"))
+          expect(ts.task_file_name(task_fixture["files"][0])).to eq(File.join(cache, "f3b4821836cf7fe6fe17dfb2924ff6897eba43a44cc4cba0e0ed136b27934ede", "ls.rb"))
         end
       end
 
       describe "#task_dir" do
         it "should determine the correct directory" do
-          expect(ts.task_dir(fixture["files"][0])).to eq(File.join(cache, "f3b4821836cf7fe6fe17dfb2924ff6897eba43a44cc4cba0e0ed136b27934ede"))
+          expect(ts.task_dir(task_fixture["files"][0])).to eq(File.join(cache, "f3b4821836cf7fe6fe17dfb2924ff6897eba43a44cc4cba0e0ed136b27934ede"))
         end
       end
 

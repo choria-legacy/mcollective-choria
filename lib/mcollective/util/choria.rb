@@ -19,6 +19,28 @@ module MCollective
         check_ssl_setup if check_ssl
       end
 
+      # Creates a new TasksSupport instance with the configured cache dir
+      #
+      # @return [TasksSupport]
+      def tasks_support
+        require_relative "tasks_support"
+
+        Util::TasksSupport.new(self, tasks_cache_dir)
+      end
+
+      # Determines the Tasks Cache dir
+      #
+      # @return [String] path to the cache
+      def tasks_cache_dir
+        if Util.windows?
+          File.join(Util.windows_prefix, "tasks-cache")
+        elsif Process.uid == 0
+          "/opt/puppetlabs/mcollective/tasks-cache"
+        else
+          File.expand_path("~/.puppetlabs/mcollective/tasks-cache")
+        end
+      end
+
       # Factory for Federation Brokers
       #
       # We do it here to avoid always requiring all the federation broker code
