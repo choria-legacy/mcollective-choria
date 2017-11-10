@@ -12,6 +12,28 @@ module MCollective
         @cache_dir = cache_dir || @choria.get_option("choria.tasks_cache")
       end
 
+      # Retrieves the list of known tasks in an environment
+      #
+      # @param environment [String] the environment to query
+      # @return [Hash] the v3 task list
+      # @raise [StandardError] on http failure
+      def tasks(environment)
+        resp = http_get("/puppet/v3/tasks?environment=%s" % [environment])
+
+        raise("Failed to retrieve task list: %s: %s" % [$!.class, $!.to_s]) unless resp.code == "200"
+
+        JSON.parse(resp.body)
+      end
+
+      # Retrieves the list of known task names
+      #
+      # @param environment [String] the environment to query
+      # @return [Array<String>] list of task names
+      # @raise [StandardError] on http failure
+      def task_names(environment)
+        tasks(environment).map {|t| t["name"]}
+      end
+
       # Parse a task name like module::task into it's 2 pieces
       #
       # @param task [String]
@@ -123,7 +145,7 @@ module MCollective
         http_get(path, "Accept" => "application/octet-stream") do |resp|
           raise("Failed to request task content %s: %s: %s" % [path, resp.code, resp.body]) unless resp.code == "200"
 
-          FileUtils.mkdir_p(task_dir(file))
+          FileUtils.mkdir_p(task_dir(file), :mode => 0o0750)
 
           task_file = Tempfile.new("tasks_%s" % file["filename"])
           task_file.binmode
@@ -133,6 +155,8 @@ module MCollective
           end
 
           task_file.close
+
+          FileUtils.chmod(0o0750, task_file.path)
           FileUtils.mv(task_file.path, file_name)
         end
       end
@@ -159,13 +183,13 @@ module MCollective
 
             cache_task_file(file)
           rescue
-            Log.error("Could not download task file: %s: %s" % [$!.class, $!.to_s])
+            Log.error(msg = "Could not download task file: %s: %s" % [$!.class, $!.to_s])
 
             sleep 0.1
 
             retry if try < 2
 
-            return false
+            raise(msg)
           end
         end
 

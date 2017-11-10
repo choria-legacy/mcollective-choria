@@ -6,6 +6,32 @@ module MCollective
     describe Choria do
       let(:choria) { Choria.new(false) }
 
+      describe "#tasks_cache_dir" do
+        it "should support windows" do
+          Util.stubs(:windows?).returns(true)
+          Util.stubs(:windows_prefix).returns("c:/nonexisting")
+
+          expect(choria.tasks_cache_dir).to eq("c:/nonexisting/tasks-cache")
+        end
+
+        it "should support root users" do
+          Process.stubs(:uid).returns(0)
+          expect(choria.tasks_cache_dir).to eq("/opt/puppetlabs/mcollective/tasks-cache")
+        end
+
+        it "should support non root users" do
+          expect(choria.tasks_cache_dir).to eq(File.expand_path("~/.puppetlabs/mcollective/tasks-cache"))
+        end
+      end
+
+      describe "#tasks_support" do
+        it "should create a support object that's correctly configured" do
+          choria.stubs(:tasks_cache_dir).returns("/nonexisting/tasks-cache")
+          support = choria.tasks_support
+          expect(support.cache_dir).to eq("/nonexisting/tasks-cache")
+        end
+      end
+
       describe "#proxied_discovery?" do
         it "should correctly detect if proxied" do
           expect(choria.proxied_discovery?).to be(false)

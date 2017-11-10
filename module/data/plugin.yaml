@@ -9,6 +9,7 @@ mcollective_choria::client_directories:
  - util/playbook/nodes
  - util/playbook/tasks
 mcollective_choria::server_files:
+ - agent/bolt_task.rb
  - agent/choria_util.rb
  - audit/choria.rb
  - registration/choria.rb
@@ -52,6 +53,7 @@ mcollective_choria::common_directories:
  - util/choria
  - util/federation_broker
 mcollective_choria::common_files:
+ - agent/bolt_task.ddl
  - application/federation.rb
  - agent/choria_util.ddl
  - connector/nats.ddl
@@ -64,3 +66,4 @@ mcollective_choria::common_files:
  - util/federation_broker/stats.rb
  - util/choria.rb
  - util/natswrapper.rb
+ - util/tasks_support.rb
