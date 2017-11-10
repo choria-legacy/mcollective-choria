@@ -52,7 +52,7 @@ module MCollective
               uri = node
               uri = "%s://%s" % [@transport, node] unless @transport == "ssh" || uri =~ /^(winrm|ssh):\/\/(.+)/
 
-              Bolt::Node.from_uri(uri, @user, @password, :tty => @tty)
+              Bolt::Node.from_uri(uri)
             end
           end
 

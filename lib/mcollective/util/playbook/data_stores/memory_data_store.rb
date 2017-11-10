@@ -1,5 +1,4 @@
 require_relative "base"
-require "thread"
 
 module MCollective
   module Util

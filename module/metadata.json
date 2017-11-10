@@ -8,7 +8,7 @@
   "project_page": "https://github.com/choria-io/mcollective-choria/wiki",
   "issues_url": "https://github.com/choria-io/mcollective-choria/issues",
   "dependencies": [
-    { "name": "choria/mcollective","version_requirement":">= 0.0.26 < 2.0.0"},
+    { "name": "choria/mcollective","version_requirement":">= 0.2.0 < 2.0.0"},
     { "name": "choria/mcollective_agent_puppet", "version_requirement": ">= 1.12.0" },
     { "name": "choria/mcollective_agent_package", "version_requirement": ">= 4.5.0" },
     { "name": "choria/mcollective_agent_service", "version_requirement": ">= 3.1.3" },
