@@ -6,6 +6,24 @@ module MCollective
     describe Choria do
       let(:choria) { Choria.new(false) }
 
+      describe "#tasks_spool_dir" do
+        it "should support windows" do
+          Util.stubs(:windows?).returns(true)
+          Util.stubs(:windows_prefix).returns("c:/nonexisting")
+
+          expect(choria.tasks_spool_dir).to eq("c:/nonexisting/tasks-spool")
+        end
+
+        it "should non root on nix" do
+          expect(choria.tasks_spool_dir).to eq(File.expand_path("~/.puppetlabs/mcollective/tasks-spool"))
+        end
+
+        it "should use aio paths for nix root" do
+          Process.stubs(:uid).returns(0)
+          expect(choria.tasks_spool_dir).to eq("/opt/puppetlabs/mcollective/tasks-spool")
+        end
+      end
+
       describe "#tasks_cache_dir" do
         it "should support windows" do
           Util.stubs(:windows?).returns(true)

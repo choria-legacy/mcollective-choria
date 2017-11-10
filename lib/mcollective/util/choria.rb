@@ -41,6 +41,19 @@ module MCollective
         end
       end
 
+      # Determines the Tasks Spool directory
+      #
+      # @return [String] path to the spool
+      def tasks_spool_dir
+        if Util.windows?
+          File.join(Util.windows_prefix, "tasks-spool")
+        elsif Process.uid == 0
+          "/opt/puppetlabs/mcollective/tasks-spool"
+        else
+          File.expand_path("~/.puppetlabs/mcollective/tasks-spool")
+        end
+      end
+
       # Factory for Federation Brokers
       #
       # We do it here to avoid always requiring all the federation broker code
