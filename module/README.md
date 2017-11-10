@@ -14,10 +14,9 @@ The main goal is ease of use and setup while remaining secure. It shares a secur
 
 Includes:
 
-  * A flexible Playbook system that can integrate MCollective with many other systems
-  * An Orchestrator for the Puppet Multi Node Applications
-  * A Security Plugin for AIO Puppet including a tool to make client certificates
-  * A Connector using NATS.io
+  * A flexible Playbook system that can integrate MCollective and Puppet with many other systems
+  * A Security Plugin for Puppet including a tool to make client certificates
+  * A Connector using [NATS.io](https://nats.io)
   * A Discovery plugin for PuppetDB
   * Shared configuration of SSL and other properties
   * Support for SRV records for configuration to atain a zero config setup
@@ -27,7 +26,7 @@ See [choria.io](http://choria.io) for full details
 
 ## Module Description
 
-## Usage
+## Usage
 
 A deployment guide can be found at the [Choria Website](http://choria.io)
 

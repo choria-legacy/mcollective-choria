@@ -1,6 +1,5 @@
 require "tempfile"
 require "fileutils"
-require "thread"
 
 module MCollective
   module Registration
