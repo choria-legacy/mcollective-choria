@@ -27,6 +27,7 @@ RSpec.configure do |config|
     MCollective::PluginManager.clear
     MCollective::Connector::Base.stubs(:inherited)
     MCollective::PluginManager.stubs(:[]).with("global_stats").returns(stub)
+    MCollective::Log.stubs(:error)
     MCollective::Log.stubs(:warn)
     MCollective::Log.stubs(:info)
     MCollective::Log.stubs(:debug)
