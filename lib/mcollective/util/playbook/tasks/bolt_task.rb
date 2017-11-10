@@ -52,7 +52,7 @@ module MCollective
               uri = node
               uri = "%s://%s" % [@transport, node] unless @transport == "ssh" || uri =~ /^(winrm|ssh):\/\/(.+)/
 
-              Bolt::Node.from_uri(uri)
+              Bolt::Node.from_uri(uri, :config => bolt_cli.config)
             end
           end
 
@@ -72,22 +72,24 @@ module MCollective
           def bolt_cli
             return @__cli if @__cli
 
+            @__cli = Bolt::CLI.new({})
+
             # We would rather pass a configured logger into bolt, see
             # https://github.com/puppetlabs/bolt/issues/79
             case @playbook.loglevel
             when "fatal"
-              Bolt.log_level = ::Logger::FATAL
+              @__cli.config[:log_level] = ::Logger::FATAL
             when "error"
-              Bolt.log_level = ::Logger::ERROR
+              @__cli.config[:log_level] = ::Logger::ERROR
             when "warn"
-              Bolt.log_level = ::Logger::WARN
+              @__cli.config[:log_level] = ::Logger::WARN
             when "debug"
-              Bolt.log_level = ::Logger::DEBUG
+              @__cli.config[:log_level] = ::Logger::DEBUG
             else
-              Bolt.log_level = ::Logger::INFO
+              @__cli.config[:log_level] = ::Logger::INFO
             end
 
-            @__cli = Bolt::CLI.new({})
+            @__cli
           end
 
           def bolt_executor
@@ -103,7 +105,7 @@ module MCollective
             input_method = nil
 
             unless File.exist?(path)
-              path, metadata = bolt_cli.load_task_data(path, @modules)
+              path, metadata = bolt_cli.load_task_data(path, Array(@modules))
               input_method = metadata["input_method"]
             end
 
