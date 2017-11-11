@@ -13,7 +13,7 @@ action "download", :description => "Downloads a Bolt task into a local cache" do
         :prompt      => "Task Name",
         :description => "The name of a task, example apache or apache::reload",
         :type        => :string,
-        :validation  => '\A([a-z][a-z0-9_]*)?(::[a-z][a-z0-9_]*)*\Z',
+        :validation  => :bolt_task_name,
         :optional    => false,
         :maxlength   => 100
 
@@ -30,12 +30,173 @@ action "download", :description => "Downloads a Bolt task into a local cache" do
         :prompt      => "Task Files Specification",
         :description => "The specification of files to download according to v3 api in JSON format",
         :type        => :string,
-        :optional    => true,
+        :optional    => false,
         :validation  => '\A\[.+\]\z',
-        :maxlength   => 2000,
-        :default     => "[]"
+        :maxlength   => 4000
 
   output :downloads,
          :description => "The number of files downloaded",
          :display_as  => "Files Downloaded"
+end
+
+action "run_and_wait", :description => "Runs a Bolt ask that was previously downloaded, wait for it to finish" do
+  input :task,
+        :prompt      => "Task Name",
+        :description => "The name of a task, example apache or apache::reload",
+        :type        => :string,
+        :validation  => :bolt_task_name,
+        :optional    => false,
+        :maxlength   => 100
+
+  input :input_method,
+        :prompt      => "Input Method",
+        :description => "The input method to use",
+        :type        => :list,
+        :list        => ["powershell", "stdin", "environment", "both"],
+        :optional    => true,
+        :default     => nil
+
+  input :files,
+        :prompt      => "Task Files Specification",
+        :description => "The specification of files to download according to v3 api in JSON format",
+        :type        => :string,
+        :optional    => false,
+        :validation  => '\A\[.+\]\z',
+        :maxlength   => 4000
+
+  input :input,
+        :prompt      => "Task Input",
+        :description => "JSON String containing input variables",
+        :type        => :string,
+        :validation  => '^.+$',
+        :optional    => true,
+        :default     => "{}",
+        :maxlength   => 102400
+
+  output :task_id,
+         :description => "The ID the task was created with",
+         :display_as  => "Task ID",
+         :default     => nil
+
+  output :exitcode,
+         :description => "Task exit code",
+         :display_as  => "Exit Code",
+         :default     => 127
+
+  output :stdout,
+         :description => "Standard Output from the command",
+         :display_as  => "STDOUT",
+         :default     => nil
+
+  output :stderr,
+         :description => "Standard Error from the command",
+         :display_as  => "STDERR",
+         :default     => nil
+
+  output :completed,
+         :description => "Did the task complete",
+         :display_as  => "Completed",
+         :default     => false
+
+  output :runtime,
+         :description => "Time taken to run the command",
+         :display_as  => "Runtime",
+         :default     => 0
+
+  output :start_time,
+         :description => "When the task was started in UTC time",
+         :display_as  => "Start Time"
+
+  summarize do
+    aggregate average(:runtime)
+    aggregate summary(:exitcode)
+    aggregate summary(:completed)
+  end
+end
+
+action "run_no_wait", :description => "Runs a Bolt ask that was previously downloaded do not wait for it to finish" do
+  input :task,
+        :prompt      => "Task Name",
+        :description => "The name of a task, example apache or apache::reload",
+        :type        => :string,
+        :validation  => :bolt_task_name,
+        :optional    => false,
+        :maxlength   => 100
+
+  input :input_method,
+        :prompt      => "Input Method",
+        :description => "The input method to use",
+        :type        => :list,
+        :list        => ["powershell", "stdin", "environment", "both"],
+        :optional    => true,
+        :default     => nil
+
+  input :files,
+        :prompt      => "Task Files Specification",
+        :description => "The specification of files to download according to v3 api in JSON format",
+        :type        => :string,
+        :optional    => false,
+        :validation  => '\A\[.+\]\z',
+        :maxlength   => 4000
+
+  input :input,
+        :prompt      => "Task Input",
+        :description => "JSON String containing input variables",
+        :type        => :string,
+        :validation  => '^.+$',
+        :optional    => true,
+        :default     => "{}",
+        :maxlength   => 102400
+
+  output :task_id,
+         :description => "The ID the task was created with",
+         :display_as  => "Task ID",
+         :default     => nil
+end
+
+action "task_status", :description => "Request the status of a previously ran task" do
+  display :always
+
+  input :task_id,
+        :prompt      => "Task ID",
+        :description => "The Task ID to retrieve",
+        :type        => :string,
+        :validation  => '^[a-z,0-9]{32}$',
+        :optional    => false,
+        :maxlength   => 32
+
+  output :exitcode,
+         :description => "Task exit code",
+         :display_as  => "Exit Code",
+         :default     => 127
+
+  output :stdout,
+         :description => "Standard Output from the command",
+         :display_as  => "STDOUT",
+         :default     => nil
+
+  output :stderr,
+         :description => "Standard Error from the command",
+         :display_as  => "STDERR",
+         :default     => nil
+
+  output :completed,
+         :description => "Did the task complete",
+         :display_as  => "Completed",
+         :default     => false
+
+  output :runtime,
+         :description => "Time taken to run the command",
+         :display_as  => "Runtime",
+         :default     => 0
+
+  output :start_time,
+         :description => "When the task was started in UTC time",
+         :display_as  => "Start Time"
+
+  summarize do
+    aggregate average(:runtime)
+    aggregate summary(:exitcode)
+    aggregate summary(:completed)
+  end
 end

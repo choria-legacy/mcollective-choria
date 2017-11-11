@@ -210,8 +210,9 @@ module MCollective
       # @return [Boolean]
       def task_complete?(requestid)
         exitcode = File.join(request_spooldir(requestid), "exitcode")
+        wrapper_stderr = File.join(request_spooldir(requestid), "wrapper_stderr")
 
-        File.exist?(exitcode) && file_size(exitcode) > 0
+        File.exist?(wrapper_stderr) && file_size(wrapper_stderr) > 0 || File.exist?(exitcode) && file_size(exitcode) > 0
       end
 
       # Waits for a task to complete
@@ -229,9 +230,11 @@ module MCollective
       #
       # @note before this should be run be sure to download the tasks first
       # @param task [Hash] task specification
+      # @param requestid [String] the task requestid
+      # @param wait [Boolean] should the we wait for the task to complete
       # @return [Hash] the task result as per {#task_result}
       # @raise [StandardError] when calling the wrapper fails etc
-      def run_task_command(requestid, task)
+      def run_task_command(requestid, task, wait=true)
         raise("Task %s is not available or does not match the specification, please download it" % task["task"]) unless task_cached?(task)
         raise("Task spool for request %s already exist, cannot rerun", requestid) if task_ran?(requestid)
 
@@ -253,9 +256,32 @@ module MCollective
 
         Log.info("Spawned task %s in spool %s with pid %s" % [task["task"], spool, pid])
 
-        wait_for_task_completion(requestid)
+        wait_for_task_completion(requestid) if wait
 
         task_status(requestid)
+      end
+
+      # Determines how long a task ran for
+      #
+      # Tasks that had wrapper failures will have a 0 run time, still
+      # running tasks will calculate runtime till now and so increase on
+      # each invocation
+      #
+      # @param requestid [String] the request if for the task
+      # @return [Float]
+      def task_runtime(requestid)
+        spool = request_spooldir(requestid)
+        wrapper_stderr = File.join(spool, "wrapper_stderr")
+        wrapper_pid = File.join(spool, "wrapper_pid")
+        exitcode = File.join(spool, "exitcode")
+
+        if task_complete?(requestid) && File.exist?(exitcode)
+          Float(File::Stat.new(exitcode).mtime - File::Stat.new(wrapper_pid).mtime)
+        elsif task_complete?(requestid) && file_size(wrapper_stderr) > 0
+          0.0
+        else
+          Float(Time.now - File::Stat.new(wrapper_pid).mtime)
+        end
       end
 
       # Determines the task status for given request
@@ -263,6 +289,8 @@ module MCollective
       # @param requestid [String] request id for the task
       # @return [Hash] the task status
       def task_status(requestid)
+        raise("Task %s have not been requested" % requestid) unless task_ran?(requestid)
+
         spool = request_spooldir(requestid)
         stdout = File.join(spool, "stdout")
         stderr = File.join(spool, "stderr")
@@ -274,14 +302,16 @@ module MCollective
           "spool" => spool,
           "stdout" => "",
           "stderr" => "",
-          "exitcode" => -1,
+          "exitcode" => 127,
+          "runtime" => task_runtime(requestid),
+          "start_time" => Time.at(0).utc,
           "wrapper_spawned" => false,
           "wrapper_error" => "",
           "wrapper_pid" => nil,
           "completed" => task_complete?(requestid)
         }
 
-        result["exitcode"] = Integer(File.read(exitcode)) if result["completed"]
+        result["exitcode"] = Integer(File.read(exitcode)) if File.exist?(exitcode)
 
         if task_ran?(requestid)
           result["stdout"] = File.read(stdout) if File.exist?(stdout)
@@ -294,6 +324,7 @@ module MCollective
           end
 
           if File.exist?(wrapper_pid) && file_size(wrapper_pid) > 0
+            result["start_time"] = File::Stat.new(wrapper_pid).mtime.utc
             result["wrapper_pid"] = Integer(File.read(wrapper_pid))
           end
         end
@@ -409,6 +440,8 @@ module MCollective
       # @return [Boolean]
       def task_file?(file)
         file_name = task_file_name(file)
+
+        Log.debug("Checking if file %s is cached using %s" % [file_name, file.pretty_inspect])
 
         return false unless File.directory?(task_dir(file))
         return false unless File.exist?(file_name)
