@@ -67,3 +67,5 @@ mcollective_choria::common_files:
  - util/choria.rb
  - util/natswrapper.rb
  - util/tasks_support.rb
+ - validator/bolt_task_name_validator.rb
+ - validator/bolt_task_name_validator.ddl

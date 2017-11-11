@@ -23,6 +23,29 @@ module MCollective
         FileUtils.rm_rf("/tmp/tasks-cache-#{$$}")
       end
 
+      describe "#task_runtime" do
+        it "should support succesfully completed tasks" do
+          ts.stubs(:request_spooldir).returns("spec/fixtures/tasks/completed_spool")
+
+          t = Time.now
+          FileUtils.touch(File.join("spec/fixtures/tasks/completed_spool", "wrapper_pid"), :mtime => t - 60)
+          FileUtils.touch(File.join("spec/fixtures/tasks/completed_spool", "exitcode"), :mtime => t - 40)
+
+          expect(ts.task_runtime("x")).to eq(20.0)
+        end
+
+        it "should support wrapper failures" do
+          ts.stubs(:request_spooldir).returns("spec/fixtures/tasks/wrapper_failed_spool")
+          expect(ts.task_runtime("x")).to eq(0.0)
+        end
+
+        it "should support ongoing tasks" do
+          ts.stubs(:request_spooldir).returns("spec/fixtures/tasks/still_running_spool")
+          File::Stat.expects(:new).with("spec/fixtures/tasks/still_running_spool/wrapper_pid").returns(stub(:mtime => Time.now - 1))
+          expect(ts.task_runtime("x")).to be_within(0.1).of(1.0)
+        end
+      end
+
       describe "#task_status" do
         it "should report failed wrapper invocations" do
           spool = File.expand_path("spec/fixtures/tasks/wrapper_failed_spool")
@@ -39,7 +62,9 @@ ERROR
             "spool" => spool,
             "stdout" => "",
             "stderr" => "",
-            "exitcode" => -1,
+            "exitcode" => 127,
+            "runtime" => 0.0,
+            "start_time" => File::Stat.new(File.join(spool, "wrapper_pid")).mtime,
             "wrapper_spawned" => false,
             "wrapper_error" => err,
             "wrapper_pid" => 2493,
@@ -50,6 +75,7 @@ ERROR
         it "should correctly report a still running task" do
           spool = File.expand_path("spec/fixtures/tasks/still_running_spool")
           ts.stubs(:request_spooldir).returns(spool)
+          ts.stubs(:task_runtime).returns(10)
 
           status = ts.task_status("test1")
 
@@ -57,7 +83,9 @@ ERROR
             "spool" => spool,
             "stdout" => File.read(File.join(spool, "stdout")),
             "stderr" => "",
-            "exitcode" => -1,
+            "exitcode" => 127,
+            "runtime" => 10,
+            "start_time" => File::Stat.new(File.join(spool, "wrapper_pid")).mtime,
             "wrapper_spawned" => true,
             "wrapper_error" => "",
             "wrapper_pid" => 2493,
@@ -69,6 +97,10 @@ ERROR
           spool = File.expand_path("spec/fixtures/tasks/completed_spool")
           ts.stubs(:request_spooldir).returns(spool)
 
+          t = Time.now
+          FileUtils.touch(File.join(spool, "wrapper_pid"), :mtime => t - 60)
+          FileUtils.touch(File.join(spool, "exitcode"), :mtime => t - 40)
+
           status = ts.task_status("test1")
 
           expect(status).to eq(
@@ -76,6 +108,8 @@ ERROR
             "stdout" => File.read(File.join(spool, "stdout")),
             "stderr" => "",
             "exitcode" => 0,
+            "runtime" => 20.0,
+            "start_time" => File::Stat.new(File.join(spool, "wrapper_pid")).mtime,
             "wrapper_spawned" => true,
             "wrapper_error" => "",
             "wrapper_pid" => 2493,
@@ -97,6 +131,7 @@ ERROR
 
           ts.stubs(:task_cached?).returns(true)
           ts.expects(:wait_for_task_completion)
+          ts.stubs(:task_status)
 
           ts.run_task_command("test_1", task_run_request_fixture)
         end
@@ -116,6 +151,18 @@ ERROR
           expect(ts.task_complete?("spawn_test_1")).to be(false)
 
           File.open(exitcode, "w") {|f| f.puts "1"}
+
+          expect(ts.task_complete?("spawn_test_1")).to be(true)
+        end
+
+        it "should support wrapper failures" do
+          spool = File.join(cache, "spawn_test_1")
+
+          ts.stubs(:request_spooldir).with("spawn_test_1").returns(spool)
+          FileUtils.mkdir_p(spool)
+
+          File.open(File.join(spool, "wrapper_stderr"), "w") {|f| f.puts "wrapper failed"}
+          File.expects(:exist?).with(File.join(spool, "wrapper_stderr")).returns(true)
 
           expect(ts.task_complete?("spawn_test_1")).to be(true)
         end
