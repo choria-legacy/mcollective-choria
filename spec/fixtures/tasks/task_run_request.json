@@ -1,15 +1,7 @@
 {
-  "metadata": {
-    "puppet_task_version": 1,
-    "description": "Get directory contents",
-    "input_method": "stdin",
-    "parameters": {
-      "directory": {
-        "description": "Directory to ls",
-        "type": "String"
-      }
-    }
-  },
+  "task": "choria::ls",
+  "input_method": "stdin",
+  "input": "{\"directory\": \"/tmp\"}",
   "files": [
     {
       "filename": "ls.rb",
