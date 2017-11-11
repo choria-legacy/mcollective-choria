@@ -9,3 +9,4 @@ tmp
 coverage
 website/public
 *.bak
+test.rb

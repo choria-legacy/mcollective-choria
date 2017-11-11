@@ -37,6 +37,10 @@ action "download", :description => "Downloads a Bolt task into a local cache" do
   output :downloads,
          :description => "The number of files downloaded",
          :display_as  => "Files Downloaded"
+
+  summarize do
+    aggregate summary(:downloads)
+  end
 end
 
 action "run_and_wait", :description => "Runs a Bolt ask that was previously downloaded, wait for it to finish" do
@@ -111,6 +115,7 @@ action "run_and_wait", :description => "Runs a Bolt ask that was previously down
     aggregate average(:runtime)
     aggregate summary(:exitcode)
     aggregate summary(:completed)
+    aggregate summary(:task_id)
   end
 end
 
@@ -152,6 +157,10 @@ action "run_no_wait", :description => "Runs a Bolt ask that was previously downl
          :description => "The ID the task was created with",
          :display_as  => "Task ID",
          :default     => nil
+
+  summarize do
+    aggregate summary(:task_id)
+  end
 end
 
 action "task_status", :description => "Request the status of a previously ran task" do

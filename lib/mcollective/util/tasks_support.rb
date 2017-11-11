@@ -66,10 +66,10 @@ module MCollective
       #
       # @note this checks all files, though for now there's only ever one file
       # @see #task_file?
-      # @param task [Hash] task specification
+      # @param files [Array] files list
       # @return [Boolean]
-      def task_cached?(task)
-        task["files"].map {|f| task_file?(f)}.all?
+      def cached?(files)
+        files.map {|f| task_file?(f)}.all?
       end
 
       # Given a task spec figures out the input method
@@ -235,7 +235,8 @@ module MCollective
       # @return [Hash] the task result as per {#task_result}
       # @raise [StandardError] when calling the wrapper fails etc
       def run_task_command(requestid, task, wait=true)
-        raise("Task %s is not available or does not match the specification, please download it" % task["task"]) unless task_cached?(task)
+        raise("The task wrapper %s does not exist, please upgrade Puppet" % wrapper_path) unless File.exist?(wrapper_path)
+        raise("Task %s is not available or does not match the specification, please download it" % task["task"]) unless cached?(task["files"])
         raise("Task spool for request %s already exist, cannot rerun", requestid) if task_ran?(requestid)
 
         command = task_command(task)
@@ -342,7 +343,9 @@ module MCollective
 
         raise("Failed to retrieve task list: %s: %s" % [$!.class, $!.to_s]) unless resp.code == "200"
 
-        JSON.parse(resp.body)
+        tasks = JSON.parse(resp.body)
+
+        tasks.sort_by {|t| t["name"]}
       end
 
       # Retrieves the list of known task names
@@ -362,7 +365,7 @@ module MCollective
       def parse_task(task)
         parts = task.split("::")
 
-        raise("Invalid task name %s" % task) unless parts.size == 2
+        parts << "init" if parts.size == 1
 
         parts
       end
@@ -485,13 +488,22 @@ module MCollective
 
       # Downloads all the files in a task
       #
-      # @param task [Hash] the metadata for a task
+      # @param files [Array] the files description
       # @return [Boolean] indicating download success
       # @raise [StandardError] on download failures
       def download_task(task)
-        Log.info("Downloading %d task files" % task["files"].size)
+        download_files(task["files"])
+      end
 
-        task["files"].each do |file|
+      # Downloads and caches a file set
+      #
+      # @param files [Array] the files description
+      # @return [Boolean] indicating download success
+      # @raise [StandardError] on download failures
+      def download_files(files)
+        Log.info("Downloading %d task files" % files.size)
+
+        files.each do |file|
           next if task_file?(file)
 
           try = 0
