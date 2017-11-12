@@ -1,0 +1,5 @@
+{
+  "start_time": 1510496922,
+  "caller": "choria=rip.mcollective",
+  "task": "choria::ls"
+}

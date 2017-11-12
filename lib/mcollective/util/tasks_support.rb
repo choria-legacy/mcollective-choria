@@ -232,9 +232,10 @@ module MCollective
       # @param task [Hash] task specification
       # @param requestid [String] the task requestid
       # @param wait [Boolean] should the we wait for the task to complete
+      # @param callerid [String] the mcollective callerid who is running the task
       # @return [Hash] the task result as per {#task_result}
       # @raise [StandardError] when calling the wrapper fails etc
-      def run_task_command(requestid, task, wait=true)
+      def run_task_command(requestid, task, wait=true, callerid="local")
         raise("The task wrapper %s does not exist, please upgrade Puppet" % wrapper_path) unless File.exist?(wrapper_path)
         raise("Task %s is not available or does not match the specification, please download it" % task["task"]) unless cached?(task["files"])
         raise("Task spool for request %s already exist, cannot rerun", requestid) if task_ran?(requestid)
@@ -252,6 +253,17 @@ module MCollective
           "stderr" => File.join(spool, "stderr"),
           "exitcode" => File.join(spool, "exitcode")
         }
+
+        File.open(File.join(spool, "choria.json"), "w") do |meta|
+          data = {
+            "start_time" => Time.now.utc.to_i,
+            "caller" => callerid,
+            "task" => task["task"],
+            "request" => wrapper_input
+          }
+
+          meta.print(data.to_json)
+        end
 
         pid = spawn_command(wrapper_path, task_environment(task), wrapper_input.to_json, spool)
 
@@ -298,9 +310,12 @@ module MCollective
         exitcode = File.join(spool, "exitcode")
         wrapper_stderr = File.join(spool, "wrapper_stderr")
         wrapper_pid = File.join(spool, "wrapper_pid")
+        meta = File.join(spool, "choria.json")
 
         result = {
           "spool" => spool,
+          "task" => nil,
+          "caller" => nil,
           "stdout" => "",
           "stderr" => "",
           "exitcode" => 127,
@@ -321,13 +336,20 @@ module MCollective
 
           if File.exist?(wrapper_stderr) && file_size(wrapper_stderr) > 0
             result["wrapper_error"] = File.read(wrapper_stderr)
-            result["completed"] = true
           end
 
           if File.exist?(wrapper_pid) && file_size(wrapper_pid) > 0
             result["start_time"] = File::Stat.new(wrapper_pid).mtime.utc
             result["wrapper_pid"] = Integer(File.read(wrapper_pid))
           end
+        end
+
+        if File.exist?(meta)
+          choria_metadata = JSON.parse(File.read(meta))
+
+          result["start_time"] = Time.at(choria_metadata["start_time"]).utc
+          result["caller"] = choria_metadata["caller"]
+          result["task"] = choria_metadata["task"]
         end
 
         result
