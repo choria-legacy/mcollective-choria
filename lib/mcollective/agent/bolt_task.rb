@@ -87,6 +87,27 @@ module MCollective
         end
       end
 
+      # Performs an additional authorization and audit line using the task name as action
+      def before_processing_hook(msg, connection)
+        if respond_to?("authorization_hook")
+          original_action = request.action
+          task = request[:task]
+
+          begin
+            Log.debug(request)
+            if ["run_and_wait", "run_no_wait"].include?(original_action) && task
+              request.action = task
+              authorization_hook(request)
+              audit_request(request, connection)
+            end
+          rescue
+            raise(RPCAborted, "You are not authorized to run Bolt Task %s" % task)
+          ensure
+            request.action = original_action
+          end
+        end
+      end
+
       def reply_task_status(status)
         reply[:exitcode] = status["exitcode"]
         reply[:stdout] = status["stdout"]

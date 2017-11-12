@@ -457,6 +457,8 @@ module MCollective
       # @raise [StandardError] when the file does not exist
       def file_size(file_path)
         File.stat(file_path).size
+      rescue
+        -1
       end
 
       # Validates a task cache file
