@@ -12,6 +12,7 @@ mcollective_choria::server_files:
  - agent/bolt_task.rb
  - agent/choria_util.rb
  - audit/choria.rb
+ - data/bolt_task_data.rb
  - registration/choria.rb
 mcollective_choria::client_files:
  - application/choria.rb
@@ -59,6 +60,7 @@ mcollective_choria::common_files:
  - agent/choria_util.ddl
  - connector/nats.ddl
  - connector/nats.rb
+ - data/bolt_task_data.ddl
  - security/choria.rb
  - util/federation_broker.rb
  - util/federation_broker/base.rb

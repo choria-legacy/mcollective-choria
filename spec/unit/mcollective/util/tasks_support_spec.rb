@@ -23,6 +23,24 @@ module MCollective
         FileUtils.rm_rf("/tmp/tasks-cache-#{$$}")
       end
 
+      describe "#tasks_compatible?" do
+        it "should report compatible only when the wrapper exist and is executable" do
+          ts.stubs(:wrapper_path).returns("/nonexisting/wrapper")
+
+          File.expects(:exist?).with("/nonexisting/wrapper").returns(false)
+          File.expects(:executable?).with("/nonexisting/wrapper").never
+          expect(ts.tasks_compatible?).to be(false)
+
+          File.expects(:exist?).with("/nonexisting/wrapper").returns(true)
+          File.expects(:executable?).with("/nonexisting/wrapper").returns(false)
+          expect(ts.tasks_compatible?).to be(false)
+
+          File.expects(:exist?).with("/nonexisting/wrapper").returns(true)
+          File.expects(:executable?).with("/nonexisting/wrapper").returns(true)
+          expect(ts.tasks_compatible?).to be(true)
+        end
+      end
+
       describe "#task_runtime" do
         it "should support succesfully completed tasks" do
           ts.stubs(:request_spooldir).returns("spec/fixtures/tasks/completed_spool")

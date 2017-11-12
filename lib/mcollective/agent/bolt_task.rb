@@ -4,10 +4,14 @@ require "mcollective/util/tasks_support"
 module MCollective
   module Agent
     class Bolt_task < RPC::Agent
+      activate_when do
+        Util::Choria.new.tasks_support.tasks_compatible?
+      end
+
       action "download" do
         reply[:downloads] = 0
 
-        tasks = Util::Choria.new.tasks_support
+        tasks = support_factory
 
         reply.fail!("Received empty or invalid task file specification", 3) unless request[:files]
 
@@ -23,7 +27,7 @@ module MCollective
       end
 
       action "run_and_wait" do
-        tasks = Util::Choria.new.tasks_support
+        tasks = support_factory
 
         reply[:task_id] = request.uniqid
 
@@ -53,7 +57,7 @@ module MCollective
       end
 
       action "run_no_wait" do
-        tasks = Util::Choria.new.tasks_support
+        tasks = support_factory
 
         reply[:task_id] = request.uniqid
 
@@ -72,7 +76,7 @@ module MCollective
       end
 
       action "task_status" do
-        tasks = Util::Choria.new.tasks_support
+        tasks = support_factory
 
         begin
           status = tasks.task_status(request[:task_id])
@@ -87,24 +91,29 @@ module MCollective
         end
       end
 
-      # Performs an additional authorization and audit line using the task name as action
-      def before_processing_hook(msg, connection)
-        if respond_to?("authorization_hook")
-          original_action = request.action
-          task = request[:task]
+      def support_factory
+        Util::Choria.new.tasks_support
+      end
 
-          begin
-            Log.debug(request)
-            if ["run_and_wait", "run_no_wait"].include?(original_action) && task
-              request.action = task
-              authorization_hook(request)
-              audit_request(request, connection)
+      # Performs an additional authorization and audit using the task name as action
+      def before_processing_hook(msg, connection)
+        original_action = request.action
+        task = request[:task]
+
+        begin
+          if ["run_and_wait", "run_no_wait"].include?(original_action) && task
+            request.action = task
+
+            begin
+              authorization_hook(request) if respond_to?("authorization_hook")
+            rescue
+              raise(RPCAborted, "You are not authorized to run Bolt Task %s" % task)
             end
-          rescue
-            raise(RPCAborted, "You are not authorized to run Bolt Task %s" % task)
-          ensure
-            request.action = original_action
+
+            audit_request(request, connection)
           end
+        ensure
+          request.action = original_action
         end
       end
 
