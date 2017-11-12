@@ -64,10 +64,10 @@ ERROR
             "stderr" => "",
             "exitcode" => 127,
             "runtime" => 0.0,
-            "start_time" => File::Stat.new(File.join(spool, "wrapper_pid")).mtime,
+            "start_time" => Time.at(0),
             "wrapper_spawned" => false,
             "wrapper_error" => err,
-            "wrapper_pid" => 2493,
+            "wrapper_pid" => nil,
             "completed" => true
           )
         end
@@ -120,8 +120,8 @@ ERROR
 
       describe "#run_task_command" do
         it "should spawn the right command and wait" do
+          File.stubs(:exist?).with(ts.wrapper_path).returns(true)
           ts.stubs(:request_spooldir).returns(File.join(cache, "test_1"))
-
           ts.expects(:spawn_command).with(
             "/opt/puppetlabs/puppet/bin/task_wrapper",
             {},
@@ -129,7 +129,7 @@ ERROR
             File.join(cache, "test_1")
           )
 
-          ts.stubs(:task_cached?).returns(true)
+          ts.stubs(:cached?).returns(true)
           ts.expects(:wait_for_task_completion)
           ts.stubs(:task_status)
 
@@ -279,7 +279,7 @@ ERROR
         end
       end
 
-      describe "#task_cached?" do
+      describe "#cached?" do
         before(:each) do
           files = task_fixture["files"]
           files << files[0].dup
@@ -290,14 +290,14 @@ ERROR
           ts.expects(:task_file?).with(has_entries("filename" => "ls.rb")).returns(true)
           ts.expects(:task_file?).with(has_entries("filename" => "file2.rb")).returns(true)
 
-          expect(ts.task_cached?(task_fixture)).to be(true)
+          expect(ts.cached?(task_fixture["files"])).to be(true)
         end
 
         it "should fail on some failed files" do
           ts.expects(:task_file?).with(has_entries("filename" => "ls.rb")).returns(true)
           ts.expects(:task_file?).with(has_entries("filename" => "file2.rb")).returns(false)
 
-          expect(ts.task_cached?(task_fixture)).to be(false)
+          expect(ts.cached?(task_fixture["files"])).to be(false)
         end
       end
 
@@ -364,7 +364,7 @@ ERROR
         end
       end
 
-      describe "#download_task" do
+      describe "#download_files" do
         it "should download every file" do
           files = task_fixture["files"]
           files << files[0].dup
@@ -375,20 +375,20 @@ ERROR
 
           ts.expects(:cache_task_file).never
 
-          expect(ts.download_task(task_fixture)).to be(true)
+          expect(ts.download_files(files)).to be(true)
         end
 
         it "should support retries" do
           ts.expects(:cache_task_file).with(file).raises("test failure").then.returns(true).twice
           ts.expects(:task_file?).with(file).returns(false)
-          expect(ts.download_task(task_fixture)).to be(true)
+          expect(ts.download_files(task_fixture["files"])).to be(true)
         end
 
         it "should attempt twice and fail after" do
           ts.expects(:cache_task_file).with(file).raises("test failure").twice
           ts.stubs(:task_file?).returns(false)
           expect do
-            ts.download_task(task_fixture)
+            ts.download_files(task_fixture["files"])
           end.to raise_error("Could not download task file: RuntimeError: test failure")
         end
       end
@@ -520,8 +520,8 @@ ERROR
       end
 
       describe "#parse_task" do
-        it "should detect invalid tasks" do
-          expect { ts.parse_task("fail") }.to raise_error("Invalid task name fail")
+        it "should detect modulename only tasks" do
+          expect(ts.parse_task("choria")).to eq(["choria", "init"])
         end
 
         it "should parse correctly" do

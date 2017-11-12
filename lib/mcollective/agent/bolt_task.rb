@@ -5,18 +5,20 @@ module MCollective
   module Agent
     class Bolt_task < RPC::Agent
       action "download" do
+        reply[:downloads] = 0
+
         tasks = Util::Choria.new.tasks_support
 
-        meta = tasks.task_metadata(request[:task], request[:environment])
+        reply.fail!("Received empty or invalid task file specification", 3) unless request[:files]
 
-        reply.fail!("Did not receive valid metadata from Puppet Server for task %s" % request[:task]) if meta.empty?
-        reply.fail!("Received different file specification from Puppet than requested") unless meta["files"] == JSON.parse(request[:files])
+        files = JSON.parse(request[:files])
 
-        if tasks.download_task(meta)
-          reply[:downloads] = meta["files"].size
-        else
+        if tasks.cached?(files)
           reply[:downloads] = 0
-          reply.fail!("Could not download task %s files: %s" % [request[:task], $!.to_s])
+        elsif tasks.download_files(files)
+          reply[:downloads] = files.size
+        else
+          reply.fail!("Could not download task %s files: %s" % [request[:task], $!.to_s], 1)
         end
       end
 
@@ -31,6 +33,8 @@ module MCollective
           "input" => request[:input],
           "files" => JSON.parse(request[:files])
         }
+
+        reply.fail!("Task %s is not available or does not match the specification" % task["task"], 3) unless tasks.cached?(task["files"])
 
         status = nil
 
@@ -60,13 +64,22 @@ module MCollective
           "files" => JSON.parse(request[:files])
         }
 
-        tasks.run_task_command(reply[:task_id], task)
+        status = tasks.run_task_command(reply[:task_id], task)
+
+        unless status["wrapper_spawned"]
+          reply.fail!("Could not spawn task %s: %s" % [request[:task], status["wrapper_error"]])
+        end
       end
 
       action "task_status" do
         tasks = Util::Choria.new.tasks_support
 
-        reply_task_status(tasks.task_status(request[:task_id]))
+        status = tasks.task_status(request[:task_id])
+        reply_task_status(status)
+
+        unless status["wrapper_spawned"]
+          reply.fail!("Could not spawn task %s: %s" % [request[:task], status["wrapper_error"]])
+        end
       end
 
       def reply_task_status(status)
@@ -75,7 +88,9 @@ module MCollective
         reply[:stderr] = status["stderr"]
         reply[:completed] = status["completed"]
         reply[:runtime] = status["runtime"]
-        reply[:start_time] = status["start_time"]
+        reply[:start_time] = status["start_time"].to_i
+
+        reply.fail("Task failed", 1) if status["exitcode"] != 0 && status["completed"]
       end
     end
   end
