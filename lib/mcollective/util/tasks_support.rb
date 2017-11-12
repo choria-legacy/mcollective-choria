@@ -12,6 +12,14 @@ module MCollective
         @cache_dir = cache_dir || @choria.get_option("choria.tasks_cache")
       end
 
+      # Determines if a machine is compatible with running bolt
+      #
+      # @note this should check for a compatible version of Puppet more
+      # @return [Boolean]
+      def tasks_compatible?
+        File.exist?(wrapper_path) && File.executable?(wrapper_path)
+      end
+
       # Path to binaries like wrappers etc
       def bin_path
         if Util.windows?
@@ -453,8 +461,7 @@ module MCollective
       # Determines the file size of a specific file
       #
       # @param file_path [String] a full path to the file to check
-      # @return [Integer] bytes
-      # @raise [StandardError] when the file does not exist
+      # @return [Integer] bytes, -1 when the file does not exist
       def file_size(file_path)
         File.stat(file_path).size
       rescue
