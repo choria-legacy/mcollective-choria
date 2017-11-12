@@ -64,11 +64,13 @@ ERROR
             "stderr" => "",
             "exitcode" => 127,
             "runtime" => 0.0,
-            "start_time" => Time.at(0),
             "wrapper_spawned" => false,
             "wrapper_error" => err,
             "wrapper_pid" => nil,
-            "completed" => true
+            "completed" => true,
+            "task" => "choria::ls",
+            "caller" => "choria=rip.mcollective",
+            "start_time" => Time.at(1510496922).utc
           )
         end
 
@@ -85,11 +87,13 @@ ERROR
             "stderr" => "",
             "exitcode" => 127,
             "runtime" => 10,
-            "start_time" => File::Stat.new(File.join(spool, "wrapper_pid")).mtime,
             "wrapper_spawned" => true,
             "wrapper_error" => "",
             "wrapper_pid" => 2493,
-            "completed" => false
+            "completed" => false,
+            "task" => "choria::ls",
+            "caller" => "choria=rip.mcollective",
+            "start_time" => Time.at(1510496922).utc
           )
         end
 
@@ -109,11 +113,13 @@ ERROR
             "stderr" => "",
             "exitcode" => 0,
             "runtime" => 20.0,
-            "start_time" => File::Stat.new(File.join(spool, "wrapper_pid")).mtime,
             "wrapper_spawned" => true,
             "wrapper_error" => "",
             "wrapper_pid" => 2493,
-            "completed" => true
+            "completed" => true,
+            "task" => "choria::ls",
+            "caller" => "choria=rip.mcollective",
+            "start_time" => Time.at(1510496922).utc
           )
         end
       end

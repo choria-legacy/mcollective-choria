@@ -5,10 +5,21 @@ module MCollective
 
       usage <<-USAGE
 
-  mco tasks [--detail]
-  mco tasks <TASK NAME>
-  mco tasks run <TASK NAME> [OPTIONS]
-  mco tasks status <REQUEST> [OPTIONS]
+    mco tasks [--detail]
+    mco tasks <TASK NAME>
+    mco tasks run <TASK NAME> [OPTIONS]
+    mco tasks status <REQUEST> [OPTIONS]
+
+  The Bolt Task Orchestrator is designed to provide a consistent
+  management environment for Bolt Tasks.
+
+  It will download tasks from your Puppet Server onto all nodes
+  and after verifying they were able to correctly download the
+  same task across the entire fleet will run the task.
+
+  Tasks are run in the backgroun, the CLI can wait for up to 60
+  seconds for your task to complete and show the status or you
+  can use the status comment to review a completed task later
       USAGE
 
       option :__environment,
@@ -35,6 +46,12 @@ module MCollective
         self.class.option :__summary,
                           :arguments => ["--summary"],
                           :description => "Only show a overall summary of the task",
+                          :default => false,
+                          :type => :boolean
+
+        self.class.option :__metadata,
+                          :arguments => ["--metadata"],
+                          :description => "Only show task metadata for each node",
                           :default => false,
                           :type => :boolean
       end
@@ -143,11 +160,50 @@ module MCollective
 
         abort("Please specify a task id to display") unless taskid
 
-        unless options[:verbose]
-          puts("Requesting task status for request %s, showing failures only pass --verbose for all output" % Util.colorize(:bold, taskid))
-        end
+        if configuration[:__metadata]
+          unless options[:verbose]
+            puts("Requesting task metadata for request %s" % Util.colorize(:bold, taskid))
+          end
 
-        request_and_report(:task_status, {:task_id => taskid}, taskid)
+          bolt_task.task_status(:task_id => taskid).each do |status|
+            result = status.results
+
+            if [0, 1].include?(result[:statuscode])
+              if result[:data][:exitcode] == 0
+                puts("  %-40s %s" % [result[:sender], Util.colorize(:green, result[:data][:exitcode])])
+              else
+                puts("  %-40s %s" % [result[:sender], Util.colorize(:red, result[:data][:exitcode])])
+              end
+
+              puts("    %s by %s at %s" % [
+                Util.colorize(:bold, result[:data][:task]),
+                result[:data][:callerid],
+                Time.at(result[:data][:start_time]).utc.strftime("%F %T")
+              ])
+
+              puts("    completed: %s runtime: %s stdout: %s stderr: %s" % [
+                result[:data][:completed] ? Util.colorize(:bold, "yes") : Util.colorize(:yellow, "no"),
+                Util.colorize(:bold, "%.2f" % result[:data][:runtime]),
+                result[:data][:stdout].empty? ? Util.colorize(:yellow, "no") : Util.colorize(:bold, "yes"),
+                result[:data][:stderr].empty? ? Util.colorize(:bold, "no") : Util.colorize(:red, "yes")
+              ])
+            elsif result[:statuscode] == 3
+              puts("  %-40s %s" % [result[:sender], Util.colorize(:yellow, "Unknown Task")])
+            else
+              puts("  %-40s %s" % [result[:sender], Util.colorize(:yellow, result[:statusmsg])])
+            end
+
+            puts
+          end
+
+          printrpcstats
+        else
+          unless options[:verbose]
+            puts("Requesting task status for request %s, showing failures only pass --verbose for all output" % Util.colorize(:bold, taskid))
+          end
+
+          request_and_report(:task_status, {:task_id => taskid}, taskid)
+        end
       end
 
       def print_result(result)
@@ -168,7 +224,7 @@ module MCollective
         end
       end
 
-      def request_and_report(action, arguments, taskid=nil)
+      def request_and_report(action, arguments, taskid=nil) # rubocop:disable Metrics/MethodLength
         task_not_known_nodes = 0
         wrapper_failure = 0
         completed_nodes = 0
@@ -179,6 +235,8 @@ module MCollective
         progress = configuration[:__summary] ? RPC::Progress.new : nil
         cnt = 0
         expected = bolt_task.discover.size
+        task_names = []
+        callers = []
 
         puts
 
@@ -196,6 +254,9 @@ module MCollective
             fail_nodes += 1
           end
 
+          task_names << status[:task] if status[:task]
+          callers << status[:callerid] if status[:callerid]
+
           if configuration[:__summary]
             print(progress.twirl(cnt + 1, expected))
           else
@@ -207,8 +268,22 @@ module MCollective
 
         taskid ||= bolt_task.stats.requestid
 
+        callers.compact!
+        callers.uniq!
+        task_names.compact!
+        task_names.uniq!
+
+        if callers.size > 1 || task_names.size > 1
+          puts
+          puts("%s received more than 1 task name or caller name for this task, this should not happen" % Util.colorize(:red, "WARNING"))
+          puts("happen in normal operations and might indicate forged requests were made or cache corruption.")
+          puts
+        end
+
         puts("Summary for task %s" % [Util.colorize(:bold, taskid)])
         puts
+        puts("                       Task Name: %s" % task_names.join(","))
+        puts("                          Caller: %s" % callers.join(","))
         puts("                       Completed: %d" % completed_nodes)
         puts("                         Running: %s" % (running_nodes > 0 ? Util.colorize(:yellow, running_nodes) : running_nodes))
         puts("                    Unknown Task: %s" % Util.colorize(:red, task_not_known_nodes)) if task_not_known_nodes > 0

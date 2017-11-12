@@ -43,7 +43,7 @@ module MCollective
         # near timeout
         begin
           Timeout.timeout(timeout - 2) do
-            status = tasks.run_task_command(reply[:task_id], task)
+            status = tasks.run_task_command(reply[:task_id], task, true, request.caller)
           end
         rescue Timeout::Error
           status = tasks.task_status(reply[:task_id])
@@ -64,7 +64,7 @@ module MCollective
           "files" => JSON.parse(request[:files])
         }
 
-        status = tasks.run_task_command(reply[:task_id], task)
+        status = tasks.run_task_command(reply[:task_id], task, false, request.caller)
 
         unless status["wrapper_spawned"]
           reply.fail!("Could not spawn task %s: %s" % [request[:task], status["wrapper_error"]])
@@ -74,7 +74,12 @@ module MCollective
       action "task_status" do
         tasks = Util::Choria.new.tasks_support
 
-        status = tasks.task_status(request[:task_id])
+        begin
+          status = tasks.task_status(request[:task_id])
+        rescue
+          reply.fail!($!.to_s, 3)
+        end
+
         reply_task_status(status)
 
         unless status["wrapper_spawned"]
@@ -89,6 +94,8 @@ module MCollective
         reply[:completed] = status["completed"]
         reply[:runtime] = status["runtime"]
         reply[:start_time] = status["start_time"].to_i
+        reply[:task] = status["task"]
+        reply[:callerid] = status["caller"]
 
         reply.fail("Task failed", 1) if status["exitcode"] != 0 && status["completed"]
       end

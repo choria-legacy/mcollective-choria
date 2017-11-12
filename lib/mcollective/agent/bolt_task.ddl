@@ -82,6 +82,16 @@ action "run_and_wait", :description => "Runs a Bolt ask that was previously down
          :display_as  => "Task ID",
          :default     => nil
 
+  output :task,
+         :description => "Task name",
+         :display_as  => "Task",
+         :default     => nil
+
+  output :callerid,
+         :description => "User who initiated the task",
+         :display_as  => "User",
+         :default     => nil
+
   output :exitcode,
          :description => "Task exit code",
          :display_as  => "Exit Code",
@@ -113,6 +123,8 @@ action "run_and_wait", :description => "Runs a Bolt ask that was previously down
 
   summarize do
     aggregate average(:runtime)
+    aggregate summary(:task)
+    aggregate summary(:callerid)
     aggregate summary(:exitcode)
     aggregate summary(:completed)
     aggregate summary(:task_id)
@@ -174,6 +186,16 @@ action "task_status", :description => "Request the status of a previously ran ta
         :optional    => false,
         :maxlength   => 32
 
+  output :task,
+         :description => "Task name",
+         :display_as  => "Task",
+         :default     => nil
+
+  output :callerid,
+         :description => "User who initiated the task",
+         :display_as  => "User",
+         :default     => nil
+
   output :exitcode,
          :description => "Task exit code",
          :display_as  => "Exit Code",
@@ -205,6 +227,8 @@ action "task_status", :description => "Request the status of a previously ran ta
 
   summarize do
     aggregate average(:runtime)
+    aggregate summary(:task)
+    aggregate summary(:callerid)
     aggregate summary(:exitcode)
     aggregate summary(:completed)
   end
