@@ -1,25 +1,25 @@
 module MCollective
   class Application
     class Tasks < Application
-      description "Bolt Task Orchestrator"
+      description "Puppet Task Orchestrator"
 
       usage <<-USAGE
 
     mco tasks [--detail]
     mco tasks <TASK NAME>
     mco tasks run <TASK NAME> [OPTIONS]
-    mco tasks status <REQUEST> [OPTIONS]
+    mco tasks status <REQUEST> [FLAGS]
 
-  The Bolt Task Orchestrator is designed to provide a consistent
-  management environment for Bolt Tasks.
+ The Bolt Task Orchestrator is designed to provide a consistent
+ management environment for Bolt Tasks.
 
-  It will download tasks from your Puppet Server onto all nodes
-  and after verifying they were able to correctly download the
-  same task across the entire fleet will run the task.
+ It will download tasks from your Puppet Server onto all nodes
+ and after verifying they were able to correctly download the
+ same task across the entire fleet will run the task.
 
-  Tasks are run in the backgroun, the CLI can wait for up to 60
-  seconds for your task to complete and show the status or you
-  can use the status comment to review a completed task later
+ Tasks are run in the background, the CLI can wait for up to 60
+ seconds for your task to complete and show the status or you
+ can use the status comment to review a completed task later.
       USAGE
 
       option :__environment,
@@ -43,6 +43,18 @@ module MCollective
       end
 
       def status_options
+        application_options[:usage].clear
+
+        self.class.usage <<-USAGE
+
+    mco tasks status <REQUEST> [FLAGS]
+
+ Retrieves the status for a task you previously requested.  It can be running or completed.
+
+ By default only failed exuecutions are shown, use --verbose to see them all.
+
+        USAGE
+
         self.class.option :__summary,
                           :arguments => ["--summary"],
                           :description => "Only show a overall summary of the task",
@@ -57,6 +69,44 @@ module MCollective
       end
 
       def run_options
+        application_options[:usage].clear
+
+        self.class.usage <<-USAGE
+
+    mco tasks run <TASK NAME> [OPTIONS]
+
+ Runs a task in the background and wait up to 50 seconds for it to complete.
+
+ Task inputs are handled using --argument=value for basic String, Numeric and Boolean
+ types, others can be passed using --input
+
+ Input can also be read from a file using "--input @file.json" or "--input @file.yaml".
+
+ For complex data types like Hashes, Arrays or Variants you have to supply input
+ as YAML or JSON.
+
+ Once a task is run the task ID will be displayed which can later be used with
+ the "mco tasks status" command to extract results.
+
+Examples:
+
+    Run myapp::upgrade task in the background and wait for it to complete:
+
+       mco tasks run myapp::upgrade --version 1.0.0
+
+    Run myapp::upgrade task in the background and return immediately:
+
+       mco tasks run myapp::upgrade --version 1.0.0 --background
+
+    Supply complex data input to the task:
+
+       mco tasks run myapp::upgrade --version 1.0.0 --input \\
+          '{"source": {
+            "url": "http://repo/archive-1.0.0.tgz",
+            "hash": "68b329da9893e34099c7d8ad5cb9c940"}}'
+
+        USAGE
+
         self.class.option :__summary,
                           :arguments => ["--summary"],
                           :description => "Only show a overall summary of the task",
@@ -72,13 +122,7 @@ module MCollective
         self.class.option :__json_input,
                           :arguments => ["--input INPUT"],
                           :description => "JSON input to pass to the task",
-                          :required => true,
-                          :type => String
-
-        self.class.option :__json_input,
-                          :arguments => ["--input INPUT"],
-                          :description => "JSON input to pass to the task",
-                          :required => true,
+                          :required => false,
                           :type => String
       end
 
@@ -100,9 +144,10 @@ module MCollective
 
         request = {
           :task => task,
-          :files => meta["files"].to_json,
-          :input => configuration[:__json_input]
+          :files => meta["files"].to_json
         }
+
+        request[:input] = configuration[:__json_input] if configuration[:__json_input]
 
         puts
 
@@ -129,14 +174,20 @@ module MCollective
         original_batch_size = bolt_task.batch_size
         bolt_task.batch_size = 50
 
-        puts("Downloading and verifying %d file(s) from the Puppet Server to all Nodes" % [files.size])
-
         failed = false
 
-        downloads = bolt_task.download(:environment => configuration[:__environment], :task => task, :files => files.to_json)
+        downloads = []
+        cnt = bolt_task.discover.size
+        idx = 0
 
-        downloads.select {|d| d[:statuscode] > 0}.each_with_index do |download, idx|
-          puts if idx == 0
+        bolt_task.download(:environment => configuration[:__environment], :task => task, :files => files.to_json) do |_, s|
+          twirl("Downloading and verifying %d file(s) from the Puppet Server to all nodes:" % [files.size], cnt, idx + 1)
+          idx += 1
+          downloads << s
+        end
+
+        downloads.select {|d| d[:statuscode] > 0}.each_with_index do |download, i|
+          puts if i == 0
           failed = true
           puts("   %s: %s" % [Util.colorize(:red, "Could not download files onto %s" % download[:sender]), download[:statusmsg]])
         end
@@ -208,6 +259,16 @@ module MCollective
 
       def print_result(result)
         status = result[:data]
+        stdout_text = status[:stdout]
+
+        unless options[:verbose]
+          begin
+            stdout_text = JSON.parse(status[:stdout])
+            stdout_text.delete("_error")
+            stdout_text = stdout_text.to_json
+          rescue # rubocop:disable Lint/HandleExceptions
+          end
+        end
 
         if result[:statuscode] != 0
           puts("%-40s %s" % [
@@ -215,11 +276,11 @@ module MCollective
             Util.colorize(:yellow, result[:statusmsg])
           ])
 
-          puts("   %s" % status[:stdout])
+          puts("   %s" % stdout_text)
           puts("   %s" % status[:stderr]) if status[:stderr]
         elsif result[:statuscode] == 0 && options[:verbose]
           puts(result[:sender])
-          puts("   %s" % status[:stdout])
+          puts("   %s" % stdout_text)
           puts("   %s" % status[:stderr]) if status[:stderr]
         end
       end
@@ -309,7 +370,6 @@ module MCollective
         puts "Known tasks in the %s environment" % configuration[:__environment]
         puts
 
-        print("Retrieving tasks....")
         known_tasks = task_list(configuration[:__detail], configuration[:__environment])
 
         print("\r")
@@ -344,12 +404,15 @@ module MCollective
       def task_list(descriptions, environment)
         tasks = {}
 
+        print("Retrieving tasks....")
+
         known_tasks = tasks_support.tasks(environment)
 
-        known_tasks.each do |task|
+        known_tasks.each_with_index do |task, idx|
           description = nil
 
           if descriptions
+            twirl("Retrieving tasks....", known_tasks.size, idx)
             meta = tasks_support.task_metadata(task["name"], environment)
             description = meta["metadata"]["description"]
           end
@@ -374,7 +437,7 @@ module MCollective
         puts("%s - %s" % [Util.colorize(:bold, task), meta["metadata"]["description"]])
         puts
 
-        if meta["metadata"]["parameters"].empty?
+        if meta["metadata"]["parameters"].nil? || meta["metadata"]["parameters"].empty?
           puts("The task takes no parameters or have none defined")
           puts
         else
@@ -393,6 +456,16 @@ module MCollective
 
         puts
         puts("Use 'mco tasks run %s' to run this task" % [task])
+      end
+
+      def twirl(msg, max, current)
+        charset = ["▖", "▘", "▝", "▗"]
+        index = current % charset.size
+        char = charset[index]
+        char = Util.colorize(:green, "✓") if max == current
+
+        format = "\r%s %s  %#{@max.to_s.size}d / %d"
+        print(format % [msg, char, current, max])
       end
 
       def bolt_task
