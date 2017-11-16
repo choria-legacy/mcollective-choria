@@ -9,7 +9,7 @@ module MCollective
 
         tasks = support_factory
 
-        reply.fail!("Received empty or invalid task file specification", 3) unless request[:files]
+        reply.fail!("Received empty or invalid task file specification", 4) unless request[:files]
 
         files = JSON.parse(request[:files])
 
@@ -25,7 +25,11 @@ module MCollective
       action "run_and_wait" do
         tasks = support_factory
 
-        reply.fail!("Cannot execute Bolt tasks as the node is not meed the compatability requirements") unless tasks.tasks_compatible?
+        unless tasks.tasks_compatible?
+          msg = "Cannot execute Bolt tasks as the node is not meed the compatability requirements"
+          reply[:stdout] = make_error(msg, "choria/not_compatible", {}).to_json
+          reply.fail!(msg, 5)
+        end
 
         reply[:task_id] = request.uniqid
 
@@ -36,7 +40,11 @@ module MCollective
           "files" => JSON.parse(request[:files])
         }
 
-        reply.fail!("Task %s is not available or does not match the specification" % task["task"], 3) unless tasks.cached?(task["files"])
+        unless tasks.cached?(task["files"])
+          msg = "Task %s is not available or does not match the specification" % task["task"]
+          reply[:stdout] = make_error(msg, "choria/invalid_cache", {}).to_json
+          reply.fail!(msg, 5)
+        end
 
         status = nil
 
@@ -57,7 +65,11 @@ module MCollective
       action "run_no_wait" do
         tasks = support_factory
 
-        reply.fail!("Cannot execute Bolt tasks as the node is not meed the compatability requirements") unless tasks.tasks_compatible?
+        unless tasks.tasks_compatible?
+          msg = "Cannot execute Bolt tasks as the node is not meed the compatability requirements"
+          reply[:stdout] = make_error(msg, "choria/not_compatible", {}).to_json
+          reply.fail!(msg, 5)
+        end
 
         reply[:task_id] = request.uniqid
 
@@ -71,24 +83,43 @@ module MCollective
         status = tasks.run_task_command(reply[:task_id], task, false, request.caller)
 
         unless status["wrapper_spawned"]
-          reply.fail!("Could not spawn task %s: %s" % [request[:task], status["wrapper_error"]])
+          msg = "Could not spawn task %s: %s" % [request[:task], status["wrapper_error"]]
+          reply[:stdout] = make_error(msg, "choria/wrapper_failed", "error" => status["wrapper_error"]).to_json
+          reply.fail!(msg, 5)
         end
       end
 
       action "task_status" do
         tasks = support_factory
 
+        unless tasks.task_ran?(request[:task_id])
+          msg = "Task %s have not been run" % request[:task_id]
+          reply[:stdout] = make_error(msg, "choria/unknown_task", "taskid" => request[:task_id]).to_json
+          reply.fail!(msg, 3)
+        end
+
         begin
           status = tasks.task_status(request[:task_id])
         rescue
-          reply.fail!($!.to_s, 3)
+          reply[:stdout] = make_error($!.to_s, "choria/status_failed", "taskid" => request[:task_id]).to_json
+          reply.fail!($!.to_s, 5)
         end
 
         reply_task_status(status)
 
-        unless status["wrapper_spawned"]
+        if reply.statuscode == 0 && !status["wrapper_spawned"]
           reply.fail!("Could not spawn task %s: %s" % [request[:task], status["wrapper_error"]])
         end
+      end
+
+      def make_error(msg, kind, detail)
+        {
+          "_error" => {
+            "msg" => msg,
+            "kind" => kind,
+            "details" => detail
+          }
+        }
       end
 
       def support_factory
