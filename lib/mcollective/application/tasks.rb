@@ -126,9 +126,28 @@ Examples:
                           :type => String
       end
 
+      def task_input
+        return nil unless configuration[:__json_input]
+
+        input = configuration[:__json_input]
+
+        return input unless input.start_with?("@")
+
+        input.sub!("@", "")
+
+        return File.read(input) if input.end_with?("json")
+        return YAML.safe_load(File.read(input)).to_json if input.end_with?("yaml")
+
+        abort("Could not parse input from --input as YAML or JSON")
+      end
+
       def run_command
         task = ARGV.shift
+
         abort("Please specify a task to run") unless task
+
+        # here to test it early and fail fast
+        input = task_input
 
         puts("Attempting to download and run task %s on %d nodes" % [Util.colorize(:bold, task), bolt_task.discover.size])
         puts
@@ -144,10 +163,9 @@ Examples:
 
         request = {
           :task => task,
-          :files => meta["files"].to_json
+          :files => meta["files"].to_json,
+          :input => input
         }
-
-        request[:input] = configuration[:__json_input] if configuration[:__json_input]
 
         puts
 
