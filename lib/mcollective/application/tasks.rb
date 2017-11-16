@@ -259,13 +259,14 @@ Examples:
 
       def print_result(result)
         status = result[:data]
-        stdout_text = status[:stdout]
+        stdout_text = status[:stdout] || ""
 
         unless options[:verbose]
           begin
             stdout_text = JSON.parse(status[:stdout])
             stdout_text.delete("_error")
             stdout_text = stdout_text.to_json
+            stdout_text = nil if stdout_text == "{}"
           rescue # rubocop:disable Lint/HandleExceptions
           end
         end
@@ -276,12 +277,14 @@ Examples:
             Util.colorize(:yellow, result[:statusmsg])
           ])
 
-          puts("   %s" % stdout_text)
-          puts("   %s" % status[:stderr]) if status[:stderr]
+          puts("   %s" % stdout_text) if stdout_text
+          puts("   %s" % status[:stderr]) unless ["", nil].include?(status[:stderr])
+          puts
         elsif result[:statuscode] == 0 && options[:verbose]
           puts(result[:sender])
-          puts("   %s" % stdout_text)
-          puts("   %s" % status[:stderr]) if status[:stderr]
+          puts("   %s" % stdout_text) if stdout_text
+          puts("   %s" % status[:stderr]) unless ["", nil].include?(status[:stderr])
+          puts
         end
       end
 
@@ -301,17 +304,20 @@ Examples:
 
         puts
 
-        bolt_task.send(action, arguments) do |_, s|
-          status = s[:data]
+        bolt_task.send(action, arguments) do |_, reply|
+          status = reply[:data]
 
-          if status[:exitcode] == 3
+          if reply[:statuscode] == 3
+            fail_nodes += 1
             task_not_known_nodes += 1
           elsif status[:exitcode] == 0
             status[:completed] ? completed_nodes += 1 : running_nodes += 1
             runtime += status[:runtime]
-            status[:exitcode] == 0 ? success_nodes += 1 : fail_nodes += 1
-          else
+            reply[:statuscode] == 0 ? success_nodes += 1 : fail_nodes += 1
+          elsif reply[:statuscode] == 5
             wrapper_failure += 1
+            fail_nodes += 1
+          else
             fail_nodes += 1
           end
 
@@ -321,7 +327,7 @@ Examples:
           if configuration[:__summary]
             print(progress.twirl(cnt + 1, expected))
           else
-            print_result(s)
+            print_result(reply)
           end
 
           cnt += 1
@@ -345,12 +351,12 @@ Examples:
         puts
         puts("                       Task Name: %s" % task_names.join(","))
         puts("                          Caller: %s" % callers.join(","))
-        puts("                       Completed: %d" % completed_nodes)
-        puts("                         Running: %s" % (running_nodes > 0 ? Util.colorize(:yellow, running_nodes) : running_nodes))
+        puts("                       Completed: %s" % (completed_nodes > 0 ? Util.colorize(:green, completed_nodes) : Util.colorize(:yellow, completed_nodes)))
+        puts("                         Running: %s" % (running_nodes > 0 ? Util.colorize(:yellow, running_nodes) : Util.colorize(:green, running_nodes)))
         puts("                    Unknown Task: %s" % Util.colorize(:red, task_not_known_nodes)) if task_not_known_nodes > 0
         puts("                 Wrapper Failure: %s" % Util.colorize(:red, wrapper_failure)) if wrapper_failure > 0
         puts
-        puts("                      Successful: %d" % success_nodes)
+        puts("                      Successful: %s" % (success_nodes > 0 ? Util.colorize(:green, success_nodes) : Util.colorize(:red, success_nodes)))
         puts("                          Failed: %s" % (fail_nodes > 0 ? Util.colorize(:red, fail_nodes) : fail_nodes))
         puts
         puts("                Average Run Time: %.2fs" % [runtime / (running_nodes + completed_nodes)])
