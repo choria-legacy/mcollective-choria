@@ -23,6 +23,69 @@ module MCollective
         FileUtils.rm_rf("/tmp/tasks-cache-#{$$}")
       end
 
+      describe "#create_task_stdout" do
+        it "should handle wrapper failures" do
+          expect(JSON.parse(ts.create_task_stdout("", true, 127, "wrapper failed"))).to eq(
+            "_error" => {
+              "kind" => "choria.tasks/wrapper-error",
+              "msg" => "The task wrapper failed to run",
+              "details" => {
+                "wrapper_output" => "wrapper failed"
+              }
+            }
+          )
+        end
+
+        it "should encode stdout correctly" do
+          expect(ts.create_task_stdout("non json out", true, 0, "")).to eq("_output" => "non json out")
+          expect(ts.create_task_stdout({"json" => "out"}.to_json, true, 0, "")).to eq("json" => "out")
+        end
+
+        it "should handle exitcode > 0" do
+          expect(ts.create_task_stdout("non json out", true, 1, "")).to eq(
+            "_output" => "non json out",
+            "_error" => {
+              "kind" => "choria.tasks/task-error",
+              "msg" => "The task errored with a code 1",
+              "details" => {
+                "exitcode" => 1
+              }
+            }
+          )
+
+          expect(ts.create_task_stdout({"json" => "out"}.to_json, true, 1, "")).to eq(
+            "json" => "out",
+            "_error" => {
+              "kind" => "choria.tasks/task-error",
+              "msg" => "The task errored with a code 1",
+              "details" => {
+                "exitcode" => 1
+              }
+            }
+          )
+        end
+
+        it "should handle >0 exitcode with an _error" do
+          err = {
+            "_error" => {
+              "msg" => "rspec error",
+              "kind" => "rspec/error",
+              "details" => {"exitcode" => 1}
+            }
+          }
+
+          expect(ts.create_task_stdout(err.to_json, true, 1, "")).to eq(
+            "_error" => {
+              "kind" => "rspec/error",
+              "msg" => "rspec error",
+              "details" => {
+                "exitcode" => 1
+              }
+            }
+          )
+        end
+      end
+
       describe "#tasks_compatible?" do
         it "should report compatible only when the wrapper exist and is executable" do
           ts.stubs(:wrapper_path).returns("/nonexisting/wrapper")
@@ -78,7 +141,7 @@ ERROR
 
           expect(status).to eq(
             "spool" => spool,
-            "stdout" => "",
+            "stdout" => ts.create_task_stdout("", true, 127, err),
             "stderr" => "",
             "exitcode" => 127,
             "runtime" => 0.0,
@@ -99,9 +162,11 @@ ERROR
 
           status = ts.task_status("test1")
 
+          stdout = ts.create_task_stdout(File.read(File.join(spool, "stdout")), false, 127, "")
+
           expect(status).to eq(
             "spool" => spool,
-            "stdout" => File.read(File.join(spool, "stdout")),
+            "stdout" => stdout,
             "stderr" => "",
             "exitcode" => 127,
             "runtime" => 10,
@@ -124,10 +189,11 @@ ERROR
           FileUtils.touch(File.join(spool, "exitcode"), :mtime => t - 40)
 
           status = ts.task_status("test1")
+          stdout = ts.create_task_stdout(File.read(File.join(spool, "stdout")), true, 0, "")
 
           expect(status).to eq(
             "spool" => spool,
-            "stdout" => File.read(File.join(spool, "stdout")),
+            "stdout" => stdout,
             "stderr" => "",
             "exitcode" => 0,
             "runtime" => 20.0,

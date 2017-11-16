@@ -117,6 +117,7 @@ module MCollective
       def task_environment(task)
         environment = {}
 
+        return environment unless task["input"]
         return environment unless ["both", "environment"].include?(task_input_method(task))
 
         JSON.parse(task["input"]).each do |k, v|
@@ -305,6 +306,71 @@ module MCollective
         end
       end
 
+      # Parses the stdout and turns it into a JSON object
+      #
+      # If the output is JSON parsable the output is returned else
+      # it's wrapped in _output as per the Tasks spec version 1
+      #
+      # @note https://github.com/puppetlabs/puppet-specifications/blob/730a2aa23e58b93387d194dbac64af508bdeab01/tasks/README.md#output-handling
+      # @param stdout [String] the stdout from the script
+      # @param completed [Boolean] if the task is done running
+      # @param exitcode [Integer] the exitcode from the script
+      # @param wrapper_output [String] the wrapper output
+      # @return [Object] the new stdout according to spec and the stdout object, not JSON encoded
+      def create_task_stdout(stdout, completed, exitcode, wrapper_output)
+        result = {}
+
+        unless wrapper_output.empty?
+          result["_error"] = {
+            "kind" => "choria.tasks/wrapper-error",
+            "msg" => "The task wrapper failed to run",
+            "details" => {
+              "wrapper_output" => wrapper_output
+            }
+          }
+
+          return result.to_json
+        end
+
+        begin
+          data = JSON.parse(stdout)
+
+          if data.is_a?(Hash)
+            result = data
+          else
+            result["_output"] = stdout
+          end
+        rescue
+          result["_output"] = stdout
+        end
+
+        if exitcode != 0 && completed && !result["_error"]
+          result["_error"] = {
+            "kind" => "choria.tasks/task-error",
+            "msg" => "The task errored with a code %d" % exitcode,
+            "details" => {
+              "exitcode" => exitcode
+            }
+          }
+        end
+
+        result
+      end
+
+      # Determines if a task failed based on its status
+      #
+      # @param status [Hash] the status as produced by {#task_status}
+      # @return [Boolean]
+      def task_failed?(status)
+        return true unless status["wrapper_spawned"]
+        return true unless status["wrapper_pid"]
+        return true unless status["wrapper_error"].empty?
+        return true if status["exitcode"] != 0 && status["completed"]
+        return true if status["stdout"].include?("_error")
+
+        false
+      end
+
       # Determines the task status for given request
       #
       # @param requestid [String] request id for the task
@@ -359,6 +425,13 @@ module MCollective
           result["caller"] = choria_metadata["caller"]
           result["task"] = choria_metadata["task"]
         end
+
+        result["stdout"] = create_task_stdout(
+          result["stdout"],
+          result["completed"],
+          result["exitcode"],
+          result["wrapper_error"]
+        )
 
         result
       end

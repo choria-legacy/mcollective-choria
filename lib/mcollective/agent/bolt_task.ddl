@@ -73,7 +73,7 @@ action "run_and_wait", :description => "Runs a Bolt ask that was previously down
         :description => "JSON String containing input variables",
         :type        => :string,
         :validation  => '^.+$',
-        :optional    => true,
+        :optional    => false,
         :default     => "{}",
         :maxlength   => 102400
 

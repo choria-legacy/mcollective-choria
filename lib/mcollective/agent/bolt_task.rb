@@ -4,10 +4,6 @@ require "mcollective/util/tasks_support"
 module MCollective
   module Agent
     class Bolt_task < RPC::Agent
-      activate_when do
-        Util::Choria.new.tasks_support.tasks_compatible?
-      end
-
       action "download" do
         reply[:downloads] = 0
 
@@ -28,6 +24,8 @@ module MCollective
 
       action "run_and_wait" do
         tasks = support_factory
+
+        reply.fail!("Cannot execute Bolt tasks as the node is not meed the compatability requirements") unless tasks.tasks_compatible?
 
         reply[:task_id] = request.uniqid
 
@@ -58,6 +56,8 @@ module MCollective
 
       action "run_no_wait" do
         tasks = support_factory
+
+        reply.fail!("Cannot execute Bolt tasks as the node is not meed the compatability requirements") unless tasks.tasks_compatible?
 
         reply[:task_id] = request.uniqid
 
@@ -119,7 +119,7 @@ module MCollective
 
       def reply_task_status(status)
         reply[:exitcode] = status["exitcode"]
-        reply[:stdout] = status["stdout"]
+        reply[:stdout] = status["stdout"].to_json
         reply[:stderr] = status["stderr"]
         reply[:completed] = status["completed"]
         reply[:runtime] = status["runtime"]
@@ -127,7 +127,11 @@ module MCollective
         reply[:task] = status["task"]
         reply[:callerid] = status["caller"]
 
-        reply.fail("Task failed", 1) if status["exitcode"] != 0 && status["completed"]
+        if status["stdout"]["_error"]
+          reply.fail("%s: %s" % [status["stdout"]["_error"]["kind"], status["stdout"]["_error"]["msg"]])
+        elsif support_factory.task_failed?(status)
+          reply.fail("Task failed without any error details", 1)
+        end
       end
     end
   end
