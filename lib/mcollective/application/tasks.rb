@@ -22,12 +22,6 @@ module MCollective
  can use the status comment to review a completed task later.
       USAGE
 
-      option :__environment,
-             :arguments => ["--environment"],
-             :description => "Environment to retrieve tasks from",
-             :default => "production",
-             :type => String
-
       exclude_argument_sections "common", "rpc"
 
       def post_option_parser(configuration)
@@ -40,6 +34,12 @@ module MCollective
                           :description => "Show command descriptions",
                           :default => false,
                           :type => :boolean
+
+        self.class.option :__environment,
+                          :arguments => ["--environment"],
+                          :description => "Environment to retrieve tasks from",
+                          :default => "production",
+                          :type => String
       end
 
       def status_options
@@ -66,6 +66,12 @@ module MCollective
                           :description => "Only show task metadata for each node",
                           :default => false,
                           :type => :boolean
+
+        self.class.option :__environment,
+                          :arguments => ["--environment"],
+                          :description => "Environment to retrieve tasks from",
+                          :default => "production",
+                          :type => String
       end
 
       def run_options
@@ -100,12 +106,23 @@ Examples:
 
     Supply complex data input to the task:
 
+       Should input be given on both the CLI arguments and a file
+       the CLI arguments will override the file
+
+       mco tasks run myapp::upgrade --input @input.json
+       mco tasks run myapp::upgrade --input @input.yaml
        mco tasks run myapp::upgrade --version 1.0.0 --input \\
           '{"source": {
             "url": "http://repo/archive-1.0.0.tgz",
             "hash": "68b329da9893e34099c7d8ad5cb9c940"}}'
 
         USAGE
+
+        task = ARGV[1]
+
+        abort("Please specify a task to run") unless task
+
+        create_task_options(task, extract_environment_from_argv)
 
         self.class.option :__summary,
                           :arguments => ["--summary"],
@@ -124,27 +141,16 @@ Examples:
                           :description => "JSON input to pass to the task",
                           :required => false,
                           :type => String
-      end
 
-      def task_input
-        return nil unless configuration[:__json_input]
-
-        input = configuration[:__json_input]
-
-        return input unless input.start_with?("@")
-
-        input.sub!("@", "")
-
-        return File.read(input) if input.end_with?("json")
-        return YAML.safe_load(File.read(input)).to_json if input.end_with?("yaml")
-
-        abort("Could not parse input from --input as YAML or JSON")
+        self.class.option :__environment,
+                          :arguments => ["--environment"],
+                          :description => "Environment to retrieve tasks from",
+                          :default => "production",
+                          :type => String
       end
 
       def run_command
         task = ARGV.shift
-
-        abort("Please specify a task to run") unless task
 
         # here to test it early and fail fast
         input = task_input
@@ -154,7 +160,7 @@ Examples:
         puts("Retrieving task metadata for task %s from the Puppet Server" % task)
 
         begin
-          meta = tasks_support.task_metadata(task, configuration[:__environment])
+          meta = task_metadata(task, configuration[:__environment])
         rescue
           abort($!.to_s)
         end
@@ -163,11 +169,10 @@ Examples:
 
         request = {
           :task => task,
-          :files => meta["files"].to_json,
-          :input => input
+          :files => meta["files"].to_json
         }
 
-        puts
+        request[:input] = input if input
 
         if configuration[:__background]
           puts("Starting task %s in the background" % [Util.colorize(:bold, task)])
@@ -437,7 +442,7 @@ Examples:
 
           if descriptions
             twirl("Retrieving tasks....", known_tasks.size, idx)
-            meta = tasks_support.task_metadata(task["name"], environment)
+            meta = task_metadata(task["name"], environment)
             description = meta["metadata"]["description"]
           end
 
@@ -451,7 +456,7 @@ Examples:
         puts("Retrieving task metadata for task %s from the Puppet Server" % task)
 
         begin
-          meta = tasks_support.task_metadata(task, configuration[:__environment])
+          meta = task_metadata(task, configuration[:__environment])
         rescue
           abort($!.to_s)
         end
@@ -482,6 +487,38 @@ Examples:
         puts("Use 'mco tasks run %s' to run this task" % [task])
       end
 
+      # Converts a Puppet type into something mcollective understands
+      #
+      # This is inevitably hacky by its nature, there is no way for me to
+      # parse the types.  PAL might get some helpers for this but till then
+      # this is going to have to be best efforts.
+      #
+      # When there is a too complex situation users can always put in --input
+      # and some JSON to work around it until something better comes around
+      #
+      # @param type [String] a puppet type
+      def puppet_type_to_ruby(type)
+        array = false
+        required = true
+
+        if type =~ /Optional\[(.+)/
+          type = $1
+          required = false
+        end
+
+        if type =~ /Array\[(.+)/
+          type = $1
+          array = true
+        end
+
+        return [Numeric, array, required] if type =~ /Integer/
+        return [Numeric, array, required] if type =~ /Float/
+        return [Hash, array, required] if type =~ /Hash/
+        return [:boolean, array, required] if type =~ /Boolean/
+
+        [String, array, required]
+      end
+
       def twirl(msg, max, current)
         charset = ["▖", "▘", "▝", "▗"]
         index = current % charset.size
@@ -494,6 +531,67 @@ Examples:
 
       def bolt_task
         @__bolt_task ||= rpcclient("bolt_task")
+      end
+
+      def extract_environment_from_argv
+        idx = ARGV.index("--environment")
+
+        return "production" unless idx
+
+        ARGV[idx + 1]
+      end
+
+      def create_task_options(task, environment)
+        meta = task_metadata(task, environment)
+
+        return if meta["metadata"]["parameters"].nil? || meta["metadata"]["parameters"].empty?
+
+        meta["metadata"]["parameters"].sort_by {|n, _| n}.each do |name, details|
+          type, array, required = puppet_type_to_ruby(details["type"])
+          description = "%s (%s)" % [details["description"], details["type"]]
+
+          properties = {
+            :description => description,
+            :arguments => ["--%s %s" % [name.downcase, name.upcase]],
+            :type => array ? :array : type,
+            :required => required
+          }
+
+          properties[:arguments] = ["--%s" % name.downcase] if type == :boolean
+
+          self.class.option(name.intern, properties)
+        end
+      end
+
+      def task_input
+        result = {}
+
+        input = configuration[:__json_input]
+
+        if input
+          input.sub!("@", "")
+          result = File.read(input) if input.end_with?("json")
+          result = YAML.safe_load(File.read(input)).to_json if input.end_with?("yaml")
+        end
+
+        configuration.each do |item, value|
+          next if item.to_s.start_with?("__")
+          result[item.to_s] = value
+        end
+
+        return result.to_json unless result.empty?
+
+        abort("Could not parse input from --input as YAML or JSON")
+
+        nil
+      end
+
+      def task_metadata(task, environment)
+        @__metadata ||= {}
+
+        return @__metadata[task] if @__metadata[task]
+
+        @__metadata[task] = tasks_support.task_metadata(task, environment)
       end
 
       def valid_commands
