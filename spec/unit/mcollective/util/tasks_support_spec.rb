@@ -23,6 +23,33 @@ module MCollective
         FileUtils.rm_rf("/tmp/tasks-cache-#{$$}")
       end
 
+      describe "#puppet_type_to_ruby" do
+        it "should handle arrays" do
+          expect(ts.puppet_type_to_ruby("Array[Integer]")).to eq([Numeric, true, true])
+          expect(ts.puppet_type_to_ruby("Optional[Array[Integer]]")).to eq([Numeric, true, false])
+        end
+
+        it "should handle Integers" do
+          expect(ts.puppet_type_to_ruby("Integer")).to eq([Numeric, false, true])
+          expect(ts.puppet_type_to_ruby("Optional[Integer]")).to eq([Numeric, false, false])
+        end
+
+        it "should handle Floats" do
+          expect(ts.puppet_type_to_ruby("Float")).to eq([Numeric, false, true])
+          expect(ts.puppet_type_to_ruby("Optional[Float]")).to eq([Numeric, false, false])
+        end
+
+        it "should handle Hashes" do
+          expect(ts.puppet_type_to_ruby("Hash")).to eq([Hash, false, true])
+          expect(ts.puppet_type_to_ruby("Optional[Hash]")).to eq([Hash, false, false])
+        end
+
+        it "should handle Enums" do
+          expect(ts.puppet_type_to_ruby("Enum[foo, bar]")).to eq([String, false, true])
+          expect(ts.puppet_type_to_ruby("Optional[Enum[foo, bar]]")).to eq([String, false, false])
+        end
+      end
+
       describe "#create_task_stdout" do
         it "should handle wrapper failures" do
           expect(JSON.parse(ts.create_task_stdout("", true, 127, "wrapper failed"))).to eq(

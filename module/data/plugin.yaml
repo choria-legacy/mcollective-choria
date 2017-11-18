@@ -70,5 +70,8 @@ mcollective_choria::common_files:
  - util/choria.rb
  - util/natswrapper.rb
  - util/tasks_support.rb
+ - util/tasks_support/cli.rb
+ - util/tasks_support/default_formatter.rb
+ - util/tasks_support/json_formatter.rb
  - validator/bolt_task_name_validator.rb
  - validator/bolt_task_name_validator.ddl
