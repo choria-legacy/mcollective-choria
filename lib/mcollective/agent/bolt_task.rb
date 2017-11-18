@@ -105,11 +105,20 @@ module MCollective
           reply.fail!($!.to_s, 5)
         end
 
+        if caller_only_status? && request.caller != status["caller"]
+          reply[:stdout] = make_error($!.to_s, "choria/not_own_request", "taskid" => request[:task_id]).to_json
+          reply.fail!($!.to_s, 5)
+        end
+
         reply_task_status(status)
 
         if reply.statuscode == 0 && !status["wrapper_spawned"]
           reply.fail!("Could not spawn task %s: %s" % [request[:task], status["wrapper_error"]])
         end
+      end
+
+      def caller_only_status?
+        Util.str_to_bool(@config.pluginconf.fetch("choria.tasks.own_status_only", "true"))
       end
 
       def make_error(msg, kind, detail)
