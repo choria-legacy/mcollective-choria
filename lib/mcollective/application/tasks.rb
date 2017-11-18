@@ -72,6 +72,12 @@ module MCollective
                           :description => "Environment to retrieve tasks from",
                           :default => "production",
                           :type => String
+
+        self.class.option :__json_format,
+                          :arguments => ["--json"],
+                          :description => "Display results in JSON format",
+                          :default => false,
+                          :type => :boolean
       end
 
       def run_options
@@ -122,7 +128,7 @@ Examples:
 
         abort("Please specify a task to run") unless task
 
-        create_task_options(task, extract_environment_from_argv)
+        cli.create_task_options(task, environment, self)
 
         self.class.option :__summary,
                           :arguments => ["--summary"],
@@ -149,18 +155,21 @@ Examples:
                           :type => String
       end
 
+      def say(msg="")
+        puts(msg) unless configuration[:__json_format]
+      end
+
       def run_command
         task = ARGV.shift
 
-        # here to test it early and fail fast
-        input = task_input
+        input = cli.task_input(configuration)
 
-        puts("Attempting to download and run task %s on %d nodes" % [Util.colorize(:bold, task), bolt_task.discover.size])
-        puts
-        puts("Retrieving task metadata for task %s from the Puppet Server" % task)
+        say("Attempting to download and run task %s on %d nodes" % [Util.colorize(:bold, task), bolt_task.discover.size])
+        say
+        say("Retrieving task metadata for task %s from the Puppet Server" % task)
 
         begin
-          meta = task_metadata(task, configuration[:__environment])
+          meta = cli.task_metadata(task, configuration[:__environment])
         rescue
           abort($!.to_s)
         end
@@ -172,7 +181,7 @@ Examples:
           :files => meta["files"].to_json
         }
 
-        request[:input] = input if input
+        request[:input] = input.to_json if input
 
         if configuration[:__background]
           puts("Starting task %s in the background" % [Util.colorize(:bold, task)])
@@ -184,7 +193,7 @@ Examples:
             puts("Request detailed status for the task using 'mco tasks status %s'" % [Util.colorize(:bold, bolt_task.stats.requestid)])
           end
         else
-          puts("Running task %s and waiting up to %s seconds for it to complete" % [
+          say("Running task %s and waiting up to %s seconds for it to complete" % [
             Util.colorize(:bold, task),
             Util.colorize(:bold, bolt_task.ddl.meta[:timeout])
           ])
@@ -204,14 +213,14 @@ Examples:
         idx = 0
 
         bolt_task.download(:environment => configuration[:__environment], :task => task, :files => files.to_json) do |_, s|
-          twirl("Downloading and verifying %d file(s) from the Puppet Server to all nodes:" % [files.size], cnt, idx + 1)
+          print(cli.twirl("Downloading and verifying %d file(s) from the Puppet Server to all nodes:" % [files.size], cnt, idx + 1)) unless configuration[:__json_format]
           idx += 1
           downloads << s
         end
 
         downloads.select {|d| d[:statuscode] > 0}.each_with_index do |download, i|
-          puts if i == 0
           failed = true
+          puts if i == 0
           puts("   %s: %s" % [Util.colorize(:red, "Could not download files onto %s" % download[:sender]), download[:statusmsg]])
         end
 
@@ -236,78 +245,20 @@ Examples:
 
         if configuration[:__metadata]
           unless options[:verbose]
-            puts("Requesting task metadata for request %s" % Util.colorize(:bold, taskid))
+            say("Requesting task metadata for request %s" % Util.colorize(:bold, taskid))
           end
 
           bolt_task.task_status(:task_id => taskid).each do |status|
-            result = status.results
-
-            if [0, 1].include?(result[:statuscode])
-              if result[:data][:exitcode] == 0
-                puts("  %-40s %s" % [result[:sender], Util.colorize(:green, result[:data][:exitcode])])
-              else
-                puts("  %-40s %s" % [result[:sender], Util.colorize(:red, result[:data][:exitcode])])
-              end
-
-              puts("    %s by %s at %s" % [
-                Util.colorize(:bold, result[:data][:task]),
-                result[:data][:callerid],
-                Time.at(result[:data][:start_time]).utc.strftime("%F %T")
-              ])
-
-              puts("    completed: %s runtime: %s stdout: %s stderr: %s" % [
-                result[:data][:completed] ? Util.colorize(:bold, "yes") : Util.colorize(:yellow, "no"),
-                Util.colorize(:bold, "%.2f" % result[:data][:runtime]),
-                result[:data][:stdout].empty? ? Util.colorize(:yellow, "no") : Util.colorize(:bold, "yes"),
-                result[:data][:stderr].empty? ? Util.colorize(:bold, "no") : Util.colorize(:red, "yes")
-              ])
-            elsif result[:statuscode] == 3
-              puts("  %-40s %s" % [result[:sender], Util.colorize(:yellow, "Unknown Task")])
-            else
-              puts("  %-40s %s" % [result[:sender], Util.colorize(:yellow, result[:statusmsg])])
-            end
-
-            puts
+            cli.print_result_metadata(status)
           end
 
-          printrpcstats
+          cli.print_rpc_stats(bolt_task.stats)
         else
           unless options[:verbose]
-            puts("Requesting task status for request %s, showing failures only pass --verbose for all output" % Util.colorize(:bold, taskid))
+            say("Requesting task status for request %s, showing failures only pass --verbose for all output" % Util.colorize(:bold, taskid))
           end
 
           request_and_report(:task_status, {:task_id => taskid}, taskid)
-        end
-      end
-
-      def print_result(result)
-        status = result[:data]
-        stdout_text = status[:stdout] || ""
-
-        unless options[:verbose]
-          begin
-            stdout_text = JSON.parse(status[:stdout])
-            stdout_text.delete("_error")
-            stdout_text = stdout_text.to_json
-            stdout_text = nil if stdout_text == "{}"
-          rescue # rubocop:disable Lint/HandleExceptions
-          end
-        end
-
-        if result[:statuscode] != 0
-          puts("%-40s %s" % [
-            Util.colorize(:red, result[:sender]),
-            Util.colorize(:yellow, result[:statusmsg])
-          ])
-
-          puts("   %s" % stdout_text) if stdout_text
-          puts("   %s" % status[:stderr]) unless ["", nil].include?(status[:stderr])
-          puts
-        elsif result[:statuscode] == 0 && options[:verbose]
-          puts(result[:sender])
-          puts("   %s" % stdout_text) if stdout_text
-          puts("   %s" % status[:stderr]) unless ["", nil].include?(status[:stderr])
-          puts
         end
       end
 
@@ -325,7 +276,7 @@ Examples:
         task_names = []
         callers = []
 
-        puts
+        say
 
         bolt_task.send(action, arguments) do |_, reply|
           status = reply[:data]
@@ -350,7 +301,7 @@ Examples:
           if configuration[:__summary]
             print(progress.twirl(cnt + 1, expected))
           else
-            print_result(reply)
+            cli.print_result(reply)
           end
 
           cnt += 1
@@ -363,62 +314,23 @@ Examples:
         task_names.compact!
         task_names.uniq!
 
-        if callers.size > 1 || task_names.size > 1
-          puts
-          puts("%s received more than 1 task name or caller name for this task, this should not happen" % Util.colorize(:red, "WARNING"))
-          puts("happen in normal operations and might indicate forged requests were made or cache corruption.")
-          puts
-        end
-
-        puts("Summary for task %s" % [Util.colorize(:bold, taskid)])
-        puts
-        puts("                       Task Name: %s" % task_names.join(","))
-        puts("                          Caller: %s" % callers.join(","))
-        puts("                       Completed: %s" % (completed_nodes > 0 ? Util.colorize(:green, completed_nodes) : Util.colorize(:yellow, completed_nodes)))
-        puts("                         Running: %s" % (running_nodes > 0 ? Util.colorize(:yellow, running_nodes) : Util.colorize(:green, running_nodes)))
-        puts("                    Unknown Task: %s" % Util.colorize(:red, task_not_known_nodes)) if task_not_known_nodes > 0
-        puts("                 Wrapper Failure: %s" % Util.colorize(:red, wrapper_failure)) if wrapper_failure > 0
-        puts
-        puts("                      Successful: %s" % (success_nodes > 0 ? Util.colorize(:green, success_nodes) : Util.colorize(:red, success_nodes)))
-        puts("                          Failed: %s" % (fail_nodes > 0 ? Util.colorize(:red, fail_nodes) : fail_nodes))
-        puts
-        puts("                Average Run Time: %.2fs" % [runtime / (running_nodes + completed_nodes)])
-
-        if bolt_task.stats.noresponsefrom.empty?
-          puts
-          puts bolt_task.stats.no_response_report
-        end
-
-        if running_nodes > 0
-          puts
-          puts("%s nodes are still running, use 'mco tasks status %s' to check on them later" % [Util.colorize(:bold, running_nodes), taskid])
-        end
+        cli.print_task_summary(
+          taskid,
+          task_names,
+          callers,
+          completed_nodes,
+          running_nodes,
+          task_not_known_nodes,
+          wrapper_failure,
+          success_nodes,
+          fail_nodes,
+          runtime,
+          bolt_task.stats
+        )
       end
 
       def list_command
-        puts "Known tasks in the %s environment" % configuration[:__environment]
-        puts
-
-        known_tasks = task_list(configuration[:__detail], configuration[:__environment])
-
-        print("\r")
-
-        if configuration[:__detail]
-          known_tasks.each do |name, description|
-            puts "  %-20s %s" % [name, description]
-          end
-
-          puts
-          puts("Use mco task <TASK> to see task help")
-        else
-          known_tasks.keys.in_groups_of(3) do |tasks|
-            puts "  %s" % tasks.compact.map {|t| "%-20s" % t }.join(" ")
-          end
-
-          puts
-          puts("Use mco task <TASK> to see task help")
-          puts("Specify --detail to see task descriptions")
-        end
+        cli.show_task_list(configuration[:__environment], configuration[:__detail])
       end
 
       def run
@@ -430,103 +342,8 @@ Examples:
         super
       end
 
-      def task_list(descriptions, environment)
-        tasks = {}
-
-        print("Retrieving tasks....")
-
-        known_tasks = tasks_support.tasks(environment)
-
-        known_tasks.each_with_index do |task, idx|
-          description = nil
-
-          if descriptions
-            twirl("Retrieving tasks....", known_tasks.size, idx)
-            meta = task_metadata(task["name"], environment)
-            description = meta["metadata"]["description"]
-          end
-
-          tasks[task["name"]] = description
-        end
-
-        tasks
-      end
-
       def show_task_help(task)
-        puts("Retrieving task metadata for task %s from the Puppet Server" % task)
-
-        begin
-          meta = task_metadata(task, configuration[:__environment])
-        rescue
-          abort($!.to_s)
-        end
-
-        puts
-
-        puts("%s - %s" % [Util.colorize(:bold, task), meta["metadata"]["description"]])
-        puts
-
-        if meta["metadata"]["parameters"].nil? || meta["metadata"]["parameters"].empty?
-          puts("The task takes no parameters or have none defined")
-          puts
-        else
-          puts("Task Parameters:")
-
-          meta["metadata"]["parameters"].sort_by {|n, _| n}.each do |name, details|
-            puts("  %-30s %s (%s)" % [name, details["description"], details["type"]])
-          end
-        end
-
-        puts
-        puts "Task Files:"
-        meta["files"].each do |file|
-          puts("  %-30s %s bytes" % [file["filename"], file["size_bytes"]])
-        end
-
-        puts
-        puts("Use 'mco tasks run %s' to run this task" % [task])
-      end
-
-      # Converts a Puppet type into something mcollective understands
-      #
-      # This is inevitably hacky by its nature, there is no way for me to
-      # parse the types.  PAL might get some helpers for this but till then
-      # this is going to have to be best efforts.
-      #
-      # When there is a too complex situation users can always put in --input
-      # and some JSON to work around it until something better comes around
-      #
-      # @param type [String] a puppet type
-      def puppet_type_to_ruby(type)
-        array = false
-        required = true
-
-        if type =~ /Optional\[(.+)/
-          type = $1
-          required = false
-        end
-
-        if type =~ /Array\[(.+)/
-          type = $1
-          array = true
-        end
-
-        return [Numeric, array, required] if type =~ /Integer/
-        return [Numeric, array, required] if type =~ /Float/
-        return [Hash, array, required] if type =~ /Hash/
-        return [:boolean, array, required] if type =~ /Boolean/
-
-        [String, array, required]
-      end
-
-      def twirl(msg, max, current)
-        charset = ["▖", "▘", "▝", "▗"]
-        index = current % charset.size
-        char = charset[index]
-        char = Util.colorize(:green, "✓") if max == current
-
-        format = "\r%s %s  %#{@max.to_s.size}d / %d"
-        print(format % [msg, char, current, max])
+        cli.show_task_help(task, configuration[:__environment])
       end
 
       def bolt_task
@@ -541,59 +358,6 @@ Examples:
         ARGV[idx + 1]
       end
 
-      def create_task_options(task, environment)
-        meta = task_metadata(task, environment)
-
-        return if meta["metadata"]["parameters"].nil? || meta["metadata"]["parameters"].empty?
-
-        meta["metadata"]["parameters"].sort_by {|n, _| n}.each do |name, details|
-          type, array, required = puppet_type_to_ruby(details["type"])
-          description = "%s (%s)" % [details["description"], details["type"]]
-
-          properties = {
-            :description => description,
-            :arguments => ["--%s %s" % [name.downcase, name.upcase]],
-            :type => array ? :array : type,
-            :required => required
-          }
-
-          properties[:arguments] = ["--%s" % name.downcase] if type == :boolean
-
-          self.class.option(name.intern, properties)
-        end
-      end
-
-      def task_input
-        result = {}
-
-        input = configuration[:__json_input]
-
-        if input
-          input.sub!("@", "")
-          result = File.read(input) if input.end_with?("json")
-          result = YAML.safe_load(File.read(input)).to_json if input.end_with?("yaml")
-        end
-
-        configuration.each do |item, value|
-          next if item.to_s.start_with?("__")
-          result[item.to_s] = value
-        end
-
-        return result.to_json unless result.empty?
-
-        abort("Could not parse input from --input as YAML or JSON")
-
-        nil
-      end
-
-      def task_metadata(task, environment)
-        @__metadata ||= {}
-
-        return @__metadata[task] if @__metadata[task]
-
-        @__metadata[task] = tasks_support.task_metadata(task, environment)
-      end
-
       def valid_commands
         methods.grep(/_command$/).map {|c| c.to_s.gsub("_command", "")}
       end
@@ -605,7 +369,13 @@ Examples:
       end
 
       def tasks_support
-        @__tasks || choria.tasks_support
+        @__tasks ||= choria.tasks_support
+      end
+
+      def cli
+        format = configuration[:__json_format] ? :json : :default
+
+        @__cli ||= tasks_support.cli(format, options[:verbose])
       end
 
       def main

@@ -1,0 +1,37 @@
+{
+  "metadata": {
+    "description": "Inspect puppet agent configuration settings",
+    "input_method": "stdin",
+    "parameters": {
+      "action": {
+        "description": "The operation (get, set) to perform on the configuration setting",
+        "type": "Enum[get, set]"
+      },
+      "section": {
+        "description": "The section of the config file. Defaults to main",
+        "type": "Optional[String[1]]"
+      },
+      "setting": {
+        "description": "The name of the config entry to set/get",
+        "type": "String[1]"
+      },
+      "value": {
+        "description": "The value you are setting. Only required for set",
+        "type": "Optional[String[1]]"
+      }
+    }
+  },
+  "files": [
+    {
+      "filename": "init.rb",
+      "sha256": "38351bb4b72a29064f5c9a224a81f1abf7042b0bc9d1ffd2a074d1bd63b2f246",
+      "size_bytes": 1231,
+      "uri": {
+        "path": "/puppet/v3/file_content/tasks/puppet_conf/init.rb",
+        "params": {
+          "environment": "production"
+        }
+      }
+    }
+  ]
+}

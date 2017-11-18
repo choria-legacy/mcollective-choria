@@ -12,6 +12,48 @@ module MCollective
         @cache_dir = cache_dir || @choria.get_option("choria.tasks_cache")
       end
 
+      # Creates an instance of the CLI helpers
+      #
+      # @param format [:json, :default] the output format to use
+      # @return [CLI]
+      def cli(format, verbose)
+        require_relative "tasks_support/cli"
+        CLI.new(self, format, verbose)
+      end
+
+      # Converts a Puppet type into something mcollective understands
+      #
+      # This is inevitably hacky by its nature, there is no way for me to
+      # parse the types.  PAL might get some helpers for this but till then
+      # this is going to have to be best efforts.
+      #
+      # When there is a too complex situation users can always put in --input
+      # and some JSON to work around it until something better comes around
+      #
+      # @param type [String] a puppet type
+      # @return [Class, Boolean, Boolean] The data type, if its an array input or not and if its required
+      def puppet_type_to_ruby(type)
+        array = false
+        required = true
+
+        if type =~ /Optional\[(.+)/
+          type = $1
+          required = false
+        end
+
+        if type =~ /Array\[(.+)/
+          type = $1
+          array = true
+        end
+
+        return [Numeric, array, required] if type =~ /Integer/
+        return [Numeric, array, required] if type =~ /Float/
+        return [Hash, array, required] if type =~ /Hash/
+        return [:boolean, array, required] if type =~ /Boolean/
+
+        [String, array, required]
+      end
+
       # Determines if a machine is compatible with running bolt
       #
       # @note this should check for a compatible version of Puppet more

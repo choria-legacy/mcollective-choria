@@ -1,5 +1,5 @@
 group :mcollective, :halt_on_fail => true do
-  guard :rspec, :cmd => "rspec --fail-fast" do
+  guard :rspec, :cmd => "rspec --fail-fast --format doc" do
     watch(%r{^spec/.+_spec\.rb$})
     watch(%r{^lib/(.+)\.rb$})     { |m| "spec/unit/#{m[1]}_spec.rb" }
     watch("spec/spec_helper.rb")  { "spec" }
