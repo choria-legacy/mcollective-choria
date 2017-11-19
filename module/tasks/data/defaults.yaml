@@ -1,0 +1,16 @@
+lookup_options:
+  mcollective_agent_bolt_tasks::gem_dependencies:
+    merge:
+      strategy: deep
+  mcollective_agent_bolt_tasks::package_dependencies:
+    merge:
+      strategy: deep
+  mcollective_agent_bolt_tasks::config:
+    merge:
+      strategy: deep
+  mcollective_agent_bolt_tasks::client_config:
+    merge:
+      strategy: deep
+  mcollective_agent_bolt_tasks::server_config:
+    merge:
+      strategy: deep

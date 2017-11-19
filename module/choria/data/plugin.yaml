@@ -9,15 +9,12 @@ mcollective_choria::client_directories:
  - util/playbook/nodes
  - util/playbook/tasks
 mcollective_choria::server_files:
- - agent/bolt_task.rb
  - agent/choria_util.rb
  - audit/choria.rb
- - data/bolt_task_data.rb
  - registration/choria.rb
 mcollective_choria::client_files:
  - application/choria.rb
  - application/playbook.rb
- - application/tasks.rb
  - discovery/choria.ddl
  - discovery/choria.rb
  - util/bolt_support.rb
@@ -55,12 +52,10 @@ mcollective_choria::common_directories:
  - util/choria
  - util/federation_broker
 mcollective_choria::common_files:
- - agent/bolt_task.ddl
  - application/federation.rb
  - agent/choria_util.ddl
  - connector/nats.ddl
  - connector/nats.rb
- - data/bolt_task_data.ddl
  - security/choria.rb
  - util/federation_broker.rb
  - util/federation_broker/base.rb
@@ -69,9 +64,3 @@ mcollective_choria::common_files:
  - util/federation_broker/stats.rb
  - util/choria.rb
  - util/natswrapper.rb
- - util/tasks_support.rb
- - util/tasks_support/cli.rb
- - util/tasks_support/default_formatter.rb
- - util/tasks_support/json_formatter.rb
- - validator/bolt_task_name_validator.rb
- - validator/bolt_task_name_validator.ddl
