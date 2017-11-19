@@ -1,4 +1,5 @@
 require "rspec/core/rake_task"
+require "yaml"
 
 ENV["CHORIA_RAKE"] = $$.to_s
 
@@ -29,11 +30,13 @@ desc "Set versions and create docs for a release"
 task :prep_version do
   abort("Please specify CHORIA_VERSION") unless ENV["CHORIA_VERSION"]
 
-  sh 'sed -i.bak -re \'s/(.+"version": ").+/\1%s",/\' module/metadata.json' % ENV["CHORIA_VERSION"]
+  sh 'sed -i.bak -re \'s/(.+"version": ").+/\1%s",/\' module/choria/metadata.json' % ENV["CHORIA_VERSION"]
+  sh 'sed -i.bak -re \'s/(.+"version": ").+/\1%s",/\' module/tasks/metadata.json' % ENV["CHORIA_VERSION"]
+  sh 'sed -i.bak -re \'s/mcollective_choria(.+"version_requirement":").+/\1%s",/\' module/tasks/metadata.json' % ENV["CHORIA_VERSION"]
   sh 'sed -i.bak -re \'s/(\s+VERSION\s+=\s+").+/\1%s".freeze/\' ./lib/mcollective/util/choria.rb' % ENV["CHORIA_VERSION"]
 
-  ["connector/nats.ddl", "discovery/choria.ddl", "agent/choria_util.ddl"].each do |file|
-    sh 'sed -i.bak -re \'s/(\s+:version\s+=>\s+").+/\1%s",/\' ./lib/mcollective/%s' % [ENV["CHORIA_VERSION"], file]
+  Rake::FileList["lib/**/*.ddl"].each do |file|
+    sh 'sed -i.bak -re \'s/(\s+:version\s+=>\s+").+/\1%s",/\' %s' % [ENV["CHORIA_VERSION"], file]
   end
 
   changelog = File.readlines("CHANGELOG.md")
@@ -55,19 +58,40 @@ task :prep_version do
   sh "git tag %s" % ENV["CHORIA_VERSION"]
 end
 
-desc "Prepare and build the Puppet module"
+desc "Prepare and build the Puppet modules"
 task :release do
   Rake::Task[:spec].execute
   Rake::Task[:rubocop].execute
   Rake::Task[:prep_version].execute if ENV["CHORIA_VERSION"]
 
-  sh("mkdir -p module/files/mcollective")
-  sh("rm -rf module/files/mcollective/*")
-  sh("cp -rv lib/mcollective/* module/files/mcollective/")
-  sh("cp CHANGELOG.md LICENSE.txt module")
-  sh("cp .gitignore module")
-  Dir.chdir("module") do
-    sh("/usr/bin/env -i PATH=/bin:/usr/bin bash -e /opt/puppetlabs/bin/puppet module build")
+  ["choria", "tasks"].each do |mod|
+    puts "=" * 20
+    puts "Building module %s" % mod
+    puts "=" * 20
+    puts
+    sh("mkdir -p module/%s/files/mcollective" % mod)
+    sh("rm -rf module/%s/files/mcollective/*" % mod)
+    sh("cp .gitignore LICENSE.txt module/%s" % mod)
+    sh("cp CHANGELOG.md module/choria") if mod == "choria"
+
+    datafile = "module/%s/data/plugin.yaml" % mod
+
+    if File.exist?(datafile)
+      plugin = YAML.load(File.read(datafile))
+
+      files = plugin.keys.grep(/_files$/).map {|k| plugin[k]}.flatten
+      files.each do |file|
+        source = File.join("lib/mcollective", file)
+        target = File.join("module", mod, "files/mcollective", file)
+
+        puts "Copying plugin file: %s -> %s" % [source, target]
+        FileUtils.mkdir_p(File.dirname(target))
+        FileUtils.cp(File.join("lib/mcollective", file), File.join("module", mod, "files/mcollective", file))
+      end
+    end
+
+    Dir.chdir("module/%s" % mod) do
+      sh("/usr/bin/env -i PATH=/bin:/usr/bin bash -e /opt/puppetlabs/bin/puppet module build")
+    end
   end
-  sh("rm -rf module/files/mcollective/*")
 end

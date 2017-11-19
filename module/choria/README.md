@@ -8,19 +8,17 @@
 
 ## Overview
 
-A distribution of plugins for MCollective designed to give a very smooth and streamlined experience in getting started when using the Puppet 4 AIO connected to a Puppet Server.
+A distribution of plugins for MCollective designed to create a production ready MCollective install in 30 minutes.
 
-The main goal is ease of use and setup while remaining secure. It shares a security model with Puppet and reuse certificates made using the PuppetCA everywhere.
+The main goal is ease of use and installation however a number of new end user features are added to MCollective while building on a the PuppetCA for security.
 
 Includes:
 
   * A flexible Playbook system that can integrate MCollective and Puppet with many other systems
-  * A Security Plugin for Puppet including a tool to make client certificates
   * A Connector using [NATS.io](https://nats.io)
-  * A Discovery plugin for PuppetDB
-  * Shared configuration of SSL and other properties
   * Support for SRV records for configuration to atain a zero config setup
   * Every component uses strong SSL encryption that cannot be disabled.
+  * Integration with PuppetDB, PuppetCA, Puppet Bolt, Puppet Tasks and Puppet Plans.
 
 See [choria.io](http://choria.io) for full details
 

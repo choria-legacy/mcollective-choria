@@ -1,0 +1,29 @@
+---
+mcollective_agent_bolt_tasks::policy_default: deny
+mcollective_agent_bolt_tasks::config_name: choria
+mcollective_agent_bolt_tasks::server_files:
+ - agent/bolt_task.rb
+ - data/bolt_task_data.rb
+
+mcollective_agent_bolt_tasks::client_files:
+ - application/tasks.rb
+
+mcollective_agent_bolt_tasks::common_directories:
+ - util/tasks_support
+
+mcollective_agent_bolt_tasks::common_files:
+ - agent/bolt_task.ddl
+ - data/bolt_task_data.ddl
+ - util/tasks_support.rb
+ - util/tasks_support/cli.rb
+ - util/tasks_support/default_formatter.rb
+ - util/tasks_support/json_formatter.rb
+ - validator/bolt_task_name_validator.rb
+ - validator/bolt_task_name_validator.ddl
+
+mcollective_agent_bolt_tasks::policies:
+  - action: "allow"
+    callers: "*"
+    actions: "download,run_and_wait,run_no_wait,task_status"
+    facts: "*"
+    classes: "*"

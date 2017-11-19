@@ -1,10 +1,11 @@
 *.swp
 .yardoc
 doc
-module/files/mcollective
-module/pkg
-module/CHANGELOG.md
-module/LICENSE.txt
+pkg
+module/*/CHANGELOG.md
+module/*/LICENSE.txt
+module/*/.gitignore
+module/*/files/mcollective
 tmp
 coverage
 website/public
