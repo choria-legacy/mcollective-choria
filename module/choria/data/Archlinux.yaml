@@ -1,0 +1,4 @@
+---
+mcollective_choria::package_dependencies:
+  "ruby-nats-pure": "present"
+mcollective_choria::gem_dependencies: ~
