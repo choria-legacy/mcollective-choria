@@ -226,7 +226,7 @@ module MCollective
           # @param stats [RPC::Stats]
           # @param replies [Array<RPC::Result>]
           def log_failure(stats, replies)
-            stats = client.stats
+            stats ||= client.stats
 
             Log.warn("Failed request %s for %s#%s in %0.2fs" % [stats.requestid, @agent, @action, stats.totaltime])
 
