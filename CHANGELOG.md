@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2017/12/21|      |Release 0.5.0                                                                                            |
+|2017/12/20|378   |Arch Linux support                                                                                       |
 |2017/10/18|      |Release 0.4.0                                                                                            |
 |2017/10/16|348   |Allow Playbooks to be written using the Puppet Plan DSL                                                  |
 |2017/10/16|319   |Remove the `mcollective_assert` task                                                                     |

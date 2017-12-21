@@ -32,7 +32,7 @@ task :prep_version do
 
   sh 'sed -i.bak -re \'s/(.+"version": ").+/\1%s",/\' module/choria/metadata.json' % ENV["CHORIA_VERSION"]
   sh 'sed -i.bak -re \'s/(.+"version": ").+/\1%s",/\' module/tasks/metadata.json' % ENV["CHORIA_VERSION"]
-  sh 'sed -i.bak -re \'s/mcollective_choria(.+"version_requirement":").+/\1%s",/\' module/tasks/metadata.json' % ENV["CHORIA_VERSION"]
+  sh 'sed -i.bak -re \'s/mcollective_choria(.+"version_requirement":").+?"/mcollective_choria\1%s"/\' module/tasks/metadata.json' % ENV["CHORIA_VERSION"]
   sh 'sed -i.bak -re \'s/(\s+VERSION\s+=\s+").+/\1%s".freeze/\' ./lib/mcollective/util/choria.rb' % ENV["CHORIA_VERSION"]
 
   Rake::FileList["lib/**/*.ddl"].each do |file|
