@@ -132,9 +132,17 @@ module MCollective
 
             'inventory {facts.%s ~ "%s"}' % [fact, regex]
           when "=="
-            'inventory {facts.%s = "%s"}' % [fact, value]
+            if ["true", "false"].include?(value)
+              'inventory {facts.%s = %s or facts.%s = "%s"}' % [fact, value, fact, value]
+            else
+              'inventory {facts.%s = "%s"}' % [fact, value]
+            end
           when "!="
-            'inventory {!(facts.%s = "%s")}' % [fact, value]
+            if ["true", "false"].include?(value)
+              'inventory {!(facts.%s = %s or facts.%s = "%s")}' % [fact, value, fact, value]
+            else
+              'inventory {!(facts.%s = "%s")}' % [fact, value]
+            end
           when ">=", ">", "<=", "<"
             raise("Do not know how to do string fact comparisons using the '%s' operator with PuppetDB" % operator) unless numeric?(value)
 
