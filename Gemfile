@@ -3,7 +3,6 @@ source "https://rubygems.org"
 gem "nats-pure", "~> 0.2"
 
 group :development, :test do
-  gem "bolt", "0.7.0"
   gem "coveralls"
   gem "diplomat", "~> 1"
   gem "etcdv3", "~> 0.6.0"
