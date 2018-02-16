@@ -18,7 +18,7 @@ module MCollective
         reply[:using_srv] = choria.should_use_srv?
         reply[:middleware_servers] = choria.middleware_servers.map {|s| s.join(":")}
         reply[:path] = ENV.fetch("PATH", "")
-        reply[:choria_version] = Util::Choria::VERSION
+        reply[:choria_version] = "mcollective plugin %s" % Util::Choria::VERSION
 
         if connector.connected?
           reply[:connected_server] = "%s:%s" % [connector.connected_server.host, connector.connected_server.port]
