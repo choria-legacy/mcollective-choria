@@ -26,24 +26,24 @@ action "info", :description => "Choria related information from the running Daem
          :display_as => "Choria Version"
 
   output :client_version,
-         :description => "Client library version",
-         :display_as => "Client Library Version"
+         :description => "Middleware client library version",
+         :display_as => "Middleware Client Library Version"
 
   output :client_flavour,
-         :description => "Client gem flavour",
-         :display_as => "Client Flavour"
+         :description => "Middleware client gem flavour",
+         :display_as => "Middleware Client Flavour"
 
   output :client_options,
-         :description => "Active client gem options",
-         :display_as => "Client Options"
+         :description => "Active Middleware client gem options",
+         :display_as => "Middleware Client Options"
 
   output :connected_server,
          :description => "Connected middleware server",
          :display_as => "Connected Broker"
 
   output :client_stats,
-         :description => "Client gem statistics",
-         :display_as => "Client Stats"
+         :description => "Middleware client gem statistics",
+         :display_as => "Middleware Client Stats"
 
   output :facter_domain,
          :description => "Facter domain",
