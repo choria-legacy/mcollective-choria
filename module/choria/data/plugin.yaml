@@ -18,6 +18,8 @@ mcollective_choria::client_files:
  - discovery/choria.ddl
  - discovery/choria.rb
  - util/bolt_support.rb
+ - util/bolt_support/task_result.rb
+ - util/bolt_support/task_results.rb
  - util/playbook.rb
  - util/playbook/data_stores.rb
  - util/playbook/data_stores/base.rb
