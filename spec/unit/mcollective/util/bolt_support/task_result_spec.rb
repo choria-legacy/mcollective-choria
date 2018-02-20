@@ -36,15 +36,8 @@ module MCollective
         describe ".from_asserted_hash" do
           it "should load the correct data" do
             tr = TaskResult.from_asserted_hash(good_result)
-            expect(tr.node).to eq("good.example")
+            expect(tr.host).to eq("good.example")
             expect(tr.result).to eq(good_result["good.example"])
-          end
-        end
-
-        describe "#name" do
-          it "should get the correct name" do
-            tr = TaskResult.from_asserted_hash(error_result)
-            expect(tr.name).to eq("error.example")
           end
         end
 
