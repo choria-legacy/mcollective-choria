@@ -12,17 +12,27 @@ module MCollective
             it "should support success" do
               expect(task.to_execution_result([true, "Command completed successfully", ["stdout"]])).to eq(
                 "localhost" => {
-                  "value" => "stdout"
+                  "value" => "stdout",
+                  "type" => "shell",
+                  "fail_ok" => false
                 }
               )
             end
 
             it "should support errors" do
+              task.from_hash("command" => "/tmp/x.sh")
+
               expect(task.to_execution_result([false, "Command failed with code 1", ["stdout"]])).to eq(
                 "localhost" => {
                   "value" => "stdout",
+                  "type" => "shell",
+                  "fail_ok" => false,
                   "error" => {
-                    "msg" => "Command failed with code 1"
+                    "msg" => "Command failed with code 1",
+                    "kind" => "choria.playbook/taskerror",
+                    "details" => {
+                      "command" => "/tmp/x.sh"
+                    }
                   }
                 }
               )

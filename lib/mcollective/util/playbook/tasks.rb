@@ -168,6 +168,8 @@ module MCollective
                 }.merge(props)
               }
 
+              runner.fail_ok = task_data[:properties]["fail_ok"]
+
               task_data[:result] = TaskResult.new(task_data)
 
               @tasks[set] << task_data

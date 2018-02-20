@@ -34,7 +34,9 @@ module MCollective
 
           expect(result).to eq(
             "localhost" => {
-              "value" => "hello world"
+              "value" => "hello world",
+              "type" => "shell",
+              "fail_ok" => false
             }
           )
         end
@@ -49,8 +51,14 @@ module MCollective
           expect(result).to eq(
             "localhost" => {
               "value" => "",
+              "type" => "shell",
+              "fail_ok" => false,
               "error" => {
-                "msg" => "Command failed with code 1"
+                "msg" => "Command failed with code 1",
+                "kind" => "choria.playbook/taskerror",
+                "details" => {
+                  "command" => "/bin/false"
+                }
               }
             }
           )

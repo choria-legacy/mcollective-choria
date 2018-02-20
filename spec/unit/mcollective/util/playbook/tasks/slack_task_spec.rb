@@ -17,17 +17,32 @@ module MCollective
             it "should support success" do
               expect(task.to_execution_result([true, "Message submitted to slack channel rspec", [{}]])).to eq(
                 "slack.com" => {
-                  "value" => "Message submitted to slack channel rspec"
+                  "value" => "Message submitted to slack channel rspec",
+                  "type" => "slack",
+                  "fail_ok" => false
                 }
               )
             end
 
             it "should support failure" do
+              task.from_hash(
+                "channel" => "#general",
+                "text" => "hello rspec",
+                "token" => "RSPEC_TOKEN",
+                "username" => "Rspec Bot"
+              )
+
               expect(task.to_execution_result([false, "Failed to send message to slack channel X: xx", [{"rspec" => "failed"}]])).to eq(
                 "slack.com" => {
                   "value" => {"rspec" => "failed"},
+                  "type" => "slack",
+                  "fail_ok" => false,
                   "error" => {
-                    "msg" => "Failed to send message to slack channel X: xx"
+                    "msg" => "Failed to send message to slack channel X: xx",
+                    "kind" => "choria.playbook/taskerror",
+                    "details" => {
+                      "channel" => "#general"
+                    }
                   }
                 }
               )
