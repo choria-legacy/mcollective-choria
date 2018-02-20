@@ -41,6 +41,7 @@ module MCollective
           it "should load the tasks and create a runner" do
             tasks.reset
             tasks.expects(:runner_for).with("rspec").returns(runner)
+            runner.expects(:fail_ok=).with(false)
             tasks.load_tasks([{"rspec" => {}}], "tasks")
             expect(tasks.tasks["tasks"]).to eq(
               [
@@ -60,6 +61,7 @@ module MCollective
           it "should support overriding defaults" do
             tasks.reset
             tasks.expects(:runner_for).with("rspec").returns(runner)
+            runner.expects(:fail_ok=).with(true)
             tasks.load_tasks([{"rspec" => {"tries" => 2, "try_sleep" => 5, "fail_ok" => true}}], "tasks")
             expect(tasks.tasks["tasks"].first).to include(
               :properties => {

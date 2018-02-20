@@ -91,8 +91,17 @@ module MCollective
           def to_execution_result(results)
             result = {
               "value" => results[2].first,
+              "type" => "webhook",
+              "fail_ok" => @fail_ok,
               "error" => {
-                "msg" => results[1]
+                "msg" => results[1],
+                "kind" => "choria.playbook/taskerror",
+                "details" => {
+                  "task" => "webhook",
+                  "uri" => @uri,
+                  "method" => @method,
+                  "request_id" => @request_id
+                }
               }
             }
 

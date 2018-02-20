@@ -30,7 +30,9 @@ module MCollective
 
               expect(task.to_execution_result(r)).to eq(
                 "localhost" => {
-                  "value" => "ok"
+                  "value" => "ok",
+                  "type" => "webhook",
+                  "fail_ok" => false
                 }
               )
             end
@@ -44,8 +46,17 @@ module MCollective
               expect(task.to_execution_result(r)).to eq(
                 "localhost" => {
                   "value" => "not found",
+                  "type" => "webhook",
+                  "fail_ok" => false,
                   "error" => {
-                    "msg" => "Failed to send POST request to webhook http://localhost/rspec?foo=bar with id 479d1982-120a-5ba8-8664-1f16a6504371: 404: not found"
+                    "msg" => "Failed to send POST request to webhook http://localhost/rspec?foo=bar with id 479d1982-120a-5ba8-8664-1f16a6504371: 404: not found",
+                    "kind" => "choria.playbook/taskerror",
+                    "details" => {
+                      "task" => "webhook",
+                      "uri" => "http://localhost/rspec?foo=bar",
+                      "method" => "POST",
+                      "request_id" => "479d1982-120a-5ba8-8664-1f16a6504371"
+                    }
                   }
                 }
               )

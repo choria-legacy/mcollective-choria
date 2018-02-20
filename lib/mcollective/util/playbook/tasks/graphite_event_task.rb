@@ -44,7 +44,9 @@ module MCollective
           end
 
           def to_execution_result(results)
-            webhook_task.to_execution_result(results)
+            r = webhook_task.to_execution_result(results)
+            r["type"] = "graphite"
+            r
           end
 
           def from_hash(properties)

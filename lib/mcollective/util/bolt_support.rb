@@ -2,6 +2,9 @@ require "mcollective"
 require_relative "choria"
 require_relative "playbook"
 
+require_relative "bolt_support/task_result"
+require_relative "bolt_support/task_results"
+
 module MCollective
   module Util
     class BoltSupport
@@ -118,9 +121,11 @@ module MCollective
       #
       # @param type [String] the task type
       # @param properties [Hash] properties passed to the task
-      # @return [Hash] formatted for Puppet::Pops::Types::ExecutionResult#from_bolt
+      # @return [Hash] formatted for BoltSupport::TaskResults
       def run_task(type, properties)
-        tasks = playbook.tasks.load_tasks([type => properties], "tasks")
+        task_properties = properties.reject {|k, _| k.start_with?("_") }
+
+        tasks = playbook.tasks.load_tasks([type => task_properties], "tasks")
 
         playbook.tasks.run_task(tasks[0], "plan", false)
 
@@ -128,10 +133,11 @@ module MCollective
         runner = tasks[0][:runner]
 
         execution_result = runner.to_execution_result([result.success, result.msg, result.data])
-        fail_ok = properties.fetch("fail_ok", false)
 
         return execution_result if result.success
-        return execution_result if fail_ok
+        return execution_result if properties.fetch("fail_ok", false)
+        return execution_result if properties["_catch_errors"]
+
         raise(result.msg)
       end
     end

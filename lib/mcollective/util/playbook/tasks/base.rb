@@ -4,11 +4,13 @@ module MCollective
       class Tasks
         class Base
           attr_accessor :description
+          attr_writer :fail_ok
 
           include TemplateUtil
 
           def initialize(playbook)
             @playbook = playbook
+            @fail_ok = false
 
             startup_hook
           end

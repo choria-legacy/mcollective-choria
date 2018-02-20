@@ -13,9 +13,12 @@ module MCollective
               task.expects(:webhook_task).returns(wh = stub)
 
               results = [true, "success", []]
-              wh.expects(:to_execution_result).with(results).returns(er = stub)
+              wh.expects(:to_execution_result).with(results).returns(er = {"type" => "webhook"})
 
-              expect(task.to_execution_result(results)).to be(er)
+              r = task.to_execution_result(results)
+
+              expect(r).to be(er)
+              expect(r["type"]).to eq("graphite")
             end
           end
 

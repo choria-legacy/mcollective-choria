@@ -14,16 +14,27 @@ module MCollective
             it "should support success results" do
               expect(task.to_execution_result([true, "Wrote value to store/y", ["x"]])).to eq(
                 "localhost" => {
-                  "value" => "x"
+                  "value" => "x",
+                  "type" => "data",
+                  "fail_ok" => false
                 }
               )
             end
 
             it "should support error results" do
+              task.from_hash("action" => "write", "key" => "store/y", "value" => "x")
+
               expect(task.to_execution_result([false, "Unknown action foo", []])).to eq(
                 "localhost" => {
+                  "type" => "data",
+                  "fail_ok" => false,
                   "error" => {
-                    "msg" => "Unknown action foo"
+                    "msg" => "Unknown action foo",
+                    "kind" => "choria.playbook/taskerror",
+                    "details" => {
+                      "task" => "data",
+                      "key" => "store/y"
+                    }
                   }
                 }
               )

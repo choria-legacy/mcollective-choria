@@ -36,8 +36,14 @@ module MCollective
           def to_execution_result(results)
             result = {
               "value" => results[2].join("\r\n").chomp,
+              "type" => "shell",
+              "fail_ok" => @fail_ok,
               "error" => {
-                "msg" => results[1]
+                "msg" => results[1],
+                "kind" => "choria.playbook/taskerror",
+                "details" => {
+                  "command" => @command
+                }
               }
             }
 

@@ -14,6 +14,8 @@ module MCollective
 
           describe "#to_execution_result" do
             it "should correctly transform results" do
+              task.from_hash("action" => "puppet.status")
+
               results = [
                 true,
                 "Successful request 123 for puppet#disable in 2.00s against 1 node(s)",
@@ -44,6 +46,8 @@ module MCollective
 
               expect(task.to_execution_result(results)).to eq(
                 "pass.example.net" => {
+                  "type" => "mcollective",
+                  "fail_ok" => false,
                   "value" => {
                     "agent" => "puppet",
                     "action" => "disable",
@@ -57,6 +61,8 @@ module MCollective
                   }
                 },
                 "fail.example.net" => {
+                  "type" => "mcollective",
+                  "fail_ok" => false,
                   "value" => {
                     "agent" => "puppet",
                     "action" => "disable",
@@ -69,19 +75,39 @@ module MCollective
                     "requestid" => "123"
                   },
                   "error" => {
-                    "msg" => "Simulated failure"
+                    "msg" => "Simulated failure",
+                    "kind" => "choria.playbook/taskerror",
+                    "details" => {
+                      "agent" => "puppet",
+                      "action" => "status",
+                      "issue_code" => 1
+                    }
                   }
                 },
                 "nr1.example.net" => {
+                  "type" => "mcollective",
                   "value" => {},
+                  "fail_ok" => false,
                   "error" => {
-                    "msg" => "No response from node nr1.example.net"
+                    "msg" => "No response from node nr1.example.net",
+                    "kind" => "choria.playbook/taskerror",
+                    "details" => {
+                      "agent" => "puppet",
+                      "action" => "status"
+                    }
                   }
                 },
                 "nr2.example.net" => {
+                  "type" => "mcollective",
                   "value" => {},
+                  "fail_ok" => false,
                   "error" => {
-                    "msg" => "No response from node nr2.example.net"
+                    "msg" => "No response from node nr2.example.net",
+                    "kind" => "choria.playbook/taskerror",
+                    "details" => {
+                      "agent" => "puppet",
+                      "action" => "status"
+                    }
                   }
                 }
               )

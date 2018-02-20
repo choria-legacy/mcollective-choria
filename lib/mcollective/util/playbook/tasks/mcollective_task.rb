@@ -151,12 +151,20 @@ module MCollective
 
             results[2].each do |data|
               result = {
-                "value" => JSON.parse(JSON.dump(data))
+                "value" => JSON.parse(JSON.dump(data)),
+                "type" => "mcollective",
+                "fail_ok" => @fail_ok
               }
 
               unless data["statuscode"] == 0
                 result["error"] = {
-                  "msg" => data["statusmsg"]
+                  "msg" => data["statusmsg"],
+                  "kind" => "choria.playbook/taskerror",
+                  "details" => {
+                    "agent" => @agent,
+                    "action" => @action,
+                    "issue_code" => data["statuscode"]
+                  }
                 }
               end
 
@@ -167,8 +175,15 @@ module MCollective
               client.stats.noresponsefrom.each do |nr|
                 e_result[nr] = {
                   "value" => {},
+                  "type" => "mcollective",
+                  "fail_ok" => @fail_ok,
                   "error" => {
-                    "msg" => "No response from node %s" % nr
+                    "msg" => "No response from node %s" % nr,
+                    "kind" => "choria.playbook/taskerror",
+                    "details" => {
+                      "agent" => @agent,
+                      "action" => @action
+                    }
                   }
                 }
               end

@@ -51,10 +51,20 @@ module MCollective
           end
 
           def to_execution_result(results)
-            result = {"value" => results[1]}
+            result = {
+              "value" => results[1],
+              "type" => "slack",
+              "fail_ok" => @fail_ok
+            }
 
             unless results[0]
-              result["error"] = {"msg" => results[1]}
+              result["error"] = {
+                "msg" => results[1],
+                "kind" => "choria.playbook/taskerror",
+                "details" => {
+                  "channel" => @channel
+                }
+              }
               result["value"] = results[2].first
             end
 
