@@ -4,6 +4,8 @@ module MCollective
   module Util
     class Playbook
       class Playbook_Logger < Logger::Console_logger
+        attr_writer :scope
+
         def initialize(playbook)
           @playbook = playbook
           @report = playbook.report

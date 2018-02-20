@@ -37,6 +37,7 @@ mcollective_choria::client_files:
  - util/playbook/nodes/terraform_nodes.rb
  - util/playbook/nodes/yaml_nodes.rb
  - util/playbook/playbook_logger.rb
+ - util/playbook/puppet_logger.rb
  - util/playbook/report.rb
  - util/playbook/task_result.rb
  - util/playbook/tasks.rb
