@@ -104,6 +104,8 @@ module MCollective
         def valid_version?(have, want)
           have = "%s.0" % have if have.split(".").size == 2
 
+          require "semantic_puppet" unless defined?(SemanticPuppet)
+
           semver_have = SemanticPuppet::Version.parse(have)
           semver_want = SemanticPuppet::VersionRange.parse(want)
           semver_want.include?(semver_have)

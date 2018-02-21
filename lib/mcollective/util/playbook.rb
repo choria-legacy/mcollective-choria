@@ -8,8 +8,6 @@ require_relative "playbook/nodes"
 require_relative "playbook/tasks"
 require_relative "playbook/data_stores"
 
-require "semantic_puppet"
-
 module MCollective
   module Util
     class Playbook

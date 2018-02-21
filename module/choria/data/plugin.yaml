@@ -20,6 +20,7 @@ mcollective_choria::client_files:
  - util/bolt_support.rb
  - util/bolt_support/task_result.rb
  - util/bolt_support/task_results.rb
+ - util/bolt_support/plan_runner.rb
  - util/playbook.rb
  - util/playbook/data_stores.rb
  - util/playbook/data_stores/base.rb

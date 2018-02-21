@@ -19,6 +19,10 @@ module MCollective
           @result = result
         end
 
+        def to_json(o={})
+          {@host => @result}.to_json(o)
+        end
+
         # A error object if this represents an error
         #
         # @return [Puppet::DataTypes::Error, nil]

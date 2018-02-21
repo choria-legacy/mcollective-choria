@@ -85,7 +85,7 @@ module MCollective
             data = JSON.parse(data || resp.body)
 
             if resp.code == "200" && data["ok"]
-              Log.info("Successfully sent message to slack channel %s" % [@channel])
+              Log.debug("Successfully sent message to slack channel %s" % [@channel])
               [true, "Message submitted to slack channel %s" % [@channel], [data]]
             else
               Log.warn("Failed to send message to slack channel %s: %s" % [@channel, data["error"]])
