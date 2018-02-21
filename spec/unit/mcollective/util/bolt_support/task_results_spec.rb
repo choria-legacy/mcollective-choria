@@ -26,7 +26,7 @@ module MCollective
         describe "#.from_asserted_hash" do
           it "should load the correct data" do
             tr = TaskResults.from_asserted_hash([good_result, error_result])
-            expect(tr.nodes).to eq(["good.example", "error.example"])
+            expect(tr.hosts).to eq(["good.example", "error.example"])
           end
         end
 
@@ -57,21 +57,21 @@ module MCollective
             tr = TaskResults.from_asserted_hash([good_result, error_result])
             found = tr.find("error.example")
             expect(found).to be_a(TaskResult)
-            expect(found.name).to eq("error.example")
+            expect(found.host).to eq("error.example")
           end
         end
 
         describe "#first" do
           it "should get the right result" do
             tr = TaskResults.from_asserted_hash([good_result, error_result])
-            expect(tr.first.name).to eq("good.example")
+            expect(tr.first.host).to eq("good.example")
           end
         end
 
         describe "#nodes" do
           it "should get the right nodes" do
             tr = TaskResults.from_asserted_hash([good_result, error_result])
-            expect(tr.nodes).to eq(["good.example", "error.example"])
+            expect(tr.hosts).to eq(["good.example", "error.example"])
           end
         end
 
@@ -91,7 +91,7 @@ module MCollective
             tr = TaskResults.from_asserted_hash([good_result, error_result])
 
             seen = []
-            tr.each {|r| seen << r.name}
+            tr.each {|r| seen << r.host}
 
             expect(seen).to eq(["good.example", "error.example"])
           end

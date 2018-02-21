@@ -21,16 +21,16 @@ module MCollective
           playbook.data_stores.expects(:release).with("plan_store/rspec").twice
 
           expect do
-            support.data_lock("rspec", "type" => "consul") { raise("rspec failure") }
+            support.data_lock(nil, "rspec", "type" => "consul") { raise("rspec failure") }
           end.to raise_error("rspec failure")
 
-          expect(support.data_lock("rspec", "type" => "consul") { "rspec result" }).to eq("rspec result")
+          expect(support.data_lock(nil, "rspec", "type" => "consul") { "rspec result" }).to eq("rspec result")
         end
       end
 
       describe "#run_task" do
         it "should invoke the tasks and return an execution_result" do
-          result = support.run_task("shell", "command" => "/bin/echo 'hello world'")
+          result = support.run_task(nil, "shell", "command" => "/bin/echo 'hello world'")
 
           expect(result).to eq(
             "localhost" => {
@@ -42,11 +42,11 @@ module MCollective
         end
 
         it "should support fail_ok" do
-          expect { support.run_task("shell", "command" => "/bin/false") }.to raise_error(
+          expect { support.run_task(nil, "shell", "command" => "/bin/false") }.to raise_error(
             "Command failed with code 1"
           )
 
-          result = support.run_task("shell", "command" => "/bin/false", "fail_ok" => true)
+          result = support.run_task(nil, "shell", "command" => "/bin/false", "fail_ok" => true)
 
           expect(result).to eq(
             "localhost" => {
@@ -84,7 +84,7 @@ module MCollective
       describe "#data_write" do
         it "should write the right data" do
           tf = Tempfile.new("rspec")
-          r = support.data_write("hello", "world",
+          r = support.data_write(nil, "hello", "world",
                                  "type" => "file",
                                  "format" => "yaml",
                                  "file" => tf.path)
@@ -97,7 +97,7 @@ module MCollective
 
       describe "#data_read" do
         it "should read the right data" do
-          r = support.data_read("hello",
+          r = support.data_read(nil, "hello",
                                 "type" => "file",
                                 "format" => "yaml",
                                 "file" => File.expand_path("spec/fixtures/playbooks/file_data.yaml"))
@@ -111,7 +111,7 @@ module MCollective
           playbook.stubs(:uses).returns(u = stub)
           u.expects(:from_hash).with({})
 
-          result = support.discover_nodes("yaml",
+          result = support.discover_nodes(nil, "yaml",
                                           "source" => File.expand_path("spec/fixtures/playbooks/nodes.yaml"),
                                           "group" => "uk")
 
@@ -133,7 +133,7 @@ module MCollective
           n.expects(:prepare)
           n.expects(:[]).with("task_nodes").returns(["n1"])
 
-          result = support.discover_nodes("yaml",
+          result = support.discover_nodes(nil, "yaml",
                                           "source" => File.expand_path("spec/fixtures/playbooks/nodes.yaml"),
                                           "group" => "uk",
                                           "uses" => {"rpcutil" => "1.2.3"})

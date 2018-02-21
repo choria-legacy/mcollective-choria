@@ -1,5 +1,6 @@
 require_relative "playbook/report"
 require_relative "playbook/playbook_logger"
+require_relative "playbook/puppet_logger"
 require_relative "playbook/template_util"
 require_relative "playbook/inputs"
 require_relative "playbook/uses"
@@ -15,7 +16,7 @@ module MCollective
       include TemplateUtil
 
       attr_accessor :input_data, :context
-      attr_reader :metadata, :report, :data_stores, :uses, :tasks
+      attr_reader :metadata, :report, :data_stores, :uses, :tasks, :logger
 
       def initialize(loglevel=nil)
         @loglevel = loglevel
@@ -45,6 +46,13 @@ module MCollective
           "loglevel" => "info",
           "run_as" => "choria=deployer"
         }
+      end
+
+      # Sets a custom logger
+      #
+      # @param logger [Class] the logger instance to configure and use
+      def logger=(logger)
+        @logger = Log.set_logger(logger.new(self))
       end
 
       # Loads the playbook data and prepare the runner

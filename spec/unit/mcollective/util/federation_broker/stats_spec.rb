@@ -8,6 +8,10 @@ module MCollective
         let(:fb) { FederationBroker.new("rspec", "test") }
         let(:stats) { fb.stats }
 
+        before(:each) do
+          stats.stubs(:start_stats_web_server)
+        end
+
         describe "#serve_stats" do
           it "should serve the right stats" do
             res = stub

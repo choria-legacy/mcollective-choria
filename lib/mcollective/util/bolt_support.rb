@@ -47,6 +47,7 @@ module MCollective
       def playbook
         @_playbook ||= begin
                          pb = Playbook.new(self.class.loglevel)
+                         pb.logger = Playbook::Puppet_Logger
                          pb.set_logger_level
                          pb
                        end
@@ -58,10 +59,12 @@ module MCollective
 
       # Discovers nodes using playbook node sets
       #
+      # @param scope [Puppet::Parser::Scope] scope to log against
       # @param type [String] a known node set type like `terraform`
       # @param properties [Hash] properties valid for the node set type
-      def discover_nodes(type, properties)
+      def discover_nodes(scope, type, properties)
         uses_properties = properties.delete("uses") || {}
+        playbook.logger.scope = scope
         playbook.uses.from_hash(uses_properties)
 
         nodes.from_hash("task_nodes" => properties.merge(
@@ -75,9 +78,11 @@ module MCollective
 
       # Retrieves a data item from a data store
       #
+      # @param scope [Puppet::Parser::Scope] scope to log against
       # @param item [String] the item to fetch
       # @param properties [Hash] the data source properties
-      def data_read(item, properties)
+      def data_read(scope, item, properties)
+        playbook.logger.scope = scope
         playbook.data_stores.from_hash("plan_store" => properties)
         playbook.data_stores.prepare
         playbook.data_stores.read("plan_store/%s" % item)
@@ -85,13 +90,15 @@ module MCollective
 
       # Writes a value to a data store
       #
+      # @param scope [Puppet::Parser::Scope] scope to log against
       # @param item [String] the item to fetch
       # @param value [String] the item to fetch
       # @param properties [Hash] the data source properties
       # @return [String] the data that was written
-      def data_write(item, value, properties)
+      def data_write(scope, item, value, properties)
         config = {"plan_store" => properties}
 
+        playbook.logger.scope = scope
         playbook.data_stores.from_hash(config)
         playbook.data_stores.prepare
         playbook.data_stores.write("plan_store/%s" % item, value)
@@ -99,13 +106,15 @@ module MCollective
 
       # Performs a block within a lock in a data store
       #
+      # @param scope [Puppet::Parser::Scope] scope to log against
       # @param item [String] the lock key
       # @param properties [Hash] the data source properties
-      def data_lock(item, properties, &blk)
+      def data_lock(scope, item, properties, &blk)
         locked = false
         lock_path = "plan_store/%s" % item
         config = {"plan_store" => properties}
 
+        playbook.logger.scope = scope
         playbook.data_stores.from_hash(config)
         playbook.data_stores.prepare
 
@@ -119,11 +128,13 @@ module MCollective
 
       # Runs a playbook task and return execution results
       #
+      # @param scope [Puppet::Parser::Scope] scope to log against
       # @param type [String] the task type
       # @param properties [Hash] properties passed to the task
       # @return [Hash] formatted for BoltSupport::TaskResults
-      def run_task(type, properties)
+      def run_task(scope, type, properties)
         task_properties = properties.reject {|k, _| k.start_with?("_") }
+        playbook.logger.scope = scope
 
         tasks = playbook.tasks.load_tasks([type => task_properties], "tasks")
 

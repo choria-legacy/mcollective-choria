@@ -56,8 +56,8 @@ module MCollective
         # List of node names for all results
         #
         # @return [Array<String>]
-        def nodes
-          @results.map(&:node)
+        def hosts
+          @results.map(&:host)
         end
 
         # First result in the set
@@ -69,10 +69,10 @@ module MCollective
 
         # Finds a result by name
         #
-        # @param node [String] node name
+        # @param host [String] node hostname
         # @return [TaskResult,nil]
-        def find(node)
-          @results.find {|r| r.node == node}
+        def find(host)
+          @results.find {|r| r.host == host}
         end
 
         # Determines if the resultset is empty

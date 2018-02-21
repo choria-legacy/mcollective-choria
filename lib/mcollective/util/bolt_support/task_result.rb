@@ -2,7 +2,7 @@ module MCollective
   module Util
     class BoltSupport
       class TaskResult
-        attr_reader :node, :result
+        attr_reader :host, :result
 
         # Method used by Puppet to create the TaskResult from a hash
         #
@@ -12,18 +12,11 @@ module MCollective
           new(hash.keys.first, hash.values.first)
         end
 
-        # @param node [String] node name
+        # @param host [String] node name
         # @param result [Hash] result value as produced by execution_result methods
-        def initialize(node, result)
-          @node = node
+        def initialize(host, result)
+          @host = host
           @result = result
-        end
-
-        # The name of the node this result belongs to
-        #
-        # @param name [String]
-        def name
-          @node
         end
 
         # A error object if this represents an error
