@@ -14,6 +14,24 @@ module MCollective
         support.stubs(:playbook).returns(playbook)
       end
 
+      describe "#assign_playbook_name" do
+        it "should assign the playbook name from scope" do
+          expect(playbook.name).to be_nil
+          support.assign_playbook_name("facts" => {"choria" => {"plan" => "rspec"}})
+          expect(playbook.name).to eq("rspec")
+        end
+
+        it "should handle bad scopes" do
+          expect(playbook.name).to be_nil
+          support.assign_playbook_name(nil)
+          expect(playbook.name).to be_nil
+          support.assign_playbook_name("facts" => {})
+          expect(playbook.name).to be_nil
+          support.assign_playbook_name("facts" => {"choria" => {}})
+          expect(playbook.name).to be_nil
+        end
+      end
+
       describe "#data_lock" do
         it "should lock and release" do
           playbook.data_stores.stubs(:prepare)

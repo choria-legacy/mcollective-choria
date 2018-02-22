@@ -66,6 +66,7 @@ module MCollective
       def discover_nodes(scope, type, properties)
         uses_properties = properties.delete("uses") || {}
         playbook.logger.scope = scope
+        assign_playbook_name(scope)
         playbook.uses.from_hash(uses_properties)
 
         nodes.from_hash("task_nodes" => properties.merge(
@@ -84,6 +85,7 @@ module MCollective
       # @param properties [Hash] the data source properties
       def data_read(scope, item, properties)
         playbook.logger.scope = scope
+        assign_playbook_name(scope)
         playbook.data_stores.from_hash("plan_store" => properties)
         playbook.data_stores.prepare
         playbook.data_stores.read("plan_store/%s" % item)
@@ -100,6 +102,7 @@ module MCollective
         config = {"plan_store" => properties}
 
         playbook.logger.scope = scope
+        assign_playbook_name(scope)
         playbook.data_stores.from_hash(config)
         playbook.data_stores.prepare
         playbook.data_stores.write("plan_store/%s" % item, value)
@@ -116,6 +119,7 @@ module MCollective
         config = {"plan_store" => properties}
 
         playbook.logger.scope = scope
+        assign_playbook_name(scope)
         playbook.data_stores.from_hash(config)
         playbook.data_stores.prepare
 
@@ -136,6 +140,7 @@ module MCollective
       def run_task(scope, type, properties)
         task_properties = properties.reject {|k, _| k.start_with?("_") }
         playbook.logger.scope = scope
+        assign_playbook_name(scope)
 
         tasks = playbook.tasks.load_tasks([type => task_properties], "tasks")
 
@@ -151,6 +156,17 @@ module MCollective
         return execution_result if properties["_catch_errors"]
 
         raise(result.msg)
+      end
+
+      # Assigns the playbook name based on the fact choria.plan
+      #
+      # @see PlanRunner#in_environment
+      def assign_playbook_name(scope)
+        return unless scope
+        return unless scope["facts"]["choria"]
+        return unless scope["facts"]["choria"]["plan"]
+
+        playbook.metadata["name"] = scope["facts"]["choria"]["plan"]
       end
     end
   end

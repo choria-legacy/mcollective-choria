@@ -13,6 +13,12 @@ module MCollective
           FileUtils.rm_rf(tmpdir)
         end
 
+        describe "#facts" do
+          it "should set the right facts" do
+            expect(runner.facts).to eq("choria" => {"plan" => "mymod::test"})
+          end
+        end
+
         describe "#exist?" do
           it "should detect known plans" do
             expect(runner).to exist
