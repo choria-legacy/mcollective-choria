@@ -32,7 +32,7 @@ module MCollective
           begin
             @success, @msg, @data = task[:runner].run
 
-            if !@success && task[:properties]["fail_ok"]
+            if !@success && task[:properties]["fail_ok"] && task[:properties]["tries"] == 1
               Log.warn("Task failed but fail_ok is true, treating as success")
               @success = true
             end

@@ -136,7 +136,7 @@ module MCollective
       # @param scope [Puppet::Parser::Scope] scope to log against
       # @param type [String] the task type
       # @param properties [Hash] properties passed to the task
-      # @return [Hash] formatted for BoltSupport::TaskResults
+      # @return [BoltSupport::TaskResults]
       def run_task(scope, type, properties)
         task_properties = properties.reject {|k, _| k.start_with?("_") }
         playbook.logger.scope = scope
@@ -151,9 +151,16 @@ module MCollective
 
         execution_result = runner.to_execution_result([result.success, result.msg, result.data])
 
-        return execution_result if result.success
-        return execution_result if properties.fetch("fail_ok", false)
-        return execution_result if properties["_catch_errors"]
+        results = execution_result.map do |node, result_properties|
+          TaskResult.new(node, result_properties)
+        end
+
+        task_results = TaskResults.new(results, nil)
+        task_results.message = result.msg
+
+        return task_results if result.success
+        return task_results if properties.fetch("fail_ok", false)
+        return task_results if properties["_catch_errors"]
 
         raise(result.msg)
       end

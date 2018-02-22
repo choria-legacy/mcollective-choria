@@ -50,7 +50,7 @@ module MCollective
         it "should invoke the tasks and return an execution_result" do
           result = support.run_task(nil, "shell", "command" => "/bin/echo 'hello world'")
 
-          expect(result).to eq(
+          expect(result.ok_set.first.to_hash).to eq(
             "localhost" => {
               "value" => "hello world",
               "type" => "shell",
@@ -66,7 +66,7 @@ module MCollective
 
           result = support.run_task(nil, "shell", "command" => "/bin/false", "fail_ok" => true)
 
-          expect(result).to eq(
+          expect(result.error_set.first.to_hash).to eq(
             "localhost" => {
               "value" => "",
               "type" => "shell",

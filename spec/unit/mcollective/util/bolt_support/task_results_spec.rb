@@ -7,7 +7,7 @@ module MCollective
     class BoltSupport
       describe TaskResults do
         let(:good_result) do
-          TaskResult.new("good.example", "value" => "stdout", "type" => "shell", "fail_ok" => false)
+          TaskResult.new("good.example", "value" => "stdout", "type" => "shell", "fail_ok" => true)
         end
 
         let(:error_result) do
@@ -27,6 +27,27 @@ module MCollective
           it "should load the correct data" do
             tr = TaskResults.from_asserted_hash([good_result, error_result])
             expect(tr.hosts).to eq(["good.example", "error.example"])
+          end
+        end
+
+        describe "#fail_ok" do
+          it "should return the correct fail_ok value" do
+            expect(good_result.fail_ok).to be(true)
+            expect(error_result.fail_ok).to be(false)
+          end
+        end
+
+        describe "#message" do
+          it "should take the exception message" do
+            tr = TaskResults.new([good_result, error_result], StandardError.new("rspec exception"))
+            tr.message = "hello world"
+            expect(tr.message).to eq("rspec exception")
+          end
+
+          it "should take the result message when not exception" do
+            tr = TaskResults.new([good_result, error_result])
+            tr.message = "hello world"
+            expect(tr.message).to eq("hello world")
           end
         end
 
