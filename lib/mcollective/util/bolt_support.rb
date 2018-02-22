@@ -4,6 +4,7 @@ require_relative "playbook"
 
 require_relative "bolt_support/task_result"
 require_relative "bolt_support/task_results"
+require_relative "bolt_support/plan_runner"
 
 module MCollective
   module Util

@@ -24,6 +24,10 @@ module MCollective
           @results = results
         end
 
+        def to_json(o={})
+          @results.to_json(o)
+        end
+
         # Iterate over all results
         #
         # @yield [TaskResult]
