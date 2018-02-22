@@ -2,7 +2,8 @@ module MCollective
   module Util
     class BoltSupport
       class TaskResults
-        attr_reader :results
+        attr_reader :results, :exception
+        attr_writer :message
 
         include Enumerable
 
@@ -15,13 +16,14 @@ module MCollective
         #
         # @param results [Array<TaskResult>] hash as prodused by various execution_result method
         # @return [TaskResults]
-        def self.from_asserted_hash(results)
-          new(results)
+        def self.from_asserted_hash(results, exception=nil)
+          new(results, exception)
         end
 
         # @param results [Array<TaskResult>]
-        def initialize(results)
+        def initialize(results, exception=nil)
           @results = results
+          @exception = exception
         end
 
         def to_json(o={})
@@ -55,7 +57,17 @@ module MCollective
         def ok
           @results.all?(&:ok)
         end
-        alias ok? ok
+        alias :ok? :ok
+
+        def fail_ok
+          @results.all?(&:fail_ok)
+        end
+        alias :fail_ok? :fail_ok
+
+        def message
+          return exception.to_s if exception
+          @message
+        end
 
         # List of node names for all results
         #
@@ -85,7 +97,7 @@ module MCollective
         def empty
           @results.empty?
         end
-        alias empty? empty
+        alias :empty? :empty
 
         # Determines the count of results in the set
         #

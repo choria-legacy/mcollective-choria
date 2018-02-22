@@ -19,8 +19,12 @@ module MCollective
           @result = result
         end
 
+        def to_hash
+          {@host => @result}
+        end
+
         def to_json(o={})
-          {@host => @result}.to_json(o)
+          to_hash.to_json(o)
         end
 
         # A error object if this represents an error
@@ -28,7 +32,11 @@ module MCollective
         # @return [Puppet::DataTypes::Error, nil]
         def error
           if @result["error"]
-            Puppet::DataTypes::Error.from_asserted_hash(@result["error"])
+            if defined?(Puppet::DataTypes::Error)
+              Puppet::DataTypes::Error.from_asserted_hash(@result["error"])
+            else
+              @result["error"]
+            end
           end
         end
 
@@ -50,6 +58,11 @@ module MCollective
           !@result.include?("error")
         end
         alias :ok? :ok
+
+        def fail_ok
+          @result["fail_ok"]
+        end
+        alias :fail_ok? :fail_ok
 
         # Access the value data embedded in the result
         #

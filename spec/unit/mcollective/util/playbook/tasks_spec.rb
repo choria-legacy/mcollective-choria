@@ -182,9 +182,19 @@ module MCollective
 
           it "should support fail_ok" do
             task[:properties]["fail_ok"] = true
+            task[:properties]["tries"] = 1
             task[:runner].expects(:run).returns([false, "fail 1", :x])
             task[:runner].stubs(:validate_configuration!)
             tasks.expects(:sleep).never
+
+            expect(tasks.run_task(task, "tasks")).to be(true)
+          end
+
+          it "should support retry even when fail_ok is set" do
+            task[:properties]["fail_ok"] = true
+            task[:runner].expects(:run).returns([false, "fail 1", :x]).then.returns([true, "ok", :x]).twice
+            task[:runner].stubs(:validate_configuration!)
+            tasks.expects(:sleep).once
 
             expect(tasks.run_task(task, "tasks")).to be(true)
           end
