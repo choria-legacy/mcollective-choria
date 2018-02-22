@@ -74,11 +74,20 @@ module MCollective
           end
         end
 
+        # Facts to use in the environment
+        def facts
+          {
+            "choria" => {
+              "plan" => @plan
+            }
+          }
+        end
+
         # Sets up a temporary environment
         def in_environment
           Puppet.initialize_settings(puppet_cli_options) unless Puppet.settings.global_defaults_initialized?
 
-          Puppet::Pal.in_tmp_environment("choria", :modulepath => @modulepath, :facts => {}) do |env|
+          Puppet::Pal.in_tmp_environment("choria", :modulepath => @modulepath, :facts => facts) do |env|
             yield(env)
           end
         end
