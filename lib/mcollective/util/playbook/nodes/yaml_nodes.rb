@@ -33,7 +33,7 @@ module MCollective
           end
 
           def data
-            @_data ||= YAML.load(File.read(@file))
+            @_data ||= YAML.safe_load(File.read(@file))
           end
 
           # Performs the PQL query and extracts certnames
