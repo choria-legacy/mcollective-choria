@@ -1,4 +1,7 @@
 lookup_options:
+  mcollective_choria::gem_dependencies:
+    merge:
+      strategy: deep
   mcollective_choria::package_dependencies:
     merge:
       strategy: deep
