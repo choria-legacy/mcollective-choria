@@ -73,6 +73,13 @@ module MCollective
           end
         end
 
+        describe "#value" do
+          it "should get the correct value" do
+            tr = TaskResult.from_asserted_hash(good_result)
+            expect(tr.value).to eq("stdout")
+          end
+        end
+
         describe "#type" do
           it "should get the correct type" do
             tr = TaskResult.from_asserted_hash(error_result)

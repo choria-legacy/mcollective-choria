@@ -15,7 +15,7 @@ module MCollective
 
         describe "#facts" do
           it "should set the right facts" do
-            expect(runner.facts).to eq("choria" => {"plan" => "mymod::test"})
+            expect(runner.facts).to eq("choria" => {"playbook" => "mymod::test"})
           end
         end
 

@@ -74,6 +74,13 @@ module MCollective
           @result["value"][key]
         end
 
+        # Access the value data in raw form
+        #
+        # @return [Object] whatever value the task produced
+        def value
+          @result["value"]
+        end
+
         def to_s
           if Object.const_defined?(:Puppet)
             Puppet::Pops::Types::StringConverter.convert(self, "%p")
