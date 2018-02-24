@@ -41,7 +41,7 @@ module MCollective
         end
 
         def should_show?(level)
-          return true if [:warn, :error, :fatal].include?(level)
+          return true unless level == :info
 
           !caller(2..5).grep(/playbook/).empty?
         end
