@@ -1,5 +1,12 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/02/24|383   |Restore deep merging on Ruby Gem dependencies installed by this module                                   |
+|2018/02/24|405   |Update NATS gem to 0.3.0                                                                                 |
+|2018/02/20|394   |Allow Playbooks to be written using the Puppet Plans DSL                                                 |
+|2018/02/16|389   |Remove the `bolt_task` task from playbooks                                                               |
+|2018/02/16|376   |Clarify the meaning of version strings from `choria_util#info`                                           |
+|2018/02/16|359   |Improve messaging in the `choria_util#info` to differentiate between Ruby and Go versions                |
+|2018/02/07|384   |Support stringified booleans and real booleans in choria discovery                                       |
 |2017/12/21|      |Release 0.5.0                                                                                            |
 |2017/12/20|378   |Arch Linux support                                                                                       |
 |2017/10/18|      |Release 0.4.0                                                                                            |
