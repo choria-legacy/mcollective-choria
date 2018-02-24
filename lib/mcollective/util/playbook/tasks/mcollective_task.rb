@@ -316,6 +316,17 @@ module MCollective
             @post.include?("summarize")
           end
 
+          # Converts the string keys to symbols if the DDL is based on symbols
+          #
+          # This is to be compatible with either JSON or non JSON mcollectives
+          #
+          # @param properties [Hash] the properties for the task
+          # @return [Hash] mapped to what the DDL expects
+          def symbolize_basic_input_arguments(properties)
+            input = client.ddl.action_interface(@action)[:input] || {}
+            client.ddl.symbolize_basic_input_arguments(input, properties)
+          end
+
           # Logs a single RPC reply
           # Performs a single attempt at calling the agent
           # @todo should return some kind of task status object
@@ -326,7 +337,7 @@ module MCollective
             begin
               replies = []
 
-              client.send(@action, @properties) do |_, s|
+              client.send(@action, symbolize_basic_input_arguments(@properties)) do |_, s|
                 replies << s
                 log_reply(s)
               end

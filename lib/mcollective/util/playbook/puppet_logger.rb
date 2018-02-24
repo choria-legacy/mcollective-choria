@@ -18,7 +18,7 @@ module MCollective
         end
 
         def log(level, from, msg, normal_output=STDERR, last_resort_output=STDERR)
-          return unless should_show?
+          return unless should_show?(level)
 
           logmethod = case level
                       when :info
@@ -40,8 +40,10 @@ module MCollective
           end
         end
 
-        def should_show?
-          !caller(1..5).grep(/playbook/).empty?
+        def should_show?(level)
+          return true if [:warn, :error, :fatal].include?(level)
+
+          !caller(2..5).grep(/playbook/).empty?
         end
       end
     end

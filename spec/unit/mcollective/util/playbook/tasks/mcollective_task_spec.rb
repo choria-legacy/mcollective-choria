@@ -253,6 +253,7 @@ module MCollective
               mc_client.stubs(:stats).returns(mc_stats = stub(:requestid => "123"))
               mc_client.expects(:disable).with(:message => "rspec").multiple_yields([[:x, rpc_result1]], [[:x, rpc_result2]])
 
+              task.expects(:symbolize_basic_input_arguments).with(:message => "rspec").returns(:message => "rspec")
               task.expects(:log_reply).with(rpc_result1)
               task.expects(:log_reply).with(rpc_result2)
               task.expects(:log_results).with(mc_stats, [rpc_result1, rpc_result2])

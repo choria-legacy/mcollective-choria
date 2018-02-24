@@ -78,7 +78,7 @@ module MCollective
         def facts
           {
             "choria" => {
-              "plan" => @plan
+              "playbook" => @plan
             }
           }
         end
