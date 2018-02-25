@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/02/25|      |Release 0.6.0                                                                                            |
 |2018/02/24|383   |Restore deep merging on Ruby Gem dependencies installed by this module                                   |
 |2018/02/24|405   |Update NATS gem to 0.3.0                                                                                 |
 |2018/02/20|394   |Allow Playbooks to be written using the Puppet Plans DSL                                                 |

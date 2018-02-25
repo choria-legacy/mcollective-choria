@@ -2,7 +2,7 @@ metadata    :name => "bolt_task",
             :description => "Information about past Bolt Task",
             :author => "R.I.Pienaar <rip@devco.net>",
             :license => "Apache-2.0",
-            :version => "0.5.0",
+            :version => "0.6.0",
             :url => "https://choria.io",
             :timeout => 1
 
