@@ -9,13 +9,13 @@
   "issues_url": "https://github.com/choria-io/mcollective-choria/issues",
   "dependencies": [
     { "name": "choria/mcollective","version_requirement":">= 0.4.0 < 2.0.0"},
-    { "name": "choria/mcollective_agent_puppet", "version_requirement": ">= 1.12.0" },
-    { "name": "choria/mcollective_agent_package", "version_requirement": ">= 4.5.0" },
-    { "name": "choria/mcollective_agent_service", "version_requirement": ">= 3.1.3" },
-    { "name": "choria/mcollective_agent_filemgr", "version_requirement": ">= 1.1.0" },
-    { "name": "choria/mcollective_util_actionpolicy", "version_requirement": ">= 2.1.0" },
+    { "name": "choria/mcollective_agent_puppet", "version_requirement": ">= 2.0.0" },
+    { "name": "choria/mcollective_agent_package", "version_requirement": ">= 5.0.0" },
+    { "name": "choria/mcollective_agent_service", "version_requirement": ">= 4.0.0" },
+    { "name": "choria/mcollective_agent_filemgr", "version_requirement": ">= 2.0.0" },
+    { "name": "choria/mcollective_util_actionpolicy", "version_requirement": ">= 3.0.0" },
     { "name": "choria/nats", "version_requirement": ">= 0.3.0" },
-    { "name": "camptocamp/systemd", "version_requirement": ">= 0.3.0 < 2.0.0" }
+    { "name": "camptocamp/systemd", "version_requirement": ">= 1.1.1 < 2.0.0" }
   ],
   "requirements": [
     {
