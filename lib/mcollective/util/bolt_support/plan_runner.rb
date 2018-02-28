@@ -13,6 +13,8 @@ module MCollective
 
         init_puppet
 
+        attr_reader :modulepath
+
         # @param plan [String] the name of the plan to use
         # @param tmpdir [String] the path to an already existing temporary directory
         # @param modulepath [String] a : seperated list of locations to look for modules
@@ -20,7 +22,7 @@ module MCollective
         def initialize(plan, tmpdir, modulepath, loglevel)
           @plan = plan
           @loglevel = loglevel
-          @modulepath = Array(modulepath)
+          @modulepath = modulepath.split(":")
           @tmpdir = tmpdir
 
           raise("A temporary directory could not be created") unless @tmpdir

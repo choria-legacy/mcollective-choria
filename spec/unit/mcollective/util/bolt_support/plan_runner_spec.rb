@@ -13,6 +13,13 @@ module MCollective
           FileUtils.rm_rf(tmpdir)
         end
 
+        describe "#initialize" do
+          it "should split modulepath on :" do
+            r = PlanRunner.new("mymod::test", tmpdir, "spec/fixtures/bolt/plans:/tmp", "err")
+            expect(r.modulepath).to eq(["spec/fixtures/bolt/plans", "/tmp"])
+          end
+        end
+
         describe "#facts" do
           it "should set the right facts" do
             expect(runner.facts).to eq("choria" => {"playbook" => "mymod::test"})
