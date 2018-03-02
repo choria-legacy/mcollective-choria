@@ -20,6 +20,8 @@ define mcollective_choria::federation_broker (
   Enum["systemd", "supervisord"] $service_provider = "systemd",
   Boolean $manage_supervisord = true
 ) {
+  notify{"The Ruby Federation Broker is now deprecated, please use the choria/choria module": }
+
   range(1, $instances).each |$instance| {
     $config_file = "${mcollective::configdir}/federation/${name}_${instance}.cfg"
     $log_file = "/var/log/puppetlabs/mcollective-federation_${name}_${instance}.log"
