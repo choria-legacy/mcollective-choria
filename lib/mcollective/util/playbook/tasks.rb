@@ -1,6 +1,5 @@
 require_relative "task_result"
 require_relative "tasks/base"
-require_relative "tasks/data_task"
 require_relative "tasks/graphite_event_task"
 require_relative "tasks/mcollective_task"
 require_relative "tasks/shell_task"
