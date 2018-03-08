@@ -88,40 +88,6 @@ module MCollective
         end
       end
 
-      # Connect to the federation and observes published stats
-      #
-      # This will yield a hash of stats for every instance in the
-      # Federation Broker in {cluster_name}
-      def observe_stats
-        ENV["CHORIA_FED_COLLECTIVE"] = @cluster_name
-
-        servers = Choria.new(nil, nil, false).middleware_servers("puppet", "4222").map do |host, port|
-          URI("nats://%s:%s" % [host, port])
-        end.map(&:to_s)
-
-        lock = Mutex.new
-
-        cluster_stats = {}
-
-        federation = FederationProcessor.new(self)
-        federation.start_connection(servers)
-
-        Thread.new do
-          federation.consume_from(:name => stats.stats_target) do |msg|
-            stats = JSON.parse(msg)
-
-            if stats["cluster"] == @cluster_name
-              lock.synchronize { cluster_stats[stats["instance"]] = stats }
-            end
-          end
-        end
-
-        loop do
-          lock.synchronize { yield(cluster_stats) }
-          sleep 1
-        end
-      end
-
       # Starts the broker
       #
       # @note this method is non blocking, the federation continues to run in the background in threads
