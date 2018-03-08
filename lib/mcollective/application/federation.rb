@@ -8,7 +8,6 @@ mco federation [OPTIONS] <ACTION>
 
 The ACTION can be one of the following:
 
-   observe       - view the published Federation Broker statistics
    trace         - trace the path to a client
    broker        - start a Federation Broker instance
 
@@ -18,12 +17,12 @@ USAGE
 
       option :cluster,
              :arguments => ["--cluster CLUSTER"],
-             :description => "Cluster name to observe or serve",
+             :description => "Cluster name to serve",
              :type => String
 
       option :instance,
              :arguments => ["--instance INSTANCE"],
-             :description => "Instance name to observe or serve",
+             :description => "Instance name to serve",
              :type => String
 
       option :stats_port,
@@ -227,69 +226,6 @@ USAGE
         exit(1)
       end
 
-      def observe_command
-        abort("Cannot observe using a client that is not configured for Federation, please set choria.federation.collectives or CHORIA_FED_COLLECTIVE") unless choria.federated?
-
-        puts "Waiting for cluster stats to be published ...."
-
-        choria.federation_broker(configuration[:cluster]).observe_stats do |stats|
-          next if stats.empty?
-
-          print "\e[H\e[2J"
-
-          puts "Federation Broker: %s" % Util.colorize(:bold, configuration[:cluster])
-          puts
-
-          ["federation", "collective"].each do |type|
-            type_stats = {"sent" => 0, "received" => 0, "instances" => {}}
-
-            stats.keys.sort.each do |instance|
-              type_stats["sent"] += stats[instance][type]["sent"]
-              type_stats["received"] += stats[instance][type]["received"]
-              type_stats["instances"][instance] ||= {}
-              type_stats["instances"][instance][type] = {
-                "sent" => stats[instance][type]["sent"],
-                "received" => stats[instance][type]["received"],
-                "last" => stats[instance][type]["lasst_message"]
-              }
-            end
-
-            puts "%s" % Util.colorize(:bold, type.capitalize)
-            puts "  Totals:"
-            puts "    Received: %d  Sent: %d" % [type_stats["received"], type_stats["sent"]]
-            puts
-            puts "  Instances:"
-
-            padding = type_stats["instances"].keys.map(&:length).max + 4
-
-            type_stats["instances"].keys.sort.each do |instance|
-              puts "%#{padding}s: Received: %d (%.1f%%) Sent: %d (%.1f%%)" % [
-                instance,
-                type_stats["instances"][instance][type]["received"],
-                type_stats["instances"][instance][type]["received"] / type_stats["received"].to_f * 100,
-                type_stats["instances"][instance][type]["sent"],
-                type_stats["instances"][instance][type]["sent"] / type_stats["sent"].to_f * 100
-              ]
-            end
-
-            puts
-          end
-
-          puts Util.colorize(:bold, "Instances:")
-
-          stats.keys.sort.each do |instance|
-            puts "  %s: version %s started %s" % [
-              instance,
-              stats[instance]["version"],
-              Time.at(stats[instance]["start_time"]).strftime("%F %T")
-            ]
-          end
-
-          puts
-          puts "Updated: %s" % Time.now.strftime("%F %T")
-        end
-      end
-
       # Creates and cache a Choria helper class
       #
       # @return [Util::Choria]
@@ -322,10 +258,6 @@ USAGE
 
         if !choria.has_client_public_cert? && !["request_cert", "show_config"].include?(configuration[:command])
           abort("A certificate is needed from the Puppet CA for `%s`, please use the `request_cert` command" % choria.certname)
-        end
-
-        if configuration[:command] == "observe"
-          abort("When observing a Federation Broker the --cluster option is required") unless configuration[:cluster]
         end
       end
 
