@@ -49,6 +49,10 @@ module MCollective
       # @param plan [String] path to a playbook yaml
       # @return [Util::BoltSupport::PlanRunner]
       def playbook(plan, loglevel=nil)
+        unless configuration[:__modulepath]
+          configuration[:__modulepath] = File.expand_path("~/.puppetlabs/etc/code/modules")
+        end
+
         require "mcollective/util/bolt_support"
         runner = Util::BoltSupport::PlanRunner.new(
           plan,
@@ -57,7 +61,14 @@ module MCollective
           configuration[:__loglevel] || "info"
         )
 
-        raise("Cannot find supplied Playbook %s" % plan) unless runner.exist?
+        unless runner.exist?
+          STDERR.puts("Cannot find supplied Playbook %s" % plan)
+          STDERR.puts
+          STDERR.puts("Module Path:")
+          STDERR.puts
+          STDERR.puts(Util.align_text(configuration[:__modulepath].split(":").join("\n")))
+          exit(1)
+        end
 
         runner
       end
