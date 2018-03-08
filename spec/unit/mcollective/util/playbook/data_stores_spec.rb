@@ -27,17 +27,17 @@ module MCollective
             ds.from_hash(playbook_fixture["data_stores"])
             expect(stores.keys).to eq(["mem_store", "another"])
             expect(stores["mem_store"]).to include(
-              :properties => {"type" => "memory", "timeout" => 20, "ttl" => 10},
-              :type => "memory",
+              :properties => {"type" => "environment", "timeout" => 20, "ttl" => 10},
+              :type => "environment",
               :lock_timeout => 20,
-              :store => a_kind_of(DataStores::MemoryDataStore)
+              :store => a_kind_of(DataStores::EnvironmentDataStore)
             )
           end
         end
 
         describe "#store_for" do
           it "should create the correct type of store" do
-            expect(ds.store_for("name", "memory")).to be_a(DataStores::MemoryDataStore)
+            expect(ds.store_for("name", "environment")).to be_a(DataStores::EnvironmentDataStore)
 
             expect { ds.store_for("name", "rspec") }.to raise_error("Cannot find a handler for Data Store type rspec")
           end

@@ -15,12 +15,12 @@ uses:
 
 data_stores:
   mem_store:
-    type: memory
+    type: environment
     ttl: 10
     timeout: 20
 
   another:
-    type: memory
+    type: environment
 
 locks:
   - mem_store/playbook
