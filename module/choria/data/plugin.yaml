@@ -1,7 +1,7 @@
 ---
 mcollective_choria::config_name: choria
 mcollective_choria::gem_dependencies:
-  "nats-pure": "0.3.0"
+  "nats-pure": "0.4.0"
 
 mcollective_choria::client_directories:
  - util/playbook
