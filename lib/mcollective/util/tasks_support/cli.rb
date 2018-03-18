@@ -171,7 +171,7 @@ module MCollective
         # @return [Boolean]
         # @raize [Exit] on failure
         def validate_task_input(task, meta, input)
-          ok, reason = @support.validate_task_inputs(input, task, meta)
+          ok, reason = @support.validate_task_inputs(input, meta)
 
           return true if ok
 
