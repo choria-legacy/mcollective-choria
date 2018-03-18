@@ -44,11 +44,11 @@ module MCollective
         pb if pb =~ /\A([a-z][a-z0-9_]*)?(::[a-z][a-z0-9_]*)*\Z/
       end
 
-      # Creates an instance of the playbook
+      # Creates an instance of the plan runner
       #
-      # @param plan [String] path to a playbook yaml
+      # @param plan [String] the name of a plan
       # @return [Util::BoltSupport::PlanRunner]
-      def playbook(plan, loglevel=nil)
+      def runner(plan, loglevel=nil)
         unless configuration[:__modulepath]
           configuration[:__modulepath] = File.expand_path("~/.puppetlabs/etc/code/modules")
         end
@@ -82,7 +82,7 @@ module MCollective
 
           if playbook_name = pre_parse_find_playbook
             configuration[:__playbook] = playbook_name
-            playbook(playbook_name).add_cli_options(self, false)
+            runner(playbook_name).add_cli_options(self, false)
           end
 
           # Hackily done here to force it below the playbook options
@@ -151,7 +151,7 @@ module MCollective
         pb_config = configuration.clone
         pb_config.delete_if {|k, _| k.to_s.start_with?("__")}
 
-        pb = playbook(configuration[:__playbook], configuration[:__loglevel])
+        pb = runner(configuration[:__playbook], configuration[:__loglevel])
 
         run_plan(pb, pb_config)
       end

@@ -280,8 +280,8 @@ module MCollective
       # will continue and one can later check again using the request id
       #
       # @note before this should be run be sure to download the tasks first
-      # @param task [Hash] task specification
       # @param requestid [String] the task requestid
+      # @param task [Hash] task specification
       # @param wait [Boolean] should the we wait for the task to complete
       # @param callerid [String] the mcollective callerid who is running the task
       # @return [Hash] the task result as per {#task_result}
@@ -564,6 +564,34 @@ module MCollective
         JSON.parse(resp.body)
       end
 
+      # Validates that the inputs would be acceptable to the task
+      #
+      # @note Copied from PAL TaskSignature#runnable_with?
+      # @param inputs [Hash] of keys and values
+      # @param task [Hash] task metadata
+      # @return [Array[Boolean, Error]]
+      def validate_task_inputs(inputs, task)
+        return [true, ""] if task["metadata"]["parameters"].empty? && inputs.empty?
+
+        require "puppet"
+
+        signature = {}
+
+        task["metadata"]["parameters"].each do |k, v|
+          signature[k] = Puppet::Pops::Types::TypeParser.singleton.parse(v["type"])
+        end
+
+        signature_type = Puppet::Pops::Types::TypeFactory.struct(signature)
+
+        return [true, ""] if signature_type.instance?(inputs)
+
+        tm = Puppet::Pops::Types::TypeMismatchDescriber.singleton
+        reason = tm.describe_struct_signature(signature_type, inputs).flatten.map(&:format).join("\n")
+        reason = "\nInvalid input: \n\t%s" % [reason]
+
+        [false, reason]
+      end
+
       # Calculates a hex digest SHA256 for a specific file
       #
       # @param file_path [String] a full path to the file to check
@@ -630,15 +658,6 @@ module MCollective
           FileUtils.chmod(0o0750, task_file.path)
           FileUtils.mv(task_file.path, file_name)
         end
-      end
-
-      # Downloads all the files in a task
-      #
-      # @param files [Array] the files description
-      # @return [Boolean] indicating download success
-      # @raise [StandardError] on download failures
-      def download_task(task)
-        download_files(task["files"])
       end
 
       # Downloads and caches a file set
