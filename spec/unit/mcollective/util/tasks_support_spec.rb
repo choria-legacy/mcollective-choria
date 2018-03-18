@@ -23,6 +23,24 @@ module MCollective
         FileUtils.rm_rf("/tmp/tasks-cache-#{$$}")
       end
 
+      describe "#validate_task_inputs" do
+        it "should handle tasks without inputs" do
+          task_fixture["metadata"]["parameters"].clear
+
+          expect(ts.validate_task_inputs({}, task_fixture)).to eq([true, ""])
+        end
+
+        it "should handle bad inputs" do
+          task_fixture["metadata"]["parameters"].clear
+
+          expect(ts.validate_task_inputs({"x" => 1}, task_fixture)).to eq([false, "\nInvalid input: \n\t has no parameter named 'x'"])
+        end
+
+        it "should handle good inputs" do
+          expect(ts.validate_task_inputs({"directory" => "/tmp"}, task_fixture)).to eq([true, ""])
+        end
+      end
+
       describe "#puppet_type_to_ruby" do
         it "should handle arrays" do
           expect(ts.puppet_type_to_ruby("Array[Integer]")).to eq([Numeric, true, true])

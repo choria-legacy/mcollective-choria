@@ -137,18 +137,20 @@ module MCollective
         # Parses the given CLI input string and creates results based on it
         #
         # @param configuration [Hash] the mcollective Application configuration
-        # @return [Hash,nil]
+        # @return [Hash]
         def task_input(configuration)
           result = {}
 
           input = configuration[:__json_input]
 
-          if input && input.start_with?("@")
-            input.sub!("@", "")
-            result = JSON.parse(File.read(input)) if input.end_with?("json")
-            result = YAML.safe_load(File.read(input)) if input.end_with?("yaml")
-          else
-            result = JSON.parse(input)
+          if input
+            if input.start_with?("@")
+              input.sub!("@", "")
+              result = JSON.parse(File.read(input)) if input.end_with?("json")
+              result = YAML.safe_load(File.read(input)) if input.end_with?("yaml")
+            else
+              result = JSON.parse(input)
+            end
           end
 
           configuration.each do |item, value|
@@ -159,8 +161,21 @@ module MCollective
           return result unless result.empty?
 
           abort("Could not parse input from --input as YAML or JSON")
+        end
 
-          nil
+        # Validates the inputs provided on the CLI would be acceptable to the task
+        #
+        # @param task [String] task name
+        # @param meta [Hash] task metadata
+        # @param input [Hash] proposed input to pass to the task
+        # @return [Boolean]
+        # @raize [Exit] on failure
+        def validate_task_input(task, meta, input)
+          ok, reason = @support.validate_task_inputs(input, task, meta)
+
+          return true if ok
+
+          abort(reason)
         end
 
         # Adds CLI options for all defined input

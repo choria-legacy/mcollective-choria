@@ -10,8 +10,8 @@ module MCollective
     mco tasks run <TASK NAME> [OPTIONS]
     mco tasks status <REQUEST> [FLAGS]
 
- The Bolt Task Orchestrator is designed to provide a consistent
- management environment for Bolt Tasks.
+ The Task Orchestrator is designed to provide a consistent
+ management environment for Puppet Tasks.
 
  It will download tasks from your Puppet Server onto all nodes
  and after verifying they were able to correctly download the
@@ -34,12 +34,6 @@ module MCollective
                           :description => "Show command descriptions",
                           :default => false,
                           :type => :boolean
-
-        self.class.option :__environment,
-                          :arguments => ["--environment"],
-                          :description => "Environment to retrieve tasks from",
-                          :default => "production",
-                          :type => String
       end
 
       def status_options
@@ -66,12 +60,6 @@ module MCollective
                           :description => "Only show task metadata for each node",
                           :default => false,
                           :type => :boolean
-
-        self.class.option :__environment,
-                          :arguments => ["--environment"],
-                          :description => "Environment to retrieve tasks from",
-                          :default => "production",
-                          :type => String
 
         self.class.option :__json_format,
                           :arguments => ["--json"],
@@ -128,7 +116,7 @@ Examples:
 
         abort("Please specify a task to run") unless task
 
-        cli.create_task_options(task, environment, self)
+        cli.create_task_options(task, "production", self)
 
         self.class.option :__summary,
                           :arguments => ["--summary"],
@@ -147,12 +135,6 @@ Examples:
                           :description => "JSON input to pass to the task",
                           :required => false,
                           :type => String
-
-        self.class.option :__environment,
-                          :arguments => ["--environment"],
-                          :description => "Environment to retrieve tasks from",
-                          :default => "production",
-                          :type => String
       end
 
       def say(msg="")
@@ -164,15 +146,18 @@ Examples:
 
         input = cli.task_input(configuration)
 
-        say("Attempting to download and run task %s on %d nodes" % [Util.colorize(:bold, task), bolt_task.discover.size])
-        say
         say("Retrieving task metadata for task %s from the Puppet Server" % task)
 
         begin
-          meta = cli.task_metadata(task, configuration[:__environment])
+          meta = cli.task_metadata(task, "production")
         rescue
           abort($!.to_s)
         end
+
+        cli.validate_task_input(task, meta, input)
+
+        say("Attempting to download and run task %s on %d nodes" % [Util.colorize(:bold, task), bolt_task.discover.size])
+        say
 
         download_files(task, meta["files"])
 
@@ -212,7 +197,7 @@ Examples:
         cnt = bolt_task.discover.size
         idx = 0
 
-        bolt_task.download(:environment => configuration[:__environment], :task => task, :files => files.to_json) do |_, s|
+        bolt_task.download(:environment => "production", :task => task, :files => files.to_json) do |_, s|
           print(cli.twirl("Downloading and verifying %d file(s) from the Puppet Server to all nodes:" % [files.size], cnt, idx + 1)) unless configuration[:__json_format]
           idx += 1
           downloads << s
@@ -330,7 +315,7 @@ Examples:
       end
 
       def list_command
-        cli.show_task_list(configuration[:__environment], configuration[:__detail])
+        cli.show_task_list("production", configuration[:__detail])
       end
 
       def run
@@ -343,7 +328,7 @@ Examples:
       end
 
       def show_task_help(task)
-        cli.show_task_help(task, configuration[:__environment])
+        cli.show_task_help(task, "production")
       end
 
       def bolt_task
@@ -375,7 +360,7 @@ Examples:
       def cli
         format = configuration[:__json_format] ? :json : :default
 
-        @__cli ||= tasks_support.cli(format, options[:verbose])
+        @__cli ||= tasks_support.cli(format, application_options[:verbose])
       end
 
       def main

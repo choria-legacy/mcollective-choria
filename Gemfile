@@ -13,7 +13,7 @@ group :development, :test do
   gem "listen", "~> 3"
   gem "mcollective-client"
   gem "mocha"
-  gem "puppet", "~> 5"
+  gem "puppet", "~> 5.4"
   gem "rake"
   gem "rspec"
   gem "rubocop", "0.51.0"
