@@ -1,0 +1,10 @@
+{
+  "description": "A basic echo task to test Choria Tasks functionality",
+  "input_method": "environment",
+  "parameters": {
+    "message": {
+      "description": "The message to echo back",
+      "type": "String[1]"
+    }
+  }
+}
