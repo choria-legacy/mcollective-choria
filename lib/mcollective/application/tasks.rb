@@ -360,7 +360,11 @@ Examples:
       def cli
         format = configuration[:__json_format] ? :json : :default
 
-        @__cli ||= tasks_support.cli(format, application_options[:verbose])
+        if options
+          @__cli ||= tasks_support.cli(format, options[:verbose])
+        else
+          tasks_support.cli(format, false)
+        end
       end
 
       def main

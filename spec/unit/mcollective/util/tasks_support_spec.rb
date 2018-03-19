@@ -367,7 +367,8 @@ ERROR
         it "should set the environment for both or environment methods" do
           ["both", "environment"].each do |method|
             task_run_request_fixture["input_method"] = method
-            expect(ts.task_environment(task_run_request_fixture)).to eq("PT_directory" => "/tmp")
+            task_run_request_fixture["input"] = '{"directory": "/tmp", "bool":true}'
+            expect(ts.task_environment(task_run_request_fixture)).to eq("PT_directory" => "/tmp", "PT_bool" => "true")
           end
         end
 

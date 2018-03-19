@@ -163,7 +163,7 @@ module MCollective
         return environment unless ["both", "environment"].include?(task_input_method(task))
 
         JSON.parse(task["input"]).each do |k, v|
-          environment["PT_%s" % k] = v
+          environment["PT_%s" % k] = v.to_s
         end
 
         environment

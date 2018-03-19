@@ -198,7 +198,7 @@ module MCollective
               :required => required
             }
 
-            properties[:arguments] = ["--%s" % name.downcase] if type == :boolean
+            properties[:arguments] = ["--[no-]%s" % name.downcase] if type == :boolean
 
             application.class.option(name.intern, properties)
           end
