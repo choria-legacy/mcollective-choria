@@ -16,6 +16,7 @@ module MCollective
           if status["task"]
             tasks.task_status(taskid).each do |item, value|
               value = value.utc.to_i if value.is_a?(Time)
+              value = value.to_json if value.is_a?(Hash)
 
               result[item.intern] = value
             end
@@ -23,7 +24,7 @@ module MCollective
             result[:start_time] = result[:start_time].to_i
           end
         rescue
-          Log.debug("Task %s was not found, returning default data" % taskid)
+          Log.debug("Task %s was not found, returning default data. Error was: %s" % [taskid, $!.to_s])
         end
       end
     end

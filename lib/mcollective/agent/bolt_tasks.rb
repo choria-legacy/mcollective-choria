@@ -3,7 +3,7 @@ require "mcollective/util/tasks_support"
 
 module MCollective
   module Agent
-    class Bolt_task < RPC::Agent
+    class Bolt_tasks < RPC::Agent
       action "download" do
         reply[:downloads] = 0
 
