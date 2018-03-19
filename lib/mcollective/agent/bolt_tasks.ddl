@@ -1,5 +1,5 @@
-metadata :name => "bolt_task",
-         :description => "Downloads and runs Puppet Bolt tasks",
+metadata :name => "bolt_tasks",
+         :description => "Downloads and runs Puppet Tasks",
          :author => "R.I.Pienaar <rip@devco.net>",
          :license => "Apache-2.0",
          :version => "0.6.0",
@@ -8,7 +8,7 @@ metadata :name => "bolt_task",
 
 requires :mcollective => "2.11.0"
 
-action "download", :description => "Downloads a Bolt task into a local cache" do
+action "download", :description => "Downloads a Puppet Task into a local cache" do
   input :task,
         :prompt      => "Task Name",
         :description => "The name of a task, example apache or apache::reload",
@@ -43,7 +43,7 @@ action "download", :description => "Downloads a Bolt task into a local cache" do
   end
 end
 
-action "run_and_wait", :description => "Runs a Bolt ask that was previously downloaded, wait for it to finish" do
+action "run_and_wait", :description => "Runs a Puppet Task that was previously downloaded, wait for it to finish" do
   input :task,
         :prompt      => "Task Name",
         :description => "The name of a task, example apache or apache::reload",
@@ -131,7 +131,7 @@ action "run_and_wait", :description => "Runs a Bolt ask that was previously down
   end
 end
 
-action "run_no_wait", :description => "Runs a Bolt ask that was previously downloaded do not wait for it to finish" do
+action "run_no_wait", :description => "Runs a Puppet Task that was previously downloaded do not wait for it to finish" do
   input :task,
         :prompt      => "Task Name",
         :description => "The name of a task, example apache or apache::reload",

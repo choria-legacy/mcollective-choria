@@ -12,7 +12,7 @@ run Bolt Task for use in discovery and elsewhere.
 
 To run a task on nodes where one previously failed:
 
-   mco tasks run myapp::update -S "bolt_task(ae561842dc7d5a9dae94f766dfb3d4c8).exitcode > 0"
+   mco tasks run myapp::update -S "bolt_task('ae561842dc7d5a9dae94f766dfb3d4c8').exitcode > 0"
 EOU
 
 dataquery :description => "Puppet Bolt Task state" do

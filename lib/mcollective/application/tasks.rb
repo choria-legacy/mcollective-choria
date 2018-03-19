@@ -156,7 +156,7 @@ Examples:
 
         cli.validate_task_input(task, meta, input)
 
-        say("Attempting to download and run task %s on %d nodes" % [Util.colorize(:bold, task), bolt_task.discover.size])
+        say("Attempting to download and run task %s on %d nodes" % [Util.colorize(:bold, task), bolt_tasks.discover.size])
         say
 
         download_files(task, meta["files"])
@@ -170,17 +170,17 @@ Examples:
 
         if configuration[:__background]
           puts("Starting task %s in the background" % [Util.colorize(:bold, task)])
-          printrpc bolt_task.run_no_wait(request)
+          printrpc bolt_tasks.run_no_wait(request)
           printrpcstats
 
-          if bolt_task.stats.okcount > 0
+          if bolt_tasks.stats.okcount > 0
             puts
-            puts("Request detailed status for the task using 'mco tasks status %s'" % [Util.colorize(:bold, bolt_task.stats.requestid)])
+            puts("Request detailed status for the task using 'mco tasks status %s'" % [Util.colorize(:bold, bolt_tasks.stats.requestid)])
           end
         else
           say("Running task %s and waiting up to %s seconds for it to complete" % [
             Util.colorize(:bold, task),
-            Util.colorize(:bold, bolt_task.ddl.meta[:timeout])
+            Util.colorize(:bold, bolt_tasks.ddl.meta[:timeout])
           ])
 
           request_and_report(:run_and_wait, request)
@@ -188,16 +188,16 @@ Examples:
       end
 
       def download_files(task, files)
-        original_batch_size = bolt_task.batch_size
-        bolt_task.batch_size = 50
+        original_batch_size = bolt_tasks.batch_size
+        bolt_tasks.batch_size = 50
 
         failed = false
 
         downloads = []
-        cnt = bolt_task.discover.size
+        cnt = bolt_tasks.discover.size
         idx = 0
 
-        bolt_task.download(:environment => "production", :task => task, :files => files.to_json) do |_, s|
+        bolt_tasks.download(:environment => "production", :task => task, :files => files.to_json) do |_, s|
           print(cli.twirl("Downloading and verifying %d file(s) from the Puppet Server to all nodes:" % [files.size], cnt, idx + 1)) unless configuration[:__json_format]
           idx += 1
           downloads << s
@@ -209,9 +209,9 @@ Examples:
           puts("   %s: %s" % [Util.colorize(:red, "Could not download files onto %s" % download[:sender]), download[:statusmsg]])
         end
 
-        unless bolt_task.stats.noresponsefrom.empty?
+        unless bolt_tasks.stats.noresponsefrom.empty?
           puts
-          puts bolt_task.stats.no_response_report
+          puts bolt_tasks.stats.no_response_report
           failed = true
         end
 
@@ -220,7 +220,7 @@ Examples:
           abort("Could not download the task %s onto all nodes" % task)
         end
       ensure
-        bolt_task.batch_size = original_batch_size
+        bolt_tasks.batch_size = original_batch_size
       end
 
       def status_command
@@ -233,11 +233,11 @@ Examples:
             say("Requesting task metadata for request %s" % Util.colorize(:bold, taskid))
           end
 
-          bolt_task.task_status(:task_id => taskid).each do |status|
+          bolt_tasks.task_status(:task_id => taskid).each do |status|
             cli.print_result_metadata(status)
           end
 
-          cli.print_rpc_stats(bolt_task.stats)
+          cli.print_rpc_stats(bolt_tasks.stats)
         else
           unless options[:verbose]
             say("Requesting task status for request %s, showing failures only pass --verbose for all output" % Util.colorize(:bold, taskid))
@@ -257,13 +257,13 @@ Examples:
         fail_nodes = 0
         progress = configuration[:__summary] ? RPC::Progress.new : nil
         cnt = 0
-        expected = bolt_task.discover.size
+        expected = bolt_tasks.discover.size
         task_names = []
         callers = []
 
         say
 
-        bolt_task.send(action, arguments) do |_, reply|
+        bolt_tasks.send(action, arguments) do |_, reply|
           status = reply[:data]
 
           if reply[:statuscode] == 3
@@ -292,7 +292,7 @@ Examples:
           cnt += 1
         end
 
-        taskid ||= bolt_task.stats.requestid
+        taskid ||= bolt_tasks.stats.requestid
 
         callers.compact!
         callers.uniq!
@@ -310,7 +310,7 @@ Examples:
           success_nodes,
           fail_nodes,
           runtime,
-          bolt_task.stats
+          bolt_tasks.stats
         )
       end
 
@@ -331,8 +331,8 @@ Examples:
         cli.show_task_help(task, "production")
       end
 
-      def bolt_task
-        @__bolt_task ||= rpcclient("bolt_task")
+      def bolt_tasks
+        @__bolt_tasks ||= rpcclient("bolt_tasks")
       end
 
       def extract_environment_from_argv
