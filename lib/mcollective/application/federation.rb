@@ -9,26 +9,10 @@ mco federation [OPTIONS] <ACTION>
 The ACTION can be one of the following:
 
    trace         - trace the path to a client
-   broker        - start a Federation Broker instance
 
 USAGE
 
       exclude_argument_sections "common", "filter", "rpc"
-
-      option :cluster,
-             :arguments => ["--cluster CLUSTER"],
-             :description => "Cluster name to serve",
-             :type => String
-
-      option :instance,
-             :arguments => ["--instance INSTANCE"],
-             :description => "Instance name to serve",
-             :type => String
-
-      option :stats_port,
-             :arguments => ["--stats-port PORT", "--stats"],
-             :description => "HTTP port to listen to for stats",
-             :type => Integer
 
       # Publish a specially crafted 'ping' with seen-by headers
       # embedded, this signals to the entire collective to record
@@ -198,32 +182,6 @@ USAGE
         else
           puts "  Unfederated"
         end
-      end
-
-      def broker_command
-        configuration[:cluster] = Config.instance.pluginconf["choria.federation.cluster"] unless configuration[:cluster]
-        configuration[:instance] = Config.instance.pluginconf["choria.federation.instance"] unless configuration[:instance]
-
-        abort("A cluster name is required, use --cluster or plugin.choria.federation.cluster") unless configuration[:cluster]
-
-        Log.warn("Using a UUID based instance name, use --instance of plugin.choria.federation.instance") unless configuration[:instance]
-
-        # app framework would set this to just 'federation' which is not helping
-        $0 = "choria %s_%s federation broker [%s]" % [configuration[:cluster], configuration[:instance], Config.instance.configfile]
-
-        broker = choria.federation_broker(
-          configuration[:cluster],
-          configuration[:instance],
-          configuration[:stats_port]
-        )
-
-        broker.start
-
-        sleep 10 while broker.ok?
-
-        Log.error("Some broker threads died, exiting: %s" % broker.thread_status.pretty_inspect)
-
-        exit(1)
       end
 
       # Creates and cache a Choria helper class
