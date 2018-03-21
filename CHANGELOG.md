@@ -1,5 +1,14 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/03/21|      |Release 0.7.0                                                                                            |
+|2018/03/19|347   |Support running Puppet Tasks                                                                             |
+|2018/03/17|434   |Fix dependency handling on Archlinux                                                                     |
+|2018/03/17|431   |Update the NATS Client Gem version `0.4.0`                                                               |
+|2018/03/08|423   |Remove the `mco federation observe` command                                                              |
+|2018/03/05|425   |Default to the users module path when running playbooks                                                  |
+|2018/03/05|401   |Remove YAML playbooks                                                                                    |
+|2018/03/02|419   |Deprecate the ruby Federation Broker                                                                     |
+|2018/02/28|415   |When running playbooks split the modulepath on `:`                                                       |
 |2018/02/25|      |Release 0.6.0                                                                                            |
 |2018/02/24|383   |Restore deep merging on Ruby Gem dependencies installed by this module                                   |
 |2018/02/24|405   |Update NATS gem to 0.3.0                                                                                 |
