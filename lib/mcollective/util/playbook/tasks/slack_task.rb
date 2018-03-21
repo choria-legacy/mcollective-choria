@@ -18,7 +18,7 @@ module MCollective
             @token = data["token"]
             @color = data.fetch("color", "#ffa449")
             @username = data.fetch("username", "Choria")
-            @icon = "http://choria.io/img/slack-48x48.png"
+            @icon = "https://choria.io/img/slack-48x48.png"
 
             self
           end
