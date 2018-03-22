@@ -126,7 +126,7 @@ module MCollective
         puts "              Federated: %s" % choria.federated?
         puts "             SRV Domain: %s" % choria.srv_domain
 
-        middleware_servers = choria.middleware_servers("puppet", 42222).map {|s, p| "%s:%s" % [s, p]}.join(", ")
+        middleware_servers = choria.middleware_servers("puppet", 4222).map {|s, p| "%s:%s" % [s, p]}.join(", ")
 
         puts "     Middleware Servers: %s" % middleware_servers
 
