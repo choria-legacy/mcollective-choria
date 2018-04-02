@@ -148,7 +148,7 @@ module MCollective
             }
 
             properties[:required] = true if details["required"] && set_required
-            properties[:arguments] = "--%s" % name.downcase if type == :boolean
+            properties[:arguments] = "--[no-]%s" % name.downcase if type == :boolean
 
             application.class.option(name, properties)
           end
