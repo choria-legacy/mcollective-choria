@@ -132,13 +132,13 @@ module MCollective
 
             'inventory {facts.%s ~ "%s"}' % [fact, regex]
           when "=="
-            if ["true", "false"].include?(value)
+            if ["true", "false"].include?(value) || numeric?(value)
               'inventory {facts.%s = %s or facts.%s = "%s"}' % [fact, value, fact, value]
             else
               'inventory {facts.%s = "%s"}' % [fact, value]
             end
           when "!="
-            if ["true", "false"].include?(value)
+            if ["true", "false"].include?(value) || numeric?(value)
               'inventory {!(facts.%s = %s or facts.%s = "%s")}' % [fact, value, fact, value]
             else
               'inventory {!(facts.%s = "%s")}' % [fact, value]
