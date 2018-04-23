@@ -21,7 +21,7 @@ module MCollective
         reply[:choria_version] = "mcollective plugin %s" % Util::Choria::VERSION
 
         if connector.connected?
-          reply[:connected_server] = "%s:%s" % [connector.connected_server.host, connector.connected_server.port]
+          reply[:connected_server] = "%s://%s:%s" % [connector.connected_server.scheme, connector.connected_server.host, connector.connected_server.port]
         else
           reply[:connected_server] = "disconnected"
         end
