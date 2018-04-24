@@ -1,0 +1,347 @@
+{
+  "$schema": "https://choria.io/schemas/mcorpc/agent:1.json",
+  "metadata": {
+    "name": "bolt_tasks",
+    "description": "Downloads and runs Puppet Tasks",
+    "author": "R.I.Pienaar <rip@devco.net>",
+    "license": "Apache-2.0",
+    "version": "0.8.0",
+    "url": "https://choria.io",
+    "timeout": 60
+  },
+  "actions": [
+    {
+      "action": "download",
+      "input": {
+        "task": {
+          "prompt": "Task Name",
+          "description": "The name of a task, example apache or apache::reload",
+          "type": "string",
+          "default": null,
+          "optional": false,
+          "validation": "bolt_task_name",
+          "maxlength": 100
+        },
+        "environment": {
+          "prompt": "Puppet Environment",
+          "description": "The environment the task should be fetched from",
+          "type": "string",
+          "default": "production",
+          "optional": false,
+          "validation": "\\A[a-z][a-z0-9_]*\\z",
+          "maxlength": 100
+        },
+        "files": {
+          "prompt": "Task Files Specification",
+          "description": "The specification of files to download according to v3 api in JSON format",
+          "type": "string",
+          "default": null,
+          "optional": false,
+          "validation": "\\A\\[.+\\]\\z",
+          "maxlength": 4000
+        }
+      },
+      "output": {
+        "downloads": {
+          "description": "The number of files downloaded",
+          "display_as": "Files Downloaded",
+          "default": null
+        }
+      },
+      "display": "failed",
+      "description": "Downloads a Puppet Task into a local cache",
+      "aggregate": [
+        {
+          "function": "summary",
+          "args": [
+            "downloads"
+          ]
+        }
+      ]
+    },
+    {
+      "action": "run_and_wait",
+      "input": {
+        "task": {
+          "prompt": "Task Name",
+          "description": "The name of a task, example apache or apache::reload",
+          "type": "string",
+          "default": null,
+          "optional": false,
+          "validation": "bolt_task_name",
+          "maxlength": 100
+        },
+        "input_method": {
+          "prompt": "Input Method",
+          "description": "The input method to use",
+          "type": "list",
+          "default": null,
+          "optional": true,
+          "list": [
+            "powershell",
+            "stdin",
+            "environment",
+            "both"
+          ]
+        },
+        "files": {
+          "prompt": "Task Files Specification",
+          "description": "The specification of files to download according to v3 api in JSON format",
+          "type": "string",
+          "default": null,
+          "optional": false,
+          "validation": "\\A\\[.+\\]\\z",
+          "maxlength": 4000
+        },
+        "input": {
+          "prompt": "Task Input",
+          "description": "JSON String containing input variables",
+          "type": "string",
+          "default": "{}",
+          "optional": false,
+          "validation": "^.+$",
+          "maxlength": 102400
+        }
+      },
+      "output": {
+        "task_id": {
+          "description": "The ID the task was created with",
+          "display_as": "Task ID",
+          "default": null
+        },
+        "task": {
+          "description": "Task name",
+          "display_as": "Task",
+          "default": null
+        },
+        "callerid": {
+          "description": "User who initiated the task",
+          "display_as": "User",
+          "default": null
+        },
+        "exitcode": {
+          "description": "Task exit code",
+          "display_as": "Exit Code",
+          "default": 127
+        },
+        "stdout": {
+          "description": "Standard Output from the command",
+          "display_as": "STDOUT",
+          "default": null
+        },
+        "stderr": {
+          "description": "Standard Error from the command",
+          "display_as": "STDERR",
+          "default": null
+        },
+        "completed": {
+          "description": "Did the task complete",
+          "display_as": "Completed",
+          "default": false
+        },
+        "runtime": {
+          "description": "Time taken to run the command",
+          "display_as": "Runtime",
+          "default": 0
+        },
+        "start_time": {
+          "description": "When the task was started in UTC time",
+          "display_as": "Start Time",
+          "default": null
+        }
+      },
+      "display": "failed",
+      "description": "Runs a Puppet Task that was previously downloaded, wait for it to finish",
+      "aggregate": [
+        {
+          "function": "average",
+          "args": [
+            "runtime"
+          ]
+        },
+        {
+          "function": "summary",
+          "args": [
+            "task"
+          ]
+        },
+        {
+          "function": "summary",
+          "args": [
+            "callerid"
+          ]
+        },
+        {
+          "function": "summary",
+          "args": [
+            "exitcode"
+          ]
+        },
+        {
+          "function": "summary",
+          "args": [
+            "completed"
+          ]
+        },
+        {
+          "function": "summary",
+          "args": [
+            "task_id"
+          ]
+        }
+      ]
+    },
+    {
+      "action": "run_no_wait",
+      "input": {
+        "task": {
+          "prompt": "Task Name",
+          "description": "The name of a task, example apache or apache::reload",
+          "type": "string",
+          "default": null,
+          "optional": false,
+          "validation": "bolt_task_name",
+          "maxlength": 100
+        },
+        "input_method": {
+          "prompt": "Input Method",
+          "description": "The input method to use",
+          "type": "list",
+          "default": null,
+          "optional": true,
+          "list": [
+            "powershell",
+            "stdin",
+            "environment",
+            "both"
+          ]
+        },
+        "files": {
+          "prompt": "Task Files Specification",
+          "description": "The specification of files to download according to v3 api in JSON format",
+          "type": "string",
+          "default": null,
+          "optional": false,
+          "validation": "\\A\\[.+\\]\\z",
+          "maxlength": 4000
+        },
+        "input": {
+          "prompt": "Task Input",
+          "description": "JSON String containing input variables",
+          "type": "string",
+          "default": "{}",
+          "optional": true,
+          "validation": "^.+$",
+          "maxlength": 102400
+        }
+      },
+      "output": {
+        "task_id": {
+          "description": "The ID the task was created with",
+          "display_as": "Task ID",
+          "default": null
+        }
+      },
+      "display": "failed",
+      "description": "Runs a Puppet Task that was previously downloaded do not wait for it to finish",
+      "aggregate": [
+        {
+          "function": "summary",
+          "args": [
+            "task_id"
+          ]
+        }
+      ]
+    },
+    {
+      "action": "task_status",
+      "input": {
+        "task_id": {
+          "prompt": "Task ID",
+          "description": "The Task ID to retrieve",
+          "type": "string",
+          "default": null,
+          "optional": false,
+          "validation": "^[a-z,0-9]{32}$",
+          "maxlength": 32
+        }
+      },
+      "output": {
+        "task": {
+          "description": "Task name",
+          "display_as": "Task",
+          "default": null
+        },
+        "callerid": {
+          "description": "User who initiated the task",
+          "display_as": "User",
+          "default": null
+        },
+        "exitcode": {
+          "description": "Task exit code",
+          "display_as": "Exit Code",
+          "default": 127
+        },
+        "stdout": {
+          "description": "Standard Output from the command",
+          "display_as": "STDOUT",
+          "default": null
+        },
+        "stderr": {
+          "description": "Standard Error from the command",
+          "display_as": "STDERR",
+          "default": null
+        },
+        "completed": {
+          "description": "Did the task complete",
+          "display_as": "Completed",
+          "default": false
+        },
+        "runtime": {
+          "description": "Time taken to run the command",
+          "display_as": "Runtime",
+          "default": 0
+        },
+        "start_time": {
+          "description": "When the task was started in UTC time",
+          "display_as": "Start Time",
+          "default": null
+        }
+      },
+      "display": "always",
+      "description": "Request the status of a previously ran task",
+      "aggregate": [
+        {
+          "function": "average",
+          "args": [
+            "runtime"
+          ]
+        },
+        {
+          "function": "summary",
+          "args": [
+            "task"
+          ]
+        },
+        {
+          "function": "summary",
+          "args": [
+            "callerid"
+          ]
+        },
+        {
+          "function": "summary",
+          "args": [
+            "exitcode"
+          ]
+        },
+        {
+          "function": "summary",
+          "args": [
+            "completed"
+          ]
+        }
+      ]
+    }
+  ]
+}
