@@ -13,6 +13,7 @@ mcollective_agent_bolt_tasks::common_directories:
 
 mcollective_agent_bolt_tasks::common_files:
  - agent/bolt_tasks.ddl
+ - agent/bolt_tasks.json
  - data/bolt_task_data.ddl
  - util/tasks_support.rb
  - util/tasks_support/cli.rb
