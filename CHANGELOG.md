@@ -1,5 +1,12 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/04/24|      |Release 0.8.0                                                                                            |
+|2018/04/23|465   |Include the url schema in the connected server reported by `choria_util#info` action                     |
+|2018/04/23|463   |Allow choria discovery method to find machines with numeric fact values                                  |
+|2018/04/02|461   |Improve handling of boolean inputs on the CLI in playbooks                                               |
+|2018/03/22|      |Correctly report default middleware port in `choria show_config`                                         |
+|2018/03/21|430   |Use `https` for the Slack icon                                                                           |
+|2018/03/21|448   |Remove the Ruby Federation Broker                                                                        |
 |2018/03/21|      |Release 0.7.0                                                                                            |
 |2018/03/19|347   |Support running Puppet Tasks                                                                             |
 |2018/03/17|434   |Fix dependency handling on Archlinux                                                                     |
