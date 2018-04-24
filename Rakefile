@@ -71,7 +71,7 @@ task :release do
     puts
     sh("mkdir -p module/%s/files/mcollective" % mod)
     sh("rm -rf module/%s/files/mcollective/*" % mod)
-    sh("cp .gitignore LICENSE.txt module/%s" % mod)
+    sh("cp .gitignore LICENSE.txt NOTICE module/%s" % mod)
     sh("cp CHANGELOG.md module/choria") if mod == "choria"
 
     datafile = "module/%s/data/plugin.yaml" % mod
