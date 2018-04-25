@@ -45,6 +45,10 @@ module MCollective
             }
             expect(cli.task_input(configuration)).to eq("name" => "cli override")
           end
+
+          it "should not fail when there are no inputs" do
+            expect(cli.task_input({})).to eq({})
+          end
         end
 
         describe "#show_task_help" do
