@@ -158,9 +158,7 @@ module MCollective
             result[item.to_s] = value
           end
 
-          return result unless result.empty?
-
-          abort("Could not parse input from --input as YAML or JSON")
+          result
         end
 
         # Validates the inputs provided on the CLI would be acceptable to the task
