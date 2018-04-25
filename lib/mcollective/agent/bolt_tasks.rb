@@ -26,7 +26,7 @@ module MCollective
         tasks = support_factory
 
         unless tasks.tasks_compatible?
-          msg = "Cannot execute Bolt tasks as the node is not meed the compatability requirements"
+          msg = "Cannot execute Bolt tasks as the node does not meet the minimum compatability requirements"
           reply[:stdout] = make_error(msg, "choria/not_compatible", {}).to_json
           reply.fail!(msg, 5)
         end
@@ -66,7 +66,7 @@ module MCollective
         tasks = support_factory
 
         unless tasks.tasks_compatible?
-          msg = "Cannot execute Bolt tasks as the node is not meed the compatability requirements"
+          msg = "Cannot execute Bolt tasks as the node does not meet the minimum compatability requirements"
           reply[:stdout] = make_error(msg, "choria/not_compatible", {}).to_json
           reply.fail!(msg, 5)
         end
