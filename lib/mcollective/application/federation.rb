@@ -1,7 +1,7 @@
 module MCollective
   class Application
     class Federation < Application
-      description "Choria Federation Brokers"
+      description "Choria Federation Broker Utilities"
 
       usage <<-USAGE
 mco federation [OPTIONS] <ACTION>
