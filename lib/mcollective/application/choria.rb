@@ -1,7 +1,7 @@
 module MCollective
   class Application
     class Choria < Application
-      description "Choria Orchestrator Management"
+      description "Choria Orchestrator Management and Configuration"
 
       usage <<-USAGE
   mco choria [OPTIONS] <ACTION>
