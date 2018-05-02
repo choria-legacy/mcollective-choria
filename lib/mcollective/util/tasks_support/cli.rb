@@ -186,19 +186,42 @@ module MCollective
           return if meta["metadata"]["parameters"].nil? || meta["metadata"]["parameters"].empty?
 
           meta["metadata"]["parameters"].sort_by {|n, _| n}.each do |name, details|
-            type, array, required = @support.puppet_type_to_ruby(details["type"])
-            description = "%s (%s)" % [details["description"], details["type"]]
+            type, array, _ = @support.puppet_type_to_ruby(details["type"])
 
             properties = {
-              :description => description,
+              :description => "%s (%s)" % [details["description"], details["type"]],
               :arguments => ["--%s %s" % [name.downcase, name.upcase]],
-              :type => array ? :array : type,
-              :required => required
+              :type => type
             }
+
+            properties[:type] = :array if array
+
+            if type == Hash
+              properties[:arguments] = ["--%s JSON" % name.downcase]
+              properties[:type] = String
+            end
 
             properties[:arguments] = ["--[no-]%s" % name.downcase] if type == :boolean
 
             application.class.option(name.intern, properties)
+          end
+        end
+
+        # Transform hash inputs given as json strings to hashes
+        #
+        # @param meta [Hash] task metadata
+        # @param input [Hash] proposed input to pass to the task
+        def transform_hash_strings(meta, input)
+          meta["metadata"]["parameters"].each do |name, details|
+            type, _, _ = @support.puppet_type_to_ruby(details["type"])
+
+            next unless type == Hash && input[name].is_a?(String)
+
+            begin
+              input[name] = JSON.parse(input[name])
+            rescue
+              raise("Could not parse input '%s' as JSON data: %s: %s" % [name, $!.class, $!.message])
+            end
           end
         end
 

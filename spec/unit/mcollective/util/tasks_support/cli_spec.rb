@@ -12,6 +12,29 @@ module MCollective
         let(:cli) { ts.cli(:console, true) }
         let(:task_fixture) { JSON.parse(File.read("spec/fixtures/tasks/tasks_list.json")) }
 
+        describe "#transform_hash_strings" do
+          it "should transform a json string to hash if the input is a hash" do
+            inputs = {
+              "params" => '{"message":"hello world"}'
+            }
+
+            meta = {
+              "metadata" => {
+                "parameters" => {
+                  "params" => {
+                    "description" => "A map of parameter names and values to apply",
+                    "type" => "Optional[Hash[String[1], Data]]"
+                  }
+                }
+              }
+            }
+
+            cli.transform_hash_strings(meta, inputs)
+
+            expect(inputs["params"]).to eq("message" => "hello world")
+          end
+        end
+
         describe "#task_metadata" do
           it "should fetch and cache the metadata" do
             fixture = JSON.parse(File.read("spec/fixtures/tasks/puppet_conf_metadata.json"))

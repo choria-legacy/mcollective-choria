@@ -154,6 +154,7 @@ Examples:
           abort($!.to_s)
         end
 
+        cli.transform_hash_strings(meta, input)
         cli.validate_task_input(task, meta, input)
 
         say("Attempting to download and run task %s on %d nodes" % [Util.colorize(:bold, task), bolt_tasks.discover.size])
