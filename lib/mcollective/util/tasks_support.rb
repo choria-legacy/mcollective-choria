@@ -571,6 +571,7 @@ module MCollective
       # @param task [Hash] task metadata
       # @return [Array[Boolean, Error]]
       def validate_task_inputs(inputs, task)
+        return [true, ""] unless task["metadata"]["parameters"]
         return [true, ""] if task["metadata"]["parameters"].empty? && inputs.empty?
 
         require "puppet"

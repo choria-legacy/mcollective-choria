@@ -33,6 +33,18 @@ module MCollective
 
             expect(inputs["params"]).to eq("message" => "hello world")
           end
+
+          it "should handle tasks without any input params" do
+            inputs = {
+              "params" => '{"message":"hello world"}'
+            }
+
+            meta = {"metadata" => {}}
+
+            cli.transform_hash_strings(meta, inputs)
+
+            expect(inputs["params"]).to eq('{"message":"hello world"}')
+          end
         end
 
         describe "#task_metadata" do

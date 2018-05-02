@@ -212,6 +212,8 @@ module MCollective
         # @param meta [Hash] task metadata
         # @param input [Hash] proposed input to pass to the task
         def transform_hash_strings(meta, input)
+          return unless meta["metadata"]["parameters"]
+
           meta["metadata"]["parameters"].each do |name, details|
             type, _, _ = @support.puppet_type_to_ruby(details["type"])
 
