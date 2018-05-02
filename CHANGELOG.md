@@ -1,5 +1,11 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/05/02|      |Release 0.8.1                                                                                            |
+|2018/05/02|477   |Improve application descriptions                                                                         |
+|2018/05/02|479   |Ensure required arguments can be supplied via JSON data                                                  |
+|2018/05/02|478   |Allow Hash inputs to be supplied on the CLI as JSON strings                                              |
+|2018/04/25|472   |Ensure tasks with no input arguments can be run                                                          |
+|2018/04/25|473   |Improve error messages when a node does not meet the requirements to run tasks                           |
 |2018/04/24|      |Release 0.8.0                                                                                            |
 |2018/04/23|465   |Include the url schema in the connected server reported by `choria_util#info` action                     |
 |2018/04/23|463   |Allow choria discovery method to find machines with numeric fact values                                  |
