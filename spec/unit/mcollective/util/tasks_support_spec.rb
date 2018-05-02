@@ -26,7 +26,9 @@ module MCollective
       describe "#validate_task_inputs" do
         it "should handle tasks without inputs" do
           task_fixture["metadata"]["parameters"].clear
+          expect(ts.validate_task_inputs({}, task_fixture)).to eq([true, ""])
 
+          task_fixture["metadata"].delete("parameters")
           expect(ts.validate_task_inputs({}, task_fixture)).to eq([true, ""])
         end
 
