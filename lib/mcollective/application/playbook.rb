@@ -184,7 +184,7 @@ module MCollective
           Util.colorize(color, msg)
         ]
 
-        unless result.nil?
+        if result
           puts
           puts "Result: "
           puts
