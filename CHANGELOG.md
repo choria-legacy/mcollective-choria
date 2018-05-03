@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/05/03|      |Release 0.8.2                                                                                            |
+|2018/05/03|484   |Handle tasks without any JSON metadata included - Puppet Server gives inconsistent responses             |
 |2018/05/02|      |Release 0.8.1                                                                                            |
 |2018/05/02|477   |Improve application descriptions                                                                         |
 |2018/05/02|479   |Ensure required arguments can be supplied via JSON data                                                  |
