@@ -207,7 +207,7 @@ Examples:
           request_and_report(:run_and_wait, request)
         end
       ensure
-        bolt_tasks.batch_size = nil
+        bolt_tasks.batch_size = 0
         bolt_tasks.progress = false
       end
 
@@ -348,7 +348,7 @@ Examples:
           bolt_tasks.stats
         )
       ensure
-        bolt_tasks.batch_size = nil
+        bolt_tasks.batch_size = 0
       end
 
       def list_command
