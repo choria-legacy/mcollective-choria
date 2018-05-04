@@ -22,7 +22,7 @@ module MCollective
  can use the status comment to review a completed task later.
       USAGE
 
-      exclude_argument_sections "common", "rpc"
+      exclude_argument_sections "rpc"
 
       def post_option_parser(configuration)
         configuration[:__command] = ARGV.shift || "list"
@@ -140,7 +140,7 @@ Examples:
                           :arguments => ["--batch SIZE"],
                           :description => "Run tasks on nodes in batches",
                           :required => false,
-                          :type => Integer
+                          :type => String
 
         self.class.option :__batch_sleep,
                           :arguments => ["--batch-sleep SECONDS"],
@@ -207,8 +207,7 @@ Examples:
           request_and_report(:run_and_wait, request)
         end
       ensure
-        bolt_tasks.batch_size = 0
-        bolt_tasks.progress = false
+        reset_client!
       end
 
       def download_files(task, files)
@@ -348,7 +347,7 @@ Examples:
           bolt_tasks.stats
         )
       ensure
-        bolt_tasks.batch_size = 0
+        reset_client!
       end
 
       def list_command
@@ -370,6 +369,11 @@ Examples:
 
       def bolt_tasks
         @__bolt_tasks ||= rpcclient("bolt_tasks")
+      end
+
+      def reset_client!
+        bolt_tasks.batch_size = 0
+        bolt_tasks.progress = options[:verbose]
       end
 
       def extract_environment_from_argv
