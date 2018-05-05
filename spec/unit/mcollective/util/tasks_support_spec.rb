@@ -633,6 +633,13 @@ ERROR
             ts.task_metadata("choria::ls", "production")
           end.to raise_error("Failed to request task metadata: 404: Could not find module 'choria'")
         end
+
+        it "should normalize results" do
+          stub_request(:get, "https://stubpuppet:8140/puppet/v3/tasks/choria/ls?environment=production")
+            .to_return(:status => 200, :body => {}.to_json)
+
+          expect(ts.task_metadata("choria::ls", "production")).to eq("files" => [], "metadata" => {"parameters" => {}})
+        end
       end
 
       describe "#http_get" do

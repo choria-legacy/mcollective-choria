@@ -561,7 +561,13 @@ module MCollective
 
         raise("Failed to request task metadata: %s: %s" % [resp.code, resp.body]) unless resp.code == "200"
 
-        JSON.parse(resp.body)
+        result = JSON.parse(resp.body)
+
+        result["metadata"] ||= {}
+        result["metadata"]["parameters"] ||= {}
+        result["files"] ||= []
+
+        result
       end
 
       # Validates that the inputs would be acceptable to the task
