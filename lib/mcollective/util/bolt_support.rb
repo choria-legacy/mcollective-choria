@@ -152,7 +152,7 @@ module MCollective
         execution_result = runner.to_execution_result([result.success, result.msg, result.data])
 
         results = execution_result.map do |node, result_properties|
-          TaskResult.new(node, result_properties)
+          TaskResult.new(node, JSON.parse(result_properties.to_json))
         end
 
         task_results = TaskResults.new(results, nil)
