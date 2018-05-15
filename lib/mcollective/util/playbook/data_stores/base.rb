@@ -52,9 +52,8 @@ module MCollective
           # @note when the lock does not exist it should be created
           # @param key [String] the lock name
           # @param timeout [Integer,Float] how long to attempt to get the lock for
-          # @param ttl [Integer,Float] after this long the lock should expire in the event that we died
           # @raise [StandardError] when locking fails
-          def lock(key, timeout, ttl)
+          def lock(key, timeout)
             raise(NotImplementedError, "lock not implemented in %s" % [self.class], caller)
           end
 
