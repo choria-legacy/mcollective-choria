@@ -4,7 +4,7 @@ gem "nats-pure", "~> 0.4"
 
 group :development, :test do
   gem "coveralls"
-  gem "diplomat", "~> 1"
+  gem "diplomat", "~> 2"
   gem "etcdv3", "~> 0.6.0"
   gem "guard-rspec"
   gem "guard-shell"
