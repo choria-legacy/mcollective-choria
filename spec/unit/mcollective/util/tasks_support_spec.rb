@@ -261,7 +261,11 @@ ERROR
           ts.stubs(:request_spooldir).returns(File.join(cache, "test_1"))
           ts.expects(:spawn_command).with(
             "/opt/puppetlabs/puppet/bin/task_wrapper",
-            {},
+            {
+              "_task" => "choria::ls",
+              "_task_id" => "test_1",
+              "_task_caller" => "choria=local.mcollective"
+            },
             instance_of(String),
             File.join(cache, "test_1")
           )
@@ -270,7 +274,7 @@ ERROR
           ts.expects(:wait_for_task_completion)
           ts.stubs(:task_status)
 
-          ts.run_task_command("test_1", task_run_request_fixture)
+          ts.run_task_command("test_1", task_run_request_fixture, true, "choria=local.mcollective")
         end
       end
 
@@ -370,14 +374,24 @@ ERROR
           ["both", "environment"].each do |method|
             task_run_request_fixture["input_method"] = method
             task_run_request_fixture["input"] = '{"directory": "/tmp", "bool":true}'
-            expect(ts.task_environment(task_run_request_fixture)).to eq("PT_directory" => "/tmp", "PT_bool" => "true")
+            expect(ts.task_environment(task_run_request_fixture, "test_id", "caller=spec.mcollective")).to eq(
+              "PT_directory" => "/tmp",
+              "PT_bool" => "true",
+              "_task" => "choria::ls",
+              "_task_caller" => "caller=spec.mcollective",
+              "_task_id" => "test_id"
+            )
           end
         end
 
         it "should not set it otherwise" do
           ["powershell", "stdin"].each do |method|
             task_run_request_fixture["input_method"] = method
-            expect(ts.task_environment(task_run_request_fixture)).to be_empty
+            expect(ts.task_environment(task_run_request_fixture, "test_id", "caller=spec.mcollective")).to eq(
+              "_task" => "choria::ls",
+              "_task_caller" => "caller=spec.mcollective",
+              "_task_id" => "test_id"
+            )
           end
         end
       end
