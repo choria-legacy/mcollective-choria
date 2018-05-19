@@ -155,9 +155,15 @@ module MCollective
       # Given a task spec calculates the correct environment hash
       #
       # @param task [Hash] task specification
+      # @param task_id [String] task id - usually the mcollective request id
+      # @param task_caller [String] the caller invoking the task
       # @return [Hash]
-      def task_environment(task)
-        environment = {}
+      def task_environment(task, task_id, task_caller)
+        environment = {
+          "_task" => task["task"],
+          "_task_id" => task_id,
+          "_task_caller" => task_caller
+        }
 
         return environment unless task["input"]
         return environment unless ["both", "environment"].include?(task_input_method(task))
@@ -316,7 +322,7 @@ module MCollective
           meta.print(data.to_json)
         end
 
-        pid = spawn_command(wrapper_path, task_environment(task), wrapper_input.to_json, spool)
+        pid = spawn_command(wrapper_path, task_environment(task, requestid, callerid), wrapper_input.to_json, spool)
 
         Log.info("Spawned task %s in spool %s with pid %s" % [task["task"], spool, pid])
 
