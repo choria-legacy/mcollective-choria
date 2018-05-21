@@ -1,5 +1,13 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/05/21|      |Release 0.9.0                                                                                            |
+|2018/05/19|498   |Add `_task`, `_task_id` and `_task_caller` to task runtime environments                                  |
+|2018/05/16|496   |Update the NATS and Diplomat gems to latest versions                                                     |
+|2018/05/15|494   |Improve error messages when attempting to lock a playbook using a data source that does not support locks|
+|2018/05/11|460   |Ensure Playbook task results are JSON safe for better interop with Puppet                                |
+|2018/05/05|446   |Compensate for inconsistent results from the Puppet Server task API                                      |
+|2018/05/04|458   |Enable common RPC options like discovery timeout and method in task run                                  |
+|2018/05/03|487   |Support `--batch` and `--batch-sleep` in the task run command                                            |
 |2018/05/03|      |Release 0.8.2                                                                                            |
 |2018/05/03|484   |Handle tasks without any JSON metadata included - Puppet Server gives inconsistent responses             |
 |2018/05/02|      |Release 0.8.1                                                                                            |
