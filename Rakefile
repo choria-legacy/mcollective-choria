@@ -55,13 +55,45 @@ task :prep_version do
 
   sh "git add CHANGELOG.md lib module"
   sh "git commit -e -m '(misc) Release %s'" % ENV["CHORIA_VERSION"]
-  sh "git tag %s" % ENV["CHORIA_VERSION"]
+end
+
+desc "Update JSON DDL files"
+task :update_ddl do
+  require "mcollective"
+
+  Dir.glob("lib/mcollective/agent/*.ddl") do |ddlfile|
+    next if ddlfile =~ /^choria_uril/
+
+    agent_dir = File.dirname(ddlfile)
+    agent_name = File.basename(ddlfile, ".ddl")
+    json_file = File.join(agent_dir, "%s.json" % agent_name)
+
+    ddl = MCollective::DDL.new(agent_name, :agent, false)
+    ddl.instance_eval(File.read(ddlfile))
+
+    data = {
+      "$schema" => "https://choria.io/schemas/mcorpc/ddl/v1/agent.json",
+      "metadata" => ddl.meta,
+      "actions" => []
+    }
+
+    ddl.actions.sort.each do |action|
+      data["actions"] << ddl.action_interface(action)
+    end
+
+    puts "Writing JSON DDL in %s" % json_file
+
+    File.open(json_file, "w") do |jddl|
+      jddl.print(JSON.pretty_generate(data))
+    end
+  end
 end
 
 desc "Prepare and build the Puppet modules"
 task :release do
   Rake::Task[:spec].execute
   Rake::Task[:rubocop].execute
+  Rake::Task[:update_ddl].execute
   Rake::Task[:prep_version].execute if ENV["CHORIA_VERSION"]
 
   ["choria", "tasks"].each do |mod|

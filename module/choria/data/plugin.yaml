@@ -55,6 +55,7 @@ mcollective_choria::common_directories:
 mcollective_choria::common_files:
  - application/federation.rb
  - agent/choria_util.ddl
+ - agent/choria_util.json
  - connector/nats.ddl
  - connector/nats.rb
  - security/choria.rb
