@@ -28,15 +28,15 @@ module MCollective
           end
 
           def run
-            raise(NotImplementedError, "run not implemented", caller)
+            raise(StandardError, "run not implemented", caller)
           end
 
           def validate_configuration!
-            raise(NotImplementedError, "validate_configuration! not implemented", caller)
+            raise(StandardError, "validate_configuration! not implemented", caller)
           end
 
           def from_hash(properties)
-            raise(NotImplementedError, "from_hash not implemented", caller)
+            raise(StandardError, "from_hash not implemented", caller)
           end
         end
       end
