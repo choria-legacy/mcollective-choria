@@ -192,14 +192,14 @@ module MCollective
       end
 
       describe "#randomize_middleware_servers?" do
-        it "should default to false" do
+        it "should default to true" do
           Config.instance.stubs(:pluginconf).returns({})
-          expect(choria.randomize_middleware_servers?).to be(false)
+          expect(choria.randomize_middleware_servers?).to be(true)
         end
 
         it "should be configurable" do
-          Config.instance.stubs(:pluginconf).returns("choria.randomize_middleware_hosts" => "true")
-          expect(choria.randomize_middleware_servers?).to be(true)
+          Config.instance.stubs(:pluginconf).returns("choria.randomize_middleware_hosts" => "false")
+          expect(choria.randomize_middleware_servers?).to be(false)
         end
       end
 
