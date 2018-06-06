@@ -478,7 +478,7 @@ module MCollective
       #
       # @return [Boolean]
       def randomize_middleware_servers?
-        Util.str_to_bool(get_option("choria.randomize_middleware_hosts", "false"))
+        Util.str_to_bool(get_option("choria.randomize_middleware_hosts", "true"))
       end
 
       # Attempts to look up some SRV records falling back to defaults
