@@ -161,8 +161,8 @@ module MCollective
       def task_environment(task, task_id, task_caller)
         environment = {
           "_task" => task["task"],
-          "_task_id" => task_id,
-          "_task_caller" => task_caller
+          "_choria_task_id" => task_id,
+          "_choria_task_caller" => task_caller
         }
 
         return environment unless task["input"]

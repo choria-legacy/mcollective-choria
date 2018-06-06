@@ -263,8 +263,8 @@ ERROR
             "/opt/puppetlabs/puppet/bin/task_wrapper",
             {
               "_task" => "choria::ls",
-              "_task_id" => "test_1",
-              "_task_caller" => "choria=local.mcollective"
+              "_choria_task_id" => "test_1",
+              "_choria_task_caller" => "choria=local.mcollective"
             },
             instance_of(String),
             File.join(cache, "test_1")
@@ -378,8 +378,8 @@ ERROR
               "PT_directory" => "/tmp",
               "PT_bool" => "true",
               "_task" => "choria::ls",
-              "_task_caller" => "caller=spec.mcollective",
-              "_task_id" => "test_id"
+              "_choria_task_caller" => "caller=spec.mcollective",
+              "_choria_task_id" => "test_id"
             )
           end
         end
@@ -389,8 +389,8 @@ ERROR
             task_run_request_fixture["input_method"] = method
             expect(ts.task_environment(task_run_request_fixture, "test_id", "caller=spec.mcollective")).to eq(
               "_task" => "choria::ls",
-              "_task_caller" => "caller=spec.mcollective",
-              "_task_id" => "test_id"
+              "_choria_task_caller" => "caller=spec.mcollective",
+              "_choria_task_id" => "test_id"
             )
           end
         end
