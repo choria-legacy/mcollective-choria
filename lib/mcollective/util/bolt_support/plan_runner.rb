@@ -56,7 +56,7 @@ module MCollective
           with_script_compiler do |compiler|
             sig = compiler.plan_signature(@plan)
 
-            raise("Cannot find plan %s in %s" % [@plan, @modulepath.join(":")]) unless sig
+            raise("Cannot find playbook %s in %s" % [@plan, @modulepath.join(":")]) unless sig
 
             sig.params_type.elements.map do |elem|
               [elem.name, {
