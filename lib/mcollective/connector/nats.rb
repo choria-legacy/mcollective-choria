@@ -359,9 +359,9 @@ module MCollective
         msg = nil
 
         until msg
-          Log.debug("Waiting for a message from NATS")
-
           received = connection.receive
+
+          Thread.pass
 
           begin
             msg = JSON.parse(received)

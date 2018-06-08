@@ -210,8 +210,7 @@ module MCollective
           Log.debug("Subscribing to %s" % source_name)
 
           unless @subscriptions.include?(source_name)
-            @subscriptions[source_name] = @client.subscribe(source_name, options) do |msg, _, sub|
-              Log.debug("Received a message on %s" % [sub])
+            @subscriptions[source_name] = @client.subscribe(source_name, options) do |msg, _, _|
               @received_queue << msg
             end
           end
