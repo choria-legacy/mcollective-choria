@@ -343,18 +343,18 @@ module MCollective
         return false unless incoming
 
         begin
-          ca = OpenSSL::X509::Certificate.new(File.read(ca_path))
-        rescue OpenSSL::X509::CertificateError
+          ca = OpenSSL::X509::Store.new.add_file(ca_path)
+        rescue OpenSSL::X509::StoreError
           Log.warn("Failed to load CA from %s: %s: %s" % [ca_path, $!.class, $!.to_s]) if log
           raise
         end
 
-        unless incoming.issuer.to_s == ca.subject.to_s && incoming.verify(ca.public_key)
-          Log.warn("Failed to verify certificate %s against CA %s in %s" % [incoming.subject.to_s, ca.subject.to_s, ca_path]) if log
+        unless ca.verify(incoming)
+          Log.warn("Failed to verify certificate %s against CA %s in %s" % [incoming.subject.to_s, incoming.issuer.to_s, ca_path]) if log
           return false
         end
 
-        Log.debug("Verified certificate %s against CA %s" % [incoming.subject.to_s, ca.subject.to_s]) if log
+        Log.debug("Verified certificate %s against CA %s" % [incoming.subject.to_s, incoming.issuer.to_s]) if log
 
         cn_parts = incoming.subject.to_a.select {|c| c[0] == "CN"}.flatten
 
