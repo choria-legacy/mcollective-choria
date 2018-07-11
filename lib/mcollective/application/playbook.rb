@@ -49,15 +49,11 @@ module MCollective
       # @param plan [String] the name of a plan
       # @return [Util::BoltSupport::PlanRunner]
       def runner(plan, loglevel=nil)
-        unless configuration[:__modulepath]
-          configuration[:__modulepath] = File.expand_path("~/.puppetlabs/etc/code/modules")
-        end
-
         require "mcollective/util/bolt_support"
         runner = Util::BoltSupport::PlanRunner.new(
           plan,
           configuration[:__tmpdir],
-          configuration[:__modulepath] || Dir.pwd,
+          configuration[:__modulepath],
           configuration[:__loglevel] || "info"
         )
 
