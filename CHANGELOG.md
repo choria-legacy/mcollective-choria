@@ -1,5 +1,13 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/07/20|      |Release 0.10.0                                                                                            |
+|2018/07/11|      |Use `basemodulepath` setting when no module path is given when running playbooks                         |
+|2018/07/11|518   |Support CA bundles when doing CA validation                                                              |
+|2018/06/16|513   |Set a upper boundary of support of Puppet 6                                                              |
+|2018/06/08|511   |Greatly improve performence when consuming messages on large networks by reducing logging                |
+|2018/06/06|504   |Rename `_task_id` to `_choria_task_id` and `_task_caller` to `_choria_task_caller` in task executions    |
+|2018/06/06|506   |Improve UX consistency wrt Plan vs Playbook                                                              |
+|2018/06/06|507   |Randomize NATS connections by default                                                                    |
 |2018/05/21|      |Release 0.9.0                                                                                            |
 |2018/05/19|498   |Add `_task`, `_task_id` and `_task_caller` to task runtime environments                                  |
 |2018/05/16|496   |Update the NATS and Diplomat gems to latest versions                                                     |
