@@ -151,6 +151,8 @@ module MCollective
 
         begin
           @client.connect(options)
+        rescue ClientTimeoutError
+          raise
         rescue
           Log.error("Error during initial NATS setup: %s: %s" % [$!.class, $!.message])
           Log.debug($!.backtrace.join("\n\t"))
