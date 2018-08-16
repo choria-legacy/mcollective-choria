@@ -299,7 +299,7 @@ Examples:
           if reply[:statuscode] == 3
             fail_nodes += 1
             task_not_known_nodes += 1
-          elsif status[:exitcode] == 0
+          elsif [-1, 0].include?(status[:exitcode])
             status[:completed] ? completed_nodes += 1 : running_nodes += 1
             runtime += status[:runtime]
             reply[:statuscode] == 0 ? success_nodes += 1 : fail_nodes += 1

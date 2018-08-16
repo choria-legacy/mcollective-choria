@@ -440,7 +440,7 @@ module MCollective
           "caller" => nil,
           "stdout" => "",
           "stderr" => "",
-          "exitcode" => 127,
+          "exitcode" => -1,
           "runtime" => task_runtime(requestid),
           "start_time" => Time.at(0).utc,
           "wrapper_spawned" => false,
