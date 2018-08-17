@@ -335,7 +335,7 @@ ERROR
         it "should set environment" do
           FileUtils.mkdir_p(spool = File.join(cache, "spawn_test_2"))
 
-          pid = ts.spawn_command("/bin/cat /proc/self/environ", {"RSPEC_TEST" => "hello world"}, nil, spool)
+          pid = ts.spawn_command("/usr/bin/env", {"RSPEC_TEST" => "hello world"}, nil, spool)
 
           Timeout.timeout(1) do
             sleep 0.1 until File::Stat.new(File.join(spool, "wrapper_stdout")).size > 0 # rubocop:disable Style/ZeroLengthPredicate
