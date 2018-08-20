@@ -62,8 +62,8 @@ module MCollective
         File.exist?(wrapper_path) && File.executable?(wrapper_path)
       end
 
-      # Path to binaries like wrappers etc
-      def bin_path
+      # AIO path to binaries like wrappers etc
+      def aio_bin_path
         if Util.windows?
           'C:\Program Files\Puppet Labs\Puppet\bin'
         else
@@ -71,22 +71,29 @@ module MCollective
         end
       end
 
+      # Path to the AIO task wrapper executable
+      #
+      # @return [String]
+      def aio_wrapper_path
+        if Util.windows?
+          File.join(aio_bin_path, "task_wrapper.exe")
+        else
+          File.join(aio_bin_path, "task_wrapper")
+        end
+      end
+
       # Path to the task wrapper executable
       #
       # @return [String]
       def wrapper_path
-        if Util.windows?
-          File.join(bin_path, "task_wrapper.exe")
-        else
-          File.join(bin_path, "task_wrapper")
-        end
+        @choria.get_option("choria.tasks.wrapper_path", aio_wrapper_path)
       end
 
       # Path to the powershell shim for powershell input method
       #
       # @return [String]
       def ps_shim_path
-        File.join(bin_path, "PowershellShim.ps1")
+        File.join(aio_bin_path, "PowershellShim.ps1")
       end
 
       # Expands the path into a platform specific version

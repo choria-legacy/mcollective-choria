@@ -482,7 +482,7 @@ ERROR
 
       describe "#ps_shim_path" do
         it "should be relative to bin_path" do
-          ts.stubs(:bin_path).returns("/nonexisting/bin")
+          ts.stubs(:aio_bin_path).returns("/nonexisting/bin")
           expect(ts.ps_shim_path).to eq("/nonexisting/bin/PowershellShim.ps1")
         end
       end
@@ -490,11 +490,11 @@ ERROR
       describe "#bin_path" do
         it "should support windows" do
           Util.stubs(:windows?).returns(true)
-          expect(ts.bin_path).to eq('C:\Program Files\Puppet Labs\Puppet\bin')
+          expect(ts.aio_bin_path).to eq('C:\Program Files\Puppet Labs\Puppet\bin')
         end
 
         it "should support nix" do
-          expect(ts.bin_path).to eq("/opt/puppetlabs/puppet/bin")
+          expect(ts.aio_bin_path).to eq("/opt/puppetlabs/puppet/bin")
         end
       end
 
