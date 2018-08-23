@@ -335,7 +335,7 @@ ERROR
         it "should set environment" do
           FileUtils.mkdir_p(spool = File.join(cache, "spawn_test_2"))
 
-          pid = ts.spawn_command("/bin/cat /proc/self/environ", {"RSPEC_TEST" => "hello world"}, nil, spool)
+          pid = ts.spawn_command("/usr/bin/env", {"RSPEC_TEST" => "hello world"}, nil, spool)
 
           Timeout.timeout(1) do
             sleep 0.1 until File::Stat.new(File.join(spool, "wrapper_stdout")).size > 0 # rubocop:disable Style/ZeroLengthPredicate
@@ -482,7 +482,7 @@ ERROR
 
       describe "#ps_shim_path" do
         it "should be relative to bin_path" do
-          ts.stubs(:bin_path).returns("/nonexisting/bin")
+          ts.stubs(:aio_bin_path).returns("/nonexisting/bin")
           expect(ts.ps_shim_path).to eq("/nonexisting/bin/PowershellShim.ps1")
         end
       end
@@ -490,11 +490,11 @@ ERROR
       describe "#bin_path" do
         it "should support windows" do
           Util.stubs(:windows?).returns(true)
-          expect(ts.bin_path).to eq('C:\Program Files\Puppet Labs\Puppet\bin')
+          expect(ts.aio_bin_path).to eq('C:\Program Files\Puppet Labs\Puppet\bin')
         end
 
         it "should support nix" do
-          expect(ts.bin_path).to eq("/opt/puppetlabs/puppet/bin")
+          expect(ts.aio_bin_path).to eq("/opt/puppetlabs/puppet/bin")
         end
       end
 
