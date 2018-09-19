@@ -1,6 +1,10 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
-|2018/07/20|      |Release 0.10.0                                                                                            |
+|2018/09/19|      |Release 0.11.0                                                                                            |
+|2018/08/20|528   |Allow custom task wrapper paths to be supplied and support tasks on FreeBSD                              |
+|2018/08/16|526   |Correctly report the status of a still-running task after the initial wait is over                       |
+|2018/07/26|523   |Avoid infinite reconnection attempts in clients                                                          |
+|2018/07/20|      |Release 0.10.0                                                                                           |
 |2018/07/11|      |Use `basemodulepath` setting when no module path is given when running playbooks                         |
 |2018/07/11|518   |Support CA bundles when doing CA validation                                                              |
 |2018/06/16|513   |Set a upper boundary of support of Puppet 6                                                              |
