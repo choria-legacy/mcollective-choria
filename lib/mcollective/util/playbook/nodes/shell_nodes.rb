@@ -34,7 +34,7 @@ module MCollective
 
             exitcode = shell.status.exitstatus
 
-            raise("Could not disocver nodes via shell method, command exited with code %d" % [exitcode]) unless exitcode == 0
+            raise("Could not discover nodes via shell method, command exited with code %d" % [exitcode]) unless exitcode == 0
 
             @_data = shell.stdout.lines.map do |line|
               line.chomp!

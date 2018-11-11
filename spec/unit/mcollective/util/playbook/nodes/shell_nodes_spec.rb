@@ -58,7 +58,7 @@ module MCollective
               expect(nodes.data).to eq(["example.net"])
 
               nodes.from_hash("script" => "echo 'example.net';exit 1")
-              expect { nodes.data }.to raise_error("Could not disocver nodes via shell method, command exited with code 1")
+              expect { nodes.data }.to raise_error("Could not discover nodes via shell method, command exited with code 1")
             end
           end
 
