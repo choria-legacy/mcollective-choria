@@ -71,10 +71,7 @@ module MCollective
           :max_reconnect_attempts => -1,
           :reconnect_time_wait => 1,
           :dont_randomize_servers => !choria.randomize_middleware_servers?,
-          :name => @config.identity,
-          :tls => {
-            :context => choria.ssl_context
-          }
+          :name => @config.identity
         }
 
         if $choria_unsafe_disable_nats_tls # rubocop:disable Style/GlobalVars
