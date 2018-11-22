@@ -49,13 +49,19 @@ module MCollective
         request["envelope"]["callerid"] = callerid
 
         serialized_request = serialize(request, default_serializer)
-
-        serialize(
+        secure_request = {
           "protocol" => "choria:secure:request:1",
           "message" => serialized_request,
-          "signature" => sign(serialized_request),
-          "pubcert" => File.read(client_public_cert).chomp
-        )
+          "signature" => "insecure",
+          "pubcert" => "insecure"
+        }
+
+        unless $choria_unsafe_disable_nats_tls # rubocop:disable Style/GlobalVars
+          secure_request["signature"] = sign(serialized_request)
+          secure_request["pubcert"] = File.read(client_public_cert).chomp
+        end
+
+        serialize(secure_request)
       end
 
       # Encodes a reply to a earlier received message
