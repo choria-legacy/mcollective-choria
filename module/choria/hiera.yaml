@@ -8,7 +8,12 @@ defaults:
 hierarchy:
   - name: "Distribution Name"
     path: "%{facts.os.name}.yaml"
+
+  - name: "AIO version specific common"
+    path: "puppet_aio/%{facts.mcollective.aio_major_version}.yaml"
+
   - name: "plugin"
     path: "plugin.yaml"
+
   - name: "defaults"
     path: "defaults.yaml"

@@ -175,7 +175,7 @@ DEPENDENCIES
   listen (~> 3)
   mcollective-client
   mocha
-  nats-pure (~> 0.4)
+  nats-pure (~> 0.5)
   puppet (~> 5.4)
   rake
   rspec

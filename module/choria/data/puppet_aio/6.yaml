@@ -1,0 +1,2 @@
+mcollective_choria::config:
+  security.serializer: "json"
