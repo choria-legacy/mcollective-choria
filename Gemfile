@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem "nats-pure", "~> 0.4"
+gem "nats-pure", "~> 0.5"
 
 group :development, :test do
   gem "coveralls"
