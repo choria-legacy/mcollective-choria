@@ -1,5 +1,5 @@
 mcollective_choria::gem_dependencies:
-  "choria-mcorpc-support": "2.20.2"
+  "choria-mcorpc-support": "2.20.3"
 
 mcollective_choria::config:
   security.serializer: "json"
