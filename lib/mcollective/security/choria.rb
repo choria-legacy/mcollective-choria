@@ -3,6 +3,7 @@ require "openssl"
 require "yaml"
 
 require_relative "../util/choria"
+require_relative "../util/indifferent_hash"
 
 module MCollective
   module Security
@@ -502,7 +503,7 @@ module MCollective
         if format == :yaml
           YAML.load(string)
         else
-          JSON.parse(string)
+          JSON.parse(string, :object_class => Util::IndifferentHash)
         end
       end
 
