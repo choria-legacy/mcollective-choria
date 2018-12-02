@@ -448,7 +448,9 @@ module MCollective
       let(:d) { security.empty_request }
 
       it "should default to json" do
-        expect(security.deserialize(d.to_json)).to eq(d)
+        result = security.deserialize(d.to_json)
+        expect(result).to eq(d)
+        expect(result).to be_a(Util::IndifferentHash)
       end
 
       it "should support yaml" do
