@@ -60,4 +60,5 @@ mcollective_choria::common_files:
  - connector/nats.rb
  - security/choria.rb
  - util/choria.rb
+ - util/indifferent_hash.rb
  - util/natswrapper.rb
