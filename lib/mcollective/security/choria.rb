@@ -57,7 +57,7 @@ module MCollective
           "pubcert" => "insecure"
         }
 
-        unless $choria_unsafe_disable_nats_tls # rubocop:disable Style/GlobalVars
+        unless $choria_unsafe_disable_protocol_security # rubocop:disable Style/GlobalVars
           secure_request["signature"] = sign(serialized_request)
           secure_request["pubcert"] = File.read(client_public_cert).chomp
         end

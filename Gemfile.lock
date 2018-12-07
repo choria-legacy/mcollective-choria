@@ -109,7 +109,7 @@ GEM
       multi_json (~> 1.10)
     rainbow (2.2.2)
       rake
-    rake (12.3.1)
+    rake (12.3.2)
     rb-fsevent (0.10.3)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
