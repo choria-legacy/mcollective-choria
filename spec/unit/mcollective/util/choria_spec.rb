@@ -6,6 +6,49 @@ module MCollective
     describe Choria do
       let(:choria) { Choria.new(false) }
 
+      describe "#file_security?" do
+        it "should detect file security settings" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.security.provider" => "file"
+          )
+
+          expect(choria.file_security?).to be(true)
+        end
+
+        it "should be false otherwise" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.security.provider" => "puppet"
+          )
+
+          expect(choria.file_security?).to be(false)
+
+          Config.instance.expects(:pluginconf).returns({})
+          expect(choria.file_security?).to be(false)
+        end
+      end
+
+      describe "#puppet_security?" do
+        it "shouldd efault to puppet security settings" do
+          expect(choria.puppet_security?).to be(true)
+        end
+
+        it "should detect puppet security settings" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.security.provider" => "puppet"
+          )
+
+          expect(choria.puppet_security?).to be(true)
+        end
+
+        it "should be false when not puppet" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.security.provider" => "file"
+          )
+
+          expect(choria.puppet_security?).to be(false)
+        end
+      end
+
       describe "#tasks_spool_dir" do
         it "should support windows" do
           Util.stubs(:windows?).returns(true)
@@ -621,6 +664,16 @@ module MCollective
 
           choria.make_ssl_dirs
         end
+
+        it "should support the file security provider" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.security.provider" => "file"
+          )
+
+          FileUtils.expects(:mkdir_p).never
+
+          choria.make_ssl_dirs
+        end
       end
 
       describe "#csr_path" do
@@ -629,12 +682,29 @@ module MCollective
           choria.expects(:certname).returns("rspec")
           expect(choria.csr_path).to eq("/ssl/certificate_requests/rspec.pem")
         end
+
+        it "should support the file security provider" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.security.provider" => "file"
+          )
+
+          expect(choria.csr_path).to eq("")
+        end
       end
 
       describe "#ca_path" do
         it "should get the right path in ssl_dir" do
           choria.expects(:ssl_dir).returns("/ssl")
           expect(choria.ca_path).to eq("/ssl/certs/ca.pem")
+        end
+
+        it "should support the file security provider" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.security.provider" => "file",
+            "choria.security.file.ca" => "/ssl/ca.pem"
+          )
+
+          expect(choria.ca_path).to eq("/ssl/ca.pem")
         end
       end
 
@@ -644,6 +714,15 @@ module MCollective
           choria.expects(:certname).returns("rspec")
           expect(choria.client_public_cert).to eq("/ssl/certs/rspec.pem")
         end
+
+        it "should support file security provider" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.security.provider" => "file",
+            "choria.security.file.certificate" => "/ssl/rspec.pem"
+          )
+
+          expect(choria.client_public_cert).to eq("/ssl/rspec.pem")
+        end
       end
 
       describe "#client_private_key" do
@@ -651,6 +730,15 @@ module MCollective
           choria.expects(:ssl_dir).returns("/ssl")
           choria.expects(:certname).returns("rspec")
           expect(choria.client_private_key).to eq("/ssl/private_keys/rspec.pem")
+        end
+
+        it "should support the file security provider" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.security.provider" => "file",
+            "choria.security.file.key" => "/ssl/rspec-key.pem"
+          )
+
+          expect(choria.client_private_key).to eq("/ssl/rspec-key.pem")
         end
       end
 

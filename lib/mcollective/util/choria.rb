@@ -667,11 +667,28 @@ module MCollective
                        end
       end
 
+      # Determines the security provider
+      def security_provider
+        get_option("choria.security.provider", "puppet")
+      end
+
+      # Determines if the file security provider is enabled
+      def file_security?
+        security_provider == "file"
+      end
+
+      # Determines if the puppet security provider is enabled
+      def puppet_security?
+        security_provider == "puppet"
+      end
+
       # The path to a client public certificate
       #
       # @note paths determined by Puppet AIO packages
       # @return [String]
       def client_public_cert
+        return get_option("choria.security.file.certificate", "") if file_security?
+
         File.join(ssl_dir, "certs", "%s.pem" % certname)
       end
 
@@ -687,6 +704,8 @@ module MCollective
       # @note paths determined by Puppet AIO packages
       # @return [String]
       def client_private_key
+        return get_option("choria.security.file.key", "") if file_security?
+
         File.join(ssl_dir, "private_keys", "%s.pem" % certname)
       end
 
@@ -701,6 +720,8 @@ module MCollective
       #
       # @return [String]
       def ca_path
+        return get_option("choria.security.file.ca", "") if file_security?
+
         File.join(ssl_dir, "certs", "ca.pem")
       end
 
@@ -715,6 +736,8 @@ module MCollective
       #
       # @return [String]
       def csr_path
+        return "" if file_security?
+
         File.join(ssl_dir, "certificate_requests", "%s.pem" % certname)
       end
 
@@ -762,6 +785,8 @@ module MCollective
       #
       # @return [void]
       def make_ssl_dirs
+        return if file_security?
+
         FileUtils.mkdir_p(ssl_dir, :mode => 0o0771)
 
         ["certificate_requests", "certs", "public_keys"].each do |dir|

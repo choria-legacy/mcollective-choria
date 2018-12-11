@@ -70,6 +70,10 @@ module MCollective
       def request_cert_command
         disconnect
 
+        unless choria.puppet_security?
+          raise(Util::Choria::UserError, "Cannot only request certificates in Puppet security mode")
+        end
+
         if choria.has_client_public_cert?
           raise(Util::Choria::UserError, "Already have a certificate '%s', cannot request a new one" % choria.client_public_cert)
         end
@@ -175,6 +179,7 @@ module MCollective
           puts "     Valid SSL Setup: %s try running 'mco choria request_cert'" % [Util.colorize(:red, "no")]
         end
 
+        puts "   Security Provider: %s" % [choria.security_provider]
         puts "            Certname: %s" % [choria.certname]
         puts "       SSL Directory: %s (%s)" % [choria.ssl_dir, File.exist?(choria.ssl_dir) ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
         puts "  Client Public Cert: %s (%s)" % [choria.client_public_cert, choria.has_client_public_cert? ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
