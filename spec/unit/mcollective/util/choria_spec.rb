@@ -158,21 +158,33 @@ module MCollective
           choria.expects(:ca_path).returns("/nonexisting").twice
 
           expect {
-            choria.valid_certificate?("x")
+            choria.valid_certificate?("x", "badhostname")
           }.to raise_error("Cannot find or read the CA in /nonexisting, cannot verify public certificate")
         end
 
         it "should fail for CA missmatches" do
           choria.stubs(:ca_path).returns("spec/fixtures/other_ca.pem")
-          expect(choria.valid_certificate?(File.read("spec/fixtures/rip.mcollective.pem"))).to be_falsey
+          expect(choria.valid_certificate?(File.read("spec/fixtures/rip.mcollective.pem"), "rip.mcollective")).to be_falsey
 
           choria.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
-          expect(choria.valid_certificate?(File.read("spec/fixtures/other.mcollective.pem"))).to be_falsey
+          expect(choria.valid_certificate?(File.read("spec/fixtures/other.mcollective.pem"), "other.mcollective")).to be_falsey
         end
 
         it "should pass for valid cert/ca combos" do
           choria.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
-          expect(choria.valid_certificate?(File.read("spec/fixtures/rip.mcollective.pem"))).to be_truthy
+          expect(choria.valid_certificate?(File.read("spec/fixtures/rip.mcollective.pem"), "rip.mcollective")).to be_truthy
+        end
+      end
+
+      describe "#valid_intermediate_certificate?" do
+        it "should fail for CA missmatches" do
+          choria.stubs(:ca_path).returns("spec/fixtures/other_ca.pem")
+          expect(choria.valid_certificate?(File.read("spec/fixtures/intermediate/chain-rip.mcollective.pem"), "rip.mcollective")).to be_falsey
+        end
+
+        it "should pass for valid client cert w/intermediate CA/ca combos" do
+          choria.stubs(:ca_path).returns("spec/fixtures/intermediate/ca.pem")
+          expect(choria.valid_certificate?(File.read("spec/fixtures/intermediate/chain-rip.mcollective.pem"), "rip.mcollective")).to be_truthy
         end
       end
 
@@ -205,6 +217,19 @@ module MCollective
           expect(context.ca_file).to eq("spec/fixtures/ca_crt.pem")
           expect(context.cert.subject.to_s).to eq("/CN=rip.mcollective")
           expect(context.key.to_pem).to eq(File.read("spec/fixtures/rip.mcollective.key"))
+        end
+
+        it "should create a valid ssl context with intermediate certs" do
+          choria.stubs(:ca_path).returns("spec/fixtures/intermediate/ca.pem")
+          choria.stubs(:client_public_cert).returns("spec/fixtures/intermediate/rip.mcollective.pem")
+          choria.stubs(:client_private_key).returns("spec/fixtures/intermediate/rip.mcollective-key.pem")
+
+          context = choria.ssl_context
+
+          expect(context.verify_mode).to be(OpenSSL::SSL::VERIFY_PEER)
+          expect(context.ca_file).to eq("spec/fixtures/intermediate/ca.pem")
+          expect(context.cert.subject.to_s).to eq("/CN=rip.mcollective")
+          expect(context.key.to_pem).to eq(File.read("spec/fixtures/intermediate/rip.mcollective-key.pem"))
         end
       end
 
@@ -846,7 +871,7 @@ module MCollective
         it "should fail if the cert is not signed by the CA" do
           choria.expects(:have_ssl_files?).returns(true)
           pub_cert = File.read(choria.client_public_cert)
-          choria.expects(:valid_certificate?).with(pub_cert).raises("rspec fail")
+          choria.expects(:valid_certificate?).with(pub_cert, choria.certname).raises("rspec fail")
           expect { choria.check_ssl_setup }.to raise_error("The public certificate was not signed by the configured CA")
         end
 

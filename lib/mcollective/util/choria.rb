@@ -329,18 +329,23 @@ module MCollective
       # Validates a certificate against the CA
       #
       # @param pubcert [String] PEM encoded X509 public certificate
+      # @param name [String] name that should be present in the certificate
       # @param log [Boolean] log warnings when true
       # @return [String,false] when succesful, the certname else false
       # @raise [StandardError] in case OpenSSL fails to open the various certificates
       # @raise [OpenSSL::X509::CertificateError] if the CA is invalid
-      def valid_certificate?(pubcert, log=true)
+      def valid_certificate?(pubcert, name, log=true)
         unless File.readable?(ca_path)
           raise("Cannot find or read the CA in %s, cannot verify public certificate" % ca_path)
         end
 
-        incoming = parse_pubcert(pubcert, log)
+        certs = parse_pubcert(pubcert, log)
 
-        return false unless incoming
+        return false if certs.empty?
+
+        incoming = certs.first
+
+        chain = certs[1..-1]
 
         begin
           ca = OpenSSL::X509::Store.new.add_file(ca_path)
@@ -349,27 +354,59 @@ module MCollective
           raise
         end
 
-        unless ca.verify(incoming)
-          Log.warn("Failed to verify certificate %s against CA %s in %s" % [incoming.subject.to_s, incoming.issuer.to_s, ca_path]) if log
+        unless ca.verify(incoming, chain)
+          if log
+            Log.warn("Failed to verify certificate %s against CA %s in %s" % [
+              incoming.subject.to_s,
+              incoming.issuer.to_s,
+              ca_path
+            ])
+          end
+
           return false
         end
 
         Log.debug("Verified certificate %s against CA %s" % [incoming.subject.to_s, incoming.issuer.to_s]) if log
 
-        cn_parts = incoming.subject.to_a.select {|c| c[0] == "CN"}.flatten
+        unless OpenSSL::SSL.verify_certificate_identity(incoming, name)
+          raise("Could not parse certificate with subject %s as it has no CN part, or name %s invalid" % [
+            incoming.subject.to_s,
+            name
+          ])
+        end
 
-        raise("Could not parse certificate with subject %s as it has no CN part" % [incoming.subject.to_s]) if cn_parts.empty?
+        name
+      end
 
-        cn_parts[1]
+      # Utility function to split a chained certificate String into an Array
+      #
+      # @param pemdata [String] PEM encoded certificate
+      # @return [Array<String,nil>]
+      def ssl_split_pem(pemdata)
+        # Chained certificates typically have the public certificate, along
+        # with every intermediate certificiate.
+        # OpenSSL will stop at the first certificate when using OpenSSL::X509::Certificate.new,
+        # so we need to separate them into a list
+        pemdata.scan(/-----BEGIN CERTIFICATE-----.+?-----END CERTIFICATE-----/m)
+      end
+
+      # Split a string containing chained certificates into an Array of OpenSSL::X509::Certificate.
+      #
+      # @param pemdata [String]
+      # @return [Array<OpenSSL::X509::Certificate,nil>]
+      def ssl_parse_chain(pemdata)
+        ssl_split_pem(pemdata).map do |cpem|
+          OpenSSL::X509::Certificate.new(cpem)
+        end
       end
 
       # Parses a public cert
       #
       # @param pubcert [String] PEM encoded public certificate
       # @param log [Boolean] log warnings when true
-      # @return [OpenSSL::X509::Certificate,nil]
+      # @return [Array<OpenSSL::X509::Certificate,nil>]
       def parse_pubcert(pubcert, log=true)
-        OpenSSL::X509::Certificate.new(pubcert)
+        ssl_parse_chain(pubcert)
       rescue OpenSSL::X509::CertificateError
         Log.warn("Received certificate is not a valid x509 certificate: %s: %s" % [$!.class, $!.to_s]) if log
         nil
@@ -390,7 +427,7 @@ module MCollective
         embedded_certname = nil
 
         begin
-          embedded_certname = valid_certificate?(File.read(client_public_cert))
+          embedded_certname = valid_certificate?(File.read(client_public_cert), certname)
         rescue
           raise(UserError, "The public certificate was not signed by the configured CA")
         end
@@ -640,8 +677,25 @@ module MCollective
       def ssl_context
         context = OpenSSL::SSL::SSLContext.new
         context.ca_file = ca_path
-        context.cert = OpenSSL::X509::Certificate.new(File.read(client_public_cert))
-        context.key = OpenSSL::PKey::RSA.new(File.read(client_private_key))
+
+        public_cert = File.read(client_public_cert)
+        private_key = File.read(client_private_key)
+
+        cert_chain = ssl_parse_chain(public_cert)
+
+        cert = cert_chain.first
+        key = OpenSSL::PKey::RSA.new(private_key)
+
+        extra_chain_cert = cert_chain[1..-1]
+
+        if OpenSSL::SSL::SSLContext.method_defined?(:add_certificate)
+          context.add_certificate(cert, key, extra_chain_cert)
+        else
+          context.cert = OpenSSL::X509::Certificate.new(File.read(client_public_cert))
+          context.key = OpenSSL::PKey::RSA.new(File.read(client_private_key))
+          context.extra_chain_cert = extra_chain_cert
+        end
+
         context.verify_mode = OpenSSL::SSL::VERIFY_PEER
 
         context

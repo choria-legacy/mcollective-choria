@@ -392,7 +392,7 @@ module MCollective
       # @param pubcert [String] PEM encoded X509 public certificate
       # @return [Hash]
       def client_pubcert_metadata(envelope, pubcert)
-        cert = choria.parse_pubcert(pubcert)
+        cert = choria.parse_pubcert(pubcert).first
 
         {
           "create_time" => current_timestamp,

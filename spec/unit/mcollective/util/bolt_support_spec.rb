@@ -60,11 +60,16 @@ module MCollective
         end
 
         it "should support fail_ok" do
-          expect { support.run_task(nil, "shell", "command" => "/bin/false") }.to raise_error(
+          # macs don't have a /bin/false, circleci doesn't have a /usr/bin/false :(
+          # Other OSs are now linking /bin to /usr/bin
+          # Everything is terrible and I'm sorry - vjanelle
+          shell = File.exist?("/bin/false") ? "/bin/false" : "/usr/bin/false"
+
+          expect { support.run_task(nil, "shell", "command" => shell) }.to raise_error(
             "Command failed with code 1"
           )
 
-          result = support.run_task(nil, "shell", "command" => "/bin/false", "fail_ok" => true)
+          result = support.run_task(nil, "shell", "command" => shell, "fail_ok" => true)
 
           expect(result.error_set.first.to_hash).to eq(
             "localhost" => {
@@ -75,7 +80,7 @@ module MCollective
                 "msg" => "Command failed with code 1",
                 "kind" => "choria.playbook/taskerror",
                 "details" => {
-                  "command" => "/bin/false"
+                  "command" => shell
                 }
               }
             }
