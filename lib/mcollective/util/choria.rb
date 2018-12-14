@@ -669,7 +669,7 @@ module MCollective
 
       # Determines the security provider
       def security_provider
-        get_option("choria.security.provider", "puppet")
+        get_option("security.provider", "puppet")
       end
 
       # Determines if the file security provider is enabled
@@ -687,7 +687,7 @@ module MCollective
       # @note paths determined by Puppet AIO packages
       # @return [String]
       def client_public_cert
-        return get_option("choria.security.file.certificate", "") if file_security?
+        return get_option("security.file.certificate", "") if file_security?
 
         File.join(ssl_dir, "certs", "%s.pem" % certname)
       end
@@ -704,7 +704,7 @@ module MCollective
       # @note paths determined by Puppet AIO packages
       # @return [String]
       def client_private_key
-        return get_option("choria.security.file.key", "") if file_security?
+        return get_option("security.file.key", "") if file_security?
 
         File.join(ssl_dir, "private_keys", "%s.pem" % certname)
       end
@@ -720,7 +720,7 @@ module MCollective
       #
       # @return [String]
       def ca_path
-        return get_option("choria.security.file.ca", "") if file_security?
+        return get_option("security.file.ca", "") if file_security?
 
         File.join(ssl_dir, "certs", "ca.pem")
       end
