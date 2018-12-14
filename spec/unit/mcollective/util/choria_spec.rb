@@ -9,7 +9,7 @@ module MCollective
       describe "#file_security?" do
         it "should detect file security settings" do
           Config.instance.stubs(:pluginconf).returns(
-            "choria.security.provider" => "file"
+            "security.provider" => "file"
           )
 
           expect(choria.file_security?).to be(true)
@@ -17,7 +17,7 @@ module MCollective
 
         it "should be false otherwise" do
           Config.instance.stubs(:pluginconf).returns(
-            "choria.security.provider" => "puppet"
+            "security.provider" => "puppet"
           )
 
           expect(choria.file_security?).to be(false)
@@ -34,7 +34,7 @@ module MCollective
 
         it "should detect puppet security settings" do
           Config.instance.stubs(:pluginconf).returns(
-            "choria.security.provider" => "puppet"
+            "security.provider" => "puppet"
           )
 
           expect(choria.puppet_security?).to be(true)
@@ -42,7 +42,7 @@ module MCollective
 
         it "should be false when not puppet" do
           Config.instance.stubs(:pluginconf).returns(
-            "choria.security.provider" => "file"
+            "security.provider" => "file"
           )
 
           expect(choria.puppet_security?).to be(false)
@@ -667,7 +667,7 @@ module MCollective
 
         it "should support the file security provider" do
           Config.instance.stubs(:pluginconf).returns(
-            "choria.security.provider" => "file"
+            "security.provider" => "file"
           )
 
           FileUtils.expects(:mkdir_p).never
@@ -685,7 +685,7 @@ module MCollective
 
         it "should support the file security provider" do
           Config.instance.stubs(:pluginconf).returns(
-            "choria.security.provider" => "file"
+            "security.provider" => "file"
           )
 
           expect(choria.csr_path).to eq("")
@@ -700,8 +700,8 @@ module MCollective
 
         it "should support the file security provider" do
           Config.instance.stubs(:pluginconf).returns(
-            "choria.security.provider" => "file",
-            "choria.security.file.ca" => "/ssl/ca.pem"
+            "security.provider" => "file",
+            "security.file.ca" => "/ssl/ca.pem"
           )
 
           expect(choria.ca_path).to eq("/ssl/ca.pem")
@@ -717,8 +717,8 @@ module MCollective
 
         it "should support file security provider" do
           Config.instance.stubs(:pluginconf).returns(
-            "choria.security.provider" => "file",
-            "choria.security.file.certificate" => "/ssl/rspec.pem"
+            "security.provider" => "file",
+            "security.file.certificate" => "/ssl/rspec.pem"
           )
 
           expect(choria.client_public_cert).to eq("/ssl/rspec.pem")
@@ -734,8 +734,8 @@ module MCollective
 
         it "should support the file security provider" do
           Config.instance.stubs(:pluginconf).returns(
-            "choria.security.provider" => "file",
-            "choria.security.file.key" => "/ssl/rspec-key.pem"
+            "security.provider" => "file",
+            "security.file.key" => "/ssl/rspec-key.pem"
           )
 
           expect(choria.client_private_key).to eq("/ssl/rspec-key.pem")
