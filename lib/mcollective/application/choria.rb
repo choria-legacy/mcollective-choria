@@ -188,7 +188,7 @@ module MCollective
         puts "            CSR Path: %s (%s)" % [choria.csr_path, choria.has_csr? ? Util.colorize(:green, "found") : Util.colorize(:red, "absent")]
 
         if choria.has_client_public_cert?
-          cn = choria.valid_certificate?(File.read(choria.client_public_cert), false)
+          cn = choria.valid_certificate?(File.read(choria.client_public_cert), choria.certname, false)
 
           puts "      Public Cert CN: %s (%s)" % [cn, cn == choria.certname ? Util.colorize(:green, "match") : Util.colorize(:red, "does not match certname")]
         end

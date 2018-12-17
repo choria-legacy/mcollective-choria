@@ -335,6 +335,8 @@ module MCollective
       # @raise [StandardError] in case OpenSSL fails to open the various certificates
       # @raise [OpenSSL::X509::CertificateError] if the CA is invalid
       def valid_certificate?(pubcert, name, log=true)
+        return false unless name
+
         unless File.readable?(ca_path)
           raise("Cannot find or read the CA in %s, cannot verify public certificate" % ca_path)
         end

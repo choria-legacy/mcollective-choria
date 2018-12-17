@@ -353,13 +353,13 @@ module MCollective
 
     describe "#should_cache_certname?" do
       it "should not allow unvalidated certs" do
-        choria.expects(:valid_certificate?).with("x").returns(false)
+        choria.expects(:valid_certificate?).with("x", "rspec").returns(false)
         Log.expects(:warn).with("Received a certificate for 'rspec' that is not signed by a known CA, discarding")
         expect(security.should_cache_certname?("x", "choria=rspec")).to be_falsey
       end
 
       it "should allow callers to cache only their own certs" do
-        choria.expects(:valid_certificate?).with("x").returns("bob")
+        choria.expects(:valid_certificate?).with("x", "rspec").returns("bob")
         Log.expects(:warn).with("Received a certificate called 'bob' that does not match the received callerid of 'rspec'")
         expect(security.should_cache_certname?("x", "choria=rspec")).to be_falsey
       end
@@ -385,7 +385,7 @@ module MCollective
 
       it "should only allow the privileged user cert to override callerids" do
         choria.stubs(:valid_certificate?).returns("bob.mcollective")
-        choria.expects(:valid_certificate?).with("rest_server2.privileged.mcollective").never
+        choria.expects(:valid_certificate?).with("rspec", "rest_server2.privileged.mcollective").never
         security.stubs(:privilegeduser_certs).returns(["rest_server2.privileged.mcollective"])
         expect(security.should_cache_certname?("rspec", "choria=x.rspec")).to be_falsey
       end
