@@ -738,12 +738,25 @@ module MCollective
         security_provider == "puppet"
       end
 
+      # Expands full paths with special handling for empty string
+      #
+      # File.expand_path will expand `""` to cwd, this is not good for
+      # what we need in many cases so this returns `""` in that case
+      #
+      # @param path [String] the unexpanded path
+      # @return [String] `""` when empty string was given
+      def expand_path(path)
+        return "" if path == ""
+
+        File.expand_path(path)
+      end
+
       # The path to a client public certificate
       #
       # @note paths determined by Puppet AIO packages
       # @return [String]
       def client_public_cert
-        return get_option("security.file.certificate", "") if file_security?
+        return expand_path(get_option("security.file.certificate", "")) if file_security?
 
         File.join(ssl_dir, "certs", "%s.pem" % certname)
       end
@@ -760,7 +773,7 @@ module MCollective
       # @note paths determined by Puppet AIO packages
       # @return [String]
       def client_private_key
-        return get_option("security.file.key", "") if file_security?
+        return expand_path(get_option("security.file.key", "")) if file_security?
 
         File.join(ssl_dir, "private_keys", "%s.pem" % certname)
       end
@@ -776,7 +789,7 @@ module MCollective
       #
       # @return [String]
       def ca_path
-        return get_option("security.file.ca", "") if file_security?
+        return expand_path(get_option("security.file.ca", "")) if file_security?
 
         File.join(ssl_dir, "certs", "ca.pem")
       end
