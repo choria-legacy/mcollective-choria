@@ -701,6 +701,16 @@ module MCollective
         end
       end
 
+      describe "#expand_path" do
+        it "should expand paths" do
+          expect(choria.expand_path("~")).to eq(File.expand_path("~"))
+        end
+
+        it "should not expand empty paths" do
+          expect(choria.expand_path("")).to eq("")
+        end
+      end
+
       describe "#csr_path" do
         it "should get the right path in ssl_dir" do
           choria.expects(:ssl_dir).returns("/ssl")
@@ -726,10 +736,10 @@ module MCollective
         it "should support the file security provider" do
           Config.instance.stubs(:pluginconf).returns(
             "security.provider" => "file",
-            "security.file.ca" => "/ssl/ca.pem"
+            "security.file.ca" => "~/ssl/ca.pem"
           )
 
-          expect(choria.ca_path).to eq("/ssl/ca.pem")
+          expect(choria.ca_path).to eq(File.expand_path("~/ssl/ca.pem"))
         end
       end
 
@@ -743,10 +753,10 @@ module MCollective
         it "should support file security provider" do
           Config.instance.stubs(:pluginconf).returns(
             "security.provider" => "file",
-            "security.file.certificate" => "/ssl/rspec.pem"
+            "security.file.certificate" => "~/ssl/rspec.pem"
           )
 
-          expect(choria.client_public_cert).to eq("/ssl/rspec.pem")
+          expect(choria.client_public_cert).to eq(File.expand_path("~/ssl/rspec.pem"))
         end
       end
 
@@ -760,10 +770,10 @@ module MCollective
         it "should support the file security provider" do
           Config.instance.stubs(:pluginconf).returns(
             "security.provider" => "file",
-            "security.file.key" => "/ssl/rspec-key.pem"
+            "security.file.key" => "~/ssl/rspec-key.pem"
           )
 
-          expect(choria.client_private_key).to eq("/ssl/rspec-key.pem")
+          expect(choria.client_private_key).to eq(File.expand_path("~/ssl/rspec-key.pem"))
         end
       end
 
