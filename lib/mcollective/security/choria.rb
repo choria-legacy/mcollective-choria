@@ -358,8 +358,8 @@ module MCollective
       # @param callerid [String] callerid who sent this cert
       # @return [Boolean]
       def should_cache_certname?(pubcert, callerid)
-        certname = choria.valid_certificate?(pubcert)
         callerid_certname = certname_from_callerid(callerid)
+        certname = choria.valid_certificate?(pubcert, callerid_certname)
         valid_regex = certname_whitelist_regex
 
         unless certname
