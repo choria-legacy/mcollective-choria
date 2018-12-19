@@ -19,6 +19,8 @@ module MCollective
         reply[:middleware_servers] = choria.middleware_servers.map {|s| s.join(":")}
         reply[:path] = ENV.fetch("PATH", "")
         reply[:choria_version] = "mcollective plugin %s" % Util::Choria::VERSION
+        reply[:secure_protocol] = !$choria_unsafe_disable_protocol_security # rubocop:disable Style/GlobalVars
+        reply[:connector_tls] = !$choria_unsafe_disable_nats_tls # rubocop:disable Style/GlobalVars
 
         if connector.connected?
           reply[:connected_server] = "%s://%s:%s" % [connector.connected_server.scheme, connector.connected_server.host, connector.connected_server.port]
