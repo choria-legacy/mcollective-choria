@@ -1,6 +1,12 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
-|2018/12/01|      |Release 0.12.0                                                                                            |
+|2018/12/27|      |Release 0.12.1                                                                                            |
+|2018/12/26|560   |Increase `choria_util` timeout to allow for slow facter                                                  |
+|2018/12/19|557   |Export the PKI and TLS modes via `choria_util#info`                                                      |
+|2018/12/11|550   |Support intermediate certificate chains                                                                  |
+|2018/12/11|493   |Support identical settings to the go file security mode allowing non Puppet SSL file paths               |
+|2018/12/07|547   |Support disabling PKI and TLS seperately                                                                 |
+|2018/12/02|544   |Improve backward compatibility in JSON mode                                                              |
 |2018/12/01|      |Release 0.12.0                                                                                           |
 |2018/11/27|540   |On AIO Puppet 6 require the `choria-mcorpc-support` gem                                                  |
 |2018/11/27|538   |On AIO Puppet 6 always use the JSON serialiser where Choria Server is the default                        |
