@@ -1,6 +1,7 @@
 require "spec_helper"
 
 require "mcollective/security/choria"
+require "mcollective/signer/choria"
 
 module MCollective
   describe Security::Choria do
@@ -92,9 +93,12 @@ module MCollective
     describe "#encoderequest" do
       it "should produce a valid choria:secure:request:1" do
         security.initiated_by = :client
-        security.stubs(:client_private_key).returns("spec/fixtures/rip.mcollective.key")
-        security.stubs(:client_public_cert).returns("spec/fixtures/rip.mcollective.pem")
+        choria.stubs(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key"))
+        choria.stubs(:client_public_cert).returns(File.expand_path("spec/fixtures/rip.mcollective.pem"))
         security.stubs(:callerid).returns("choria=rip.mcollective")
+        MCollective::PluginManager.stubs(:[]).with("choria_signer_plugin").returns(Signer::Choria.new)
+        MCollective::PluginManager.stubs(:[]).with("security_plugin").returns(security)
+
         encoded = security.encoderequest("some.node", "rspec message", "requestid", [], "rspec_agent", "mcollective", 120)
 
         request = JSON.parse(encoded)
@@ -492,7 +496,7 @@ module MCollective
       it "should produce correct client signatures" do
         signed = File.read("spec/fixtures/too_many_secrets.sig")
         security.initiated_by = :client
-        security.expects(:client_private_key).returns("spec/fixtures/rip.mcollective.key")
+        choria.expects(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key")).twice
         expect(security.sign("too many secrets")).to eq(signed)
       end
     end

@@ -50,6 +50,7 @@ module MCollective
         request["envelope"]["callerid"] = callerid
 
         serialized_request = serialize(request, default_serializer)
+
         secure_request = {
           "protocol" => "choria:secure:request:1",
           "message" => serialized_request,
@@ -57,12 +58,23 @@ module MCollective
           "pubcert" => "insecure"
         }
 
-        unless $choria_unsafe_disable_protocol_security # rubocop:disable Style/GlobalVars
-          secure_request["signature"] = sign(serialized_request)
-          secure_request["pubcert"] = File.read(client_public_cert).chomp
-        end
+        sign_secure_request!(secure_request)
 
         serialize(secure_request)
+      end
+
+      # Signs a secure request
+      #
+      # @param secure_request the secure request to sign and embed certificates into
+      def sign_secure_request!(secure_request)
+        request_signer.sign_secure_request!(secure_request)
+      end
+
+      # The class the implements signing the requests
+      #
+      def request_signer
+        PluginManager.loadclass("MCollective::Signer::%s" % @config.pluginconf.fetch("choria.security.request_signer.plugin", "choria").capitalize)
+        PluginManager["choria_signer_plugin"]
       end
 
       # Encodes a reply to a earlier received message
@@ -553,9 +565,19 @@ module MCollective
         choria.client_public_cert
       end
 
+      # (see Util::Choria#has_client_public_cert?)
+      def has_client_public_cert?
+        choria.has_client_public_cert?
+      end
+
       # (see Util::Choria#client_private_key)
       def client_private_key
         choria.client_private_key
+      end
+
+      # (see Util::Choria#has_client_private_key?)
+      def has_client_private_key?
+        choria.has_client_private_key?
       end
 
       # The callerid based on the certificate name
@@ -576,7 +598,7 @@ module MCollective
       def sign(string, id=nil)
         key = client_private_key
 
-        if File.readable?(key)
+        if has_client_private_key?
           Log.debug("Signing request using client private key %s" % key)
         else
           raise("Cannot find private key %s, cannot sign message" % key)
