@@ -259,6 +259,20 @@ module MCollective
         Net::HTTP::Get.new(path, headers)
       end
 
+      # Creates a Net::HTTP::Post instance for a path that defaults to accepting JSON
+      #
+      # @param path [String]
+      # @return [Net::HTTP::Post]
+      def http_post(path, headers=nil)
+        headers ||= {}
+        headers = {
+          "Accept" => "application/json",
+          "User-Agent" => "Choria version %s http://choria.io" % VERSION
+        }.merge(headers)
+
+        Net::HTTP::Post.new(path, headers)
+      end
+
       # Does a proxied discovery request
       #
       # @param query [Hash] Discovery query as per pdbproxy standard
