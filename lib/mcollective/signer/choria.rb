@@ -68,6 +68,7 @@ module MCollective
         uri = remote_signer_url
         post = choria.http_post(uri.request_uri)
         post.body = sign_request_body(secure_request).to_json
+        post["Content-type"] = "application/json"
 
         http = choria.https(:target => uri.host, :port => uri.port)
         http.use_ssl = false if uri.scheme == "http"
