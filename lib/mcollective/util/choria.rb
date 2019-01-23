@@ -8,7 +8,7 @@ module MCollective
       class Abort < StandardError; end
 
       unless defined?(Choria::VERSION) # rubocop:disable Style/IfUnlessModifier
-        VERSION = "0.13.0".freeze
+        VERSION = "0.13.1".freeze
       end
 
       attr_writer :ca
