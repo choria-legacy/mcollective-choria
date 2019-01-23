@@ -2,7 +2,7 @@ metadata :name => "bolt_tasks",
          :description => "Downloads and runs Puppet Tasks",
          :author => "R.I.Pienaar <rip@devco.net>",
          :license => "Apache-2.0",
-         :version => "0.12.1",
+         :version => "0.13.0",
          :url => "https://choria.io",
          :timeout => 60
 
