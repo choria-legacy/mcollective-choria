@@ -1,6 +1,8 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
-|2019/01/23|      |Release 0.13.0                                                                                            |
+|2019/01/23|      |Release 0.13.1                                                                                           |
+|2019/01/23|568   |Include the signer files when installing the module                                                      |
+|2019/01/23|      |Release 0.13.0                                                                                           |
 |2019/01/03|563   |Support a remote signing service for centralised AAA                                                     |
 |2018/12/27|      |Release 0.12.1                                                                                           |
 |2018/12/26|560   |Increase `choria_util` timeout to allow for slow facter                                                  |
