@@ -24,7 +24,13 @@ module MCollective
         file = @config.pluginconf["choria.security.request_signer.token_file"]
         env = @config.pluginconf["choria.security.request_signer.token_environment"]
 
-        return File.read(File.expand_path(file)).chomp if file
+        if file
+          unless File.exist?(file)
+            raise("No token found in %s, please authenticate using your configured authentication service" % file)
+          end
+
+          return File.read(File.expand_path(file)).chomp
+        end
 
         raise("could not find token in environment variable %s" % env) unless ENV[env]
 
