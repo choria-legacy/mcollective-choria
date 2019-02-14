@@ -434,6 +434,8 @@ module MCollective
       # @return [Boolean]
       # @raise [StandardError] on failure
       def check_ssl_setup(log=true)
+        return true if $choria_unsafe_disable_protocol_security # rubocop:disable Style/GlobalVars
+
         if Process.uid == 0 && PluginManager["security_plugin"].initiated_by == :client
           raise(UserError, "The Choria client cannot be run as root")
         end

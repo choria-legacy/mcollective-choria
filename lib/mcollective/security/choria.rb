@@ -234,6 +234,8 @@ module MCollective
       # @return [Boolean]
       # @raise [SecurityValidationFailed] when the message cannot be decoded
       def validrequest?(secure_payload, request)
+        return true if $choria_unsafe_disable_protocol_security # rubocop:disable Style/GlobalVars
+
         callerid = request["envelope"]["callerid"]
 
         if verify_signature(secure_payload["message"], secure_payload["signature"], callerid, true)
@@ -439,6 +441,8 @@ module MCollective
       # @return [Boolean] true when the cert was cached, false when already cached
       # @raise [StandardError] when an invalid cert was received
       def cache_client_pubcert(envelope, pubcert)
+        return false if $choria_unsafe_disable_protocol_security # rubocop:disable Style/GlobalVars
+
         client_cache_mutex.synchronize do
           callerid = envelope["callerid"]
           certfile = public_certfile(callerid)
