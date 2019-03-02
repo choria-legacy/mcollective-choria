@@ -14,6 +14,12 @@ USAGE
 
       exclude_argument_sections "common", "filter", "rpc"
 
+      option :collective,
+             :description => "Target messages to a specific sub collective",
+             :arguments   => ["-T", "--target COLLECTIVE"],
+             :type        => String,
+             :required    => false
+
       # Publish a specially crafted 'ping' with seen-by headers
       # embedded, this signals to the entire collective to record
       # their route
