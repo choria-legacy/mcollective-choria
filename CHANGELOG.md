@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/03/04|      |Release 0.14.1                                                                                           |
+|2019/03/04|      |Require the latest choria-mcorpc-support gem                                                             |
 |2019/03/04|      |Release 0.14.0                                                                                           |
 |2019/04/02|578   |Add `-T` to the `federation trace` command                                                               |
 |2019/02/12|574   |Improve error messages when a token file cannot be found                                                 |
