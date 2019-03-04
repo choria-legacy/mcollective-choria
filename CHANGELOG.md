@@ -1,5 +1,10 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/03/04|      |Release 0.14.0                                                                                           |
+|2019/04/02|578   |Add `-T` to the `federation trace` command                                                               |
+|2019/02/12|574   |Improve error messages when a token file cannot be found                                                 |
+|2019/01/29|572   |Disable TLS verify when speaking to signers as we are not guaranteed to have client certs                |
+|2019/01/24|      |Ensure policy defaults are honored correctly                                                             |
 |2019/01/23|      |Release 0.13.1                                                                                           |
 |2019/01/23|568   |Include the signer files when installing the module                                                      |
 |2019/01/23|      |Release 0.13.0                                                                                           |
