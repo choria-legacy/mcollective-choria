@@ -1,6 +1,14 @@
 module MCollective
   module Agent
     class Choria_util < RPC::Agent
+      action "machine_states" do
+        reply.fail!("Choria Autonomous Agents are not support on mcollectived based Choria Servers")
+      end
+
+      action "machine_transtion" do
+        reply.fail!("Choria Autonomous Agents are not support on mcollectived based Choria Servers")
+      end
+
       action "info" do
         connector = PluginManager["connector_plugin"]
 

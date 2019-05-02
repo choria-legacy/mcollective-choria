@@ -8,6 +8,40 @@ metadata    :name        => "choria_util",
 
 requires :mcollective => "2.9.0"
 
+action "machine_transition", :description => "Attempts to force a transition in a hosted Choria Autonomous Agent" do
+  input :machine_id,
+        :prompt => "Machine ID",
+        :description => "Machine Instance ID",
+        :type => :string,
+        :validation => '^.+-.+-.+-.+-.+$',
+        :maxlength => 36,
+        :optional => false
+
+  input :transition,
+        :prompt => "Transition Name",
+        :description => "The transition event to send to the machine",
+        :type => :string,
+        :validation => '^[a-zA-Z][a-zA-Z0-9_-]+$',
+        :maxlength => 128,
+        :optional => false
+
+  output :success,
+         :description => "Indicates if the transition was succesfully accepted",
+         :display_as => "Accepted"
+end
+
+action "machine_states", :description => "States of the hosted Choria Autonomous Agents" do
+  display :always
+
+  output :machine_ids,
+         :description => "List of running machine IDs",
+         :display_as => "Machine IDs"
+
+  output :states,
+         :description => "Hash map of machine statusses indexed by machine ID",
+         :display_as => "Machine States"
+end
+
 action "info", :description => "Choria related information from the running Daemon and Middleware" do
   output :security,
          :description => "Security Provider plugin",
