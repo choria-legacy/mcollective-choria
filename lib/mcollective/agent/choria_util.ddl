@@ -9,13 +9,37 @@ metadata    :name        => "choria_util",
 requires :mcollective => "2.9.0"
 
 action "machine_transition", :description => "Attempts to force a transition in a hosted Choria Autonomous Agent" do
-  input :machine_id,
-        :prompt => "Machine ID",
+  input :instance,
+        :prompt => "Instance ID",
         :description => "Machine Instance ID",
         :type => :string,
         :validation => '^.+-.+-.+-.+-.+$',
         :maxlength => 36,
-        :optional => false
+        :optional => true
+
+  input :version,
+        :prompt => "Version",
+        :description => "Machine Version",
+        :type => :string,
+        :validation => '^\d+\.\d+\.\d+$',
+        :maxlength => 20,
+        :optional => true
+
+  input :name,
+        :prompt => "Name",
+        :description => "Machine Name",
+        :type => :string,
+        :validation => '^[a-zA-Z][a-zA-Z0-9_-]+',
+        :maxlength => 128,
+        :optional => true
+
+  input :path,
+        :prompt => "Path",
+        :description => "Machine Path",
+        :type => :string,
+        :validation => '.+',
+        :maxlength => 512,
+        :optional => true
 
   input :transition,
         :prompt => "Transition Name",
