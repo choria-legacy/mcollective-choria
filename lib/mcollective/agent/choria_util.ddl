@@ -57,6 +57,10 @@ end
 action "machine_states", :description => "States of the hosted Choria Autonomous Agents" do
   display :always
 
+  output :machine_names,
+         :description => "List of running machine names",
+         :display_as => "Machine Names"
+
   output :machine_ids,
          :description => "List of running machine IDs",
          :display_as => "Machine IDs"
@@ -64,6 +68,10 @@ action "machine_states", :description => "States of the hosted Choria Autonomous
   output :states,
          :description => "Hash map of machine statusses indexed by machine ID",
          :display_as => "Machine States"
+
+  summarize do
+    aggregate summary(:machine_names)
+  end
 end
 
 action "info", :description => "Choria related information from the running Daemon and Middleware" do
