@@ -148,6 +148,97 @@
           ]
         }
       ]
+    },
+    {
+      "action": "machine_states",
+      "input": {
+      },
+      "output": {
+        "machine_names": {
+          "description": "List of running machine names",
+          "display_as": "Machine Names",
+          "default": null
+        },
+        "machine_ids": {
+          "description": "List of running machine IDs",
+          "display_as": "Machine IDs",
+          "default": null
+        },
+        "states": {
+          "description": "Hash map of machine statusses indexed by machine ID",
+          "display_as": "Machine States",
+          "default": null
+        }
+      },
+      "display": "always",
+      "description": "States of the hosted Choria Autonomous Agents",
+      "aggregate": [
+        {
+          "function": "summary",
+          "args": [
+            "machine_names"
+          ]
+        }
+      ]
+    },
+    {
+      "action": "machine_transition",
+      "input": {
+        "instance": {
+          "prompt": "Instance ID",
+          "description": "Machine Instance ID",
+          "type": "string",
+          "default": null,
+          "optional": true,
+          "validation": "^.+-.+-.+-.+-.+$",
+          "maxlength": 36
+        },
+        "version": {
+          "prompt": "Version",
+          "description": "Machine Version",
+          "type": "string",
+          "default": null,
+          "optional": true,
+          "validation": "^\\d+\\.\\d+\\.\\d+$",
+          "maxlength": 20
+        },
+        "name": {
+          "prompt": "Name",
+          "description": "Machine Name",
+          "type": "string",
+          "default": null,
+          "optional": true,
+          "validation": "^[a-zA-Z][a-zA-Z0-9_-]+",
+          "maxlength": 128
+        },
+        "path": {
+          "prompt": "Path",
+          "description": "Machine Path",
+          "type": "string",
+          "default": null,
+          "optional": true,
+          "validation": ".+",
+          "maxlength": 512
+        },
+        "transition": {
+          "prompt": "Transition Name",
+          "description": "The transition event to send to the machine",
+          "type": "string",
+          "default": null,
+          "optional": false,
+          "validation": "^[a-zA-Z][a-zA-Z0-9_-]+$",
+          "maxlength": 128
+        }
+      },
+      "output": {
+        "success": {
+          "description": "Indicates if the transition was succesfully accepted",
+          "display_as": "Accepted",
+          "default": null
+        }
+      },
+      "display": "failed",
+      "description": "Attempts to force a transition in a hosted Choria Autonomous Agent"
     }
   ]
 }

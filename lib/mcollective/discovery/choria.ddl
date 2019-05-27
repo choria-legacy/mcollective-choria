@@ -2,7 +2,7 @@ metadata    :name        => "choria",
             :description => "PuppetDB based discovery for the Choria plugin suite",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "Apache-2.0",
-            :version     => "0.14.1",
+            :version     => "0.15.0",
             :url         => "https://github.com/choria-io",
             :timeout     => 0
 
