@@ -1,5 +1,9 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/05/27|      |Release 0.15.0                                                                                           |
+|2019/05/27|      |Release 0.15.0                                                                                           |
+|2019/05/02|585   |Add support for Choria Autonomous Agents                                                                 |
+|2019/03/19|583   |Fix path expansion for token locations with `~` in them                                                  |
 |2019/03/04|      |Release 0.14.1                                                                                           |
 |2019/03/04|      |Require the latest choria-mcorpc-support gem                                                             |
 |2019/03/04|      |Release 0.14.0                                                                                           |

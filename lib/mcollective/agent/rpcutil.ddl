@@ -2,7 +2,7 @@ metadata    :name        => "rpcutil",
             :description => "General helpful actions that expose stats and internals to SimpleRPC clients",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "Apache License, Version 2.0",
-            :version     => "0.14.1",
+            :version     => "0.15.0",
             :url         => "https://docs.puppetlabs.com/mcollective/",
             :timeout     => 10
 
