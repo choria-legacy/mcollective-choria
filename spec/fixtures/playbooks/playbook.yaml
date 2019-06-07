@@ -70,6 +70,7 @@ nodes:
     at_least: 1
     limit: 1
     when_empty: No load balancers found with class haproxy
+    empty_ok: false
     test: true
     uses:
       - puppet

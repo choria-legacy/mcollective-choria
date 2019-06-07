@@ -143,6 +143,8 @@ module MCollective
         # @param nodes [String] node set name
         # @raise [StandardError] on error
         def validate_nodes(nodes)
+          return if properties(nodes)["empty_ok"]
+
           unless self[nodes].size >= properties(nodes)["at_least"]
             raise("Node set %s needs at least %d nodes, got %d" % [nodes, properties(nodes)["at_least"], self[nodes].size])
           end
@@ -153,7 +155,7 @@ module MCollective
         # @param nodes [String] node set name
         # @raise [StandardError] when empty
         def check_empty(nodes)
-          if self[nodes].empty?
+          if self[nodes].empty? && !properties(nodes)["empty_ok"]
             raise(properties(nodes)["when_empty"] || "Did not discover any nodes for nodeset %s" % nodes)
           end
         end
@@ -163,6 +165,8 @@ module MCollective
         # @todo more intelegent limiting with weighted randoms like mco rpc client
         # @param nodes [String] node set name
         def limit_nodes(nodes)
+          return if self[nodes].empty?
+
           if limit = properties(nodes)["limit"]
             Log.debug("Limiting node set %s to %d nodes from %d" % [nodes, limit, @nodes[nodes][:discovered].size])
             @nodes[nodes][:discovered] = @nodes[nodes][:discovered][0..(limit - 1)]
@@ -186,13 +190,18 @@ module MCollective
             resolver.from_hash(props)
             resolver.validate_configuration!
 
+            node_props = {
+              "at_least" => 1,
+              "empty_ok" => false,
+              "when_empty" => "Did not discover any nodes for nodeset %s" % nodes
+            }.merge(props)
+
+            node_props["at_least"] = 0 if node_props["empty_ok"]
+
             @nodes[nodes] = {
               :resolver => resolver,
               :discovered => [],
-              :properties => {
-                "at_least" => 1,
-                "when_empty" => "Did not discover any nodes for nodeset %s" % nodes
-              }.merge(props)
+              :properties => node_props
             }
           end
 
