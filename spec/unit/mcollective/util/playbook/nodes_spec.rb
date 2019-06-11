@@ -56,6 +56,14 @@ module MCollective
             nodes.expects(:[]).returns(["rspec1"])
             nodes.check_empty("rspec")
           end
+
+          it "should not raise if empty ok is set" do
+            nodes.from_hash(playbook_fixture["nodes"])
+            nodes.properties("web_servers")["at_least"] = 0
+            nodes.properties("web_servers")["empty_ok"] = true
+            nodes.nodes["web_servers"][:discovered] = []
+            nodes.check_empty("web_servers")
+          end
         end
 
         describe "#validate_nodes" do
@@ -68,6 +76,11 @@ module MCollective
             expect { nodes.validate_nodes("web_servers") }.to raise_error("Node set web_servers needs at least 2 nodes, got 1")
 
             nodes.nodes["web_servers"][:discovered] = ["r1", "r2", "r3"]
+            expect(nodes.validate_nodes("web_servers"))
+
+            nodes.properties("web_servers")["at_least"] = 0
+            nodes.properties("web_servers")["empty_ok"] = true
+            nodes.nodes["web_servers"][:discovered] = []
             expect(nodes.validate_nodes("web_servers"))
           end
         end
