@@ -105,7 +105,6 @@ module MCollective
         message = YAML.load(request["message"])
 
         expect(encoded).to match_json_schema("choria:secure:request:1")
-        expect(request["signature"]).to match(/^r9F3fuTEv43JYzZJ6.+cHRWGmz0mxZmy5Us1xR2.+CMYUlTJIFfqNa4OEURpFybE=$/m)
         expect(request["pubcert"]).to match(File.read("spec/fixtures/rip.mcollective.pem").chomp)
         expect(message).to eq(
           "protocol" => "choria:request:1",
@@ -120,6 +119,7 @@ module MCollective
            "ttl" => 120,
            "time" => 1464002319}
         )
+        expect(request["signature"]).to match(security.sign(request["message"]))
       end
     end
 

@@ -345,6 +345,28 @@ module MCollective
         end
       end
 
+      describe "#puppetdb_server" do
+        it "should use x-puppet when db specific one is not set with the correct port" do
+          choria.expects(:try_srv).with(["_x-puppet-db._tcp"], nil, nil).returns(:target => "db", :port => "8080")
+          expect(choria.puppetdb_server).to eq(:target => "db", :port => "8080")
+        end
+
+        it "should use x-puppetdb when with the correct port" do
+          choria.expects(:try_srv).with(["_x-puppet-db._tcp"], nil, nil).returns(:target => nil, :port => nil)
+          choria.expects(:try_srv).with(["_x-puppet._tcp"], "puppet", "8081").returns(:target => "puppetserver", :port => "8084")
+
+          expect(choria.puppetdb_server).to eq(:target => "puppetserver", :port => "8081")
+        end
+
+        it "should support defaults" do
+          Config.instance.stubs(:pluginconf).returns("choria.puppetdb_host" => "puppet", "choria.puppetdb_port" => "8081")
+          choria.expects(:try_srv).with(["_x-puppet-db._tcp"], nil, nil).returns(:target => nil, :port => nil)
+          choria.expects(:try_srv).with(["_x-puppet._tcp"], "puppet", "8081").returns(:target => "puppet", :port => "8084")
+
+          expect(choria.puppetdb_server).to eq(:target => "puppet", :port => "8081")
+        end
+      end
+
       describe "#try_srv" do
         it "should query for the correct names" do
           choria.expects(:query_srv_records).with(["rspec1"]).returns([:target => "rspec.host1", :port => "8081"])
