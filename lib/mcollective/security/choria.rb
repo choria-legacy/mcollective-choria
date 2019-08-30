@@ -534,7 +534,7 @@ module MCollective
       #
       # @return [Symbol]
       def default_serializer
-        @config.pluginconf.fetch("choria.security.serializer", "yaml").downcase.intern
+        @config.pluginconf.fetch("choria.security.serializer", "json").downcase.intern
       end
 
       # The path where a server caches client certificates
