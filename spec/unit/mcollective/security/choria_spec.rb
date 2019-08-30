@@ -16,15 +16,15 @@ module MCollective
 
     describe "#default_serializer" do
       it "should default to yaml" do
-        expect(security.default_serializer).to be(:yaml)
+        expect(security.default_serializer).to be(:json)
       end
 
-      it "should support JSON" do
+      it "should support YAML" do
         Config.instance.expects(:pluginconf).returns(
-          "choria.security.serializer" => "JSON"
+          "choria.security.serializer" => "YAML"
         )
 
-        expect(security.default_serializer).to be(:json)
+        expect(security.default_serializer).to be(:yaml)
       end
     end
 
@@ -92,6 +92,7 @@ module MCollective
 
     describe "#encoderequest" do
       it "should produce a valid choria:secure:request:1" do
+        security.stubs(:default_serializer).returns(:yaml)
         security.initiated_by = :client
         choria.stubs(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key"))
         choria.stubs(:client_public_cert).returns(File.expand_path("spec/fixtures/rip.mcollective.pem"))
@@ -125,6 +126,7 @@ module MCollective
 
     describe "#encodereply" do
       it "should produce a valid choria:secure:reply:1" do
+        security.stubs(:default_serializer).returns(:yaml)
         encoded = security.encodereply("rspec_agent", "rspec message", "123")
 
         reply = JSON.parse(encoded)
@@ -191,6 +193,7 @@ module MCollective
       end
 
       it "should fail for invalid protocol messages" do
+        security.stubs(:default_serializer).returns(:yaml)
         security.expects(:valid_protocol?).with({}, "choria:request:1", security.empty_request).returns(false)
         security.expects(:valid_protocol?).with({}, "mcollective:request:3", security.empty_request).returns(false)
 
@@ -200,6 +203,7 @@ module MCollective
       end
 
       it "should return a valid legacy message" do
+        security.stubs(:default_serializer).returns(:yaml)
         message = stub
         secure = {
           "message" => security.serialize(request, :yaml),
@@ -240,6 +244,7 @@ module MCollective
       end
 
       it "should support unserialized messages" do
+        security.stubs(:default_serializer).returns(:yaml)
         request["message"] = {"rspec" => "message"}
 
         message = stub
@@ -264,6 +269,7 @@ module MCollective
       let(:reply) { security.empty_reply }
 
       it "should return a valid legacy message" do
+        security.stubs(:default_serializer).returns(:yaml)
         serialized_reply = security.serialize(reply, :yaml)
 
         message = {
@@ -277,6 +283,7 @@ module MCollective
       end
 
       it "should fail for invalid protocol messages" do
+        security.stubs(:default_serializer).returns(:yaml)
         security.expects(:valid_protocol?).with({}, "mcollective:reply:3", security.empty_reply).returns(false)
         security.expects(:valid_protocol?).with({}, "choria:reply:1", security.empty_reply).returns(false)
 
