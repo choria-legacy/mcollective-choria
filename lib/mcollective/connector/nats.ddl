@@ -2,7 +2,7 @@ metadata    :name        => "nats",
             :description => "Connector plugin for NATS.io middleware",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "Apache-2.0",
-            :version     => "0.15.0",
+            :version     => "0.16.0",
             :url         => "https://github.com/choria-io",
             :timeout     => 60
 

@@ -1,6 +1,9 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
-|2019/05/27|      |Release 0.15.0                                                                                           |
+|2019/09/20|      |Release 0.16.0                                                                                           |
+|2019/08/30|593   |Switch to using JSON format by default                                                                   |
+|2019/08/17|593   |Improve puppet db SRV lookup port resolution                                                             |
+|2019/06/07|590   |Allow playbook node sets to declare zero discovered hosts is ok with `empty_ok`                          |
 |2019/05/27|      |Release 0.15.0                                                                                           |
 |2019/05/02|585   |Add support for Choria Autonomous Agents                                                                 |
 |2019/03/19|583   |Fix path expansion for token locations with `~` in them                                                  |
