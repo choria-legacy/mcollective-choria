@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/09/26|      |Release 0.16.1                                                                                           |
+|2019/09/26|      |Use latest mcorpc ruby support gem                                                                       |
 |2019/09/20|      |Release 0.16.0                                                                                           |
 |2019/08/30|593   |Switch to using JSON format by default                                                                   |
 |2019/08/17|593   |Improve puppet db SRV lookup port resolution                                                             |

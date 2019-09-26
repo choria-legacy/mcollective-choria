@@ -123,7 +123,7 @@ task :release do
     end
 
     Dir.chdir("module/%s" % mod) do
-      sh("/usr/bin/env -i PATH=/bin:/usr/bin bash -e /opt/puppetlabs/bin/puppet module build")
+      sh("/usr/bin/env -i PATH=/bin:/usr/bin bash -e /opt/puppetlabs/pdk/bin/pdk build -f")
     end
   end
 end
