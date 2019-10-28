@@ -95,9 +95,9 @@ module MCollective
 
           self.class.option :__loglevel,
                             :arguments => ["--loglevel LEVEL"],
-                            :description => "Override the loglevel set in the playbook (debug, info, warn, error, fatal)",
+                            :description => "Override the loglevel set in the playbook (emerg alert crit err warning notice info verbose debug)",
                             :type => String,
-                            :validate => ->(level) { ["error", "fatal", "debug", "warn", "info"].include?(level) }
+                            :validate => ->(level) { %w[emerg alert crit err warning notice info verbose debug].include?(level) }
 
           super
         end
