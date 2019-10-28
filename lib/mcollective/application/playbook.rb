@@ -184,7 +184,11 @@ module MCollective
           puts
           puts "Result: "
           puts
-          puts Util.align_text(JSON.pretty_generate(result), 10000)
+          if result.class != String
+            puts Util.align_text(JSON.pretty_generate(result), 10000)
+          else
+            puts result
+          end
           puts
         end
 
