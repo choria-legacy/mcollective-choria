@@ -76,9 +76,15 @@ module MCollective
       # @return [String]
       def aio_wrapper_path
         if Util.windows?
-          File.join(aio_bin_path, "task_wrapper.exe")
+          legacy = File.join(aio_bin_path, "task_wrapper.exe")
+          return legacy if File.exist?(legacy)
+
+          File.join(aio_bin_path, "execution_wrapper.exe")
         else
-          File.join(aio_bin_path, "task_wrapper")
+          legacy = File.join(aio_bin_path, "task_wrapper")
+          return legacy if File.exist?(legacy)
+
+          File.join(aio_bin_path, "execution_wrapper")
         end
       end
 

@@ -257,6 +257,7 @@ ERROR
 
       describe "#run_task_command" do
         it "should spawn the right command and wait" do
+          File.stubs(:exist?).with("/opt/puppetlabs/puppet/bin/task_wrapper").returns(true)
           File.stubs(:exist?).with(ts.wrapper_path).returns(true)
           ts.stubs(:request_spooldir).returns(File.join(cache, "test_1"))
           ts.expects(:spawn_command).with(
