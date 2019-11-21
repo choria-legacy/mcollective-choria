@@ -1,7 +1,7 @@
 ---
 mcollective_choria::config_name: choria
 mcollective_choria::gem_dependencies:
-  "nats-pure": "0.5.0"
+  "nats-pure": "0.6.2"
 
 mcollective_choria::client_directories:
  - util/playbook
@@ -13,7 +13,6 @@ mcollective_choria::client_directories:
 mcollective_choria::server_files:
  - agent/choria_util.rb
  - audit/choria.rb
- - registration/choria.rb
 mcollective_choria::client_files:
  - application/choria.rb
  - application/playbook.rb

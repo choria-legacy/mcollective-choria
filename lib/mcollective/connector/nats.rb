@@ -74,11 +74,14 @@ module MCollective
           :name => @config.identity
         }
 
+        parameters[:user_credentials] = choria.credential_file if choria.credential_file?
+
         if $choria_unsafe_disable_nats_tls # rubocop:disable Style/GlobalVars
           Log.warn("Disabling TLS in NATS connector, this is not a production supported setup")
+        elsif choria.ngs?
+          configure_ngs(parameters)
         else
-          parameters[:tls] = {:context => choria.ssl_context}
-          choria.check_ssl_setup
+          configure_tls(parameters)
         end
 
         servers = server_list
@@ -91,6 +94,22 @@ module MCollective
         connection.start(parameters)
 
         nil
+      end
+
+      def configure_tls(parameters)
+        parameters[:tls] = {:context => choria.ssl_context}
+        choria.check_ssl_setup
+      end
+
+      def configure_ngs(parameters)
+        Log.debug("Disabling specific TLS during connection to NGS")
+
+        raise("nkeys rubygem is required for connections with credentials") unless choria.nkeys?
+
+        tls = OpenSSL::SSL::SSLContext.new
+        tls.ssl_version = :TLSv1_2
+
+        parameters[:tls] = {:context => tls}
       end
 
       # Disconnects from NATS
