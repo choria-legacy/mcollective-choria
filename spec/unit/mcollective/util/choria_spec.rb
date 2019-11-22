@@ -6,6 +6,49 @@ module MCollective
     describe Choria do
       let(:choria) { Choria.new(false) }
 
+      describe "#credential_file" do
+        it "should correctly return the configured options" do
+          expect(choria.credential_file).to eq("")
+
+          Config.instance.stubs(:pluginconf).returns(
+            "nats.credentials" => "/foo"
+          )
+
+          expect(choria.credential_file).to eq("/foo")
+        end
+      end
+
+      describe "#credential_file?" do
+        it "should correctly detect the configured value" do
+          expect(choria.credential_file?).to be(false)
+
+          Config.instance.stubs(:pluginconf).returns(
+            "nats.credentials" => "/foo"
+          )
+
+          expect(choria.credential_file?).to be(true)
+        end
+      end
+
+      describe "#ngs" do
+        it "should correctly report ngs settings" do
+          expect(choria.ngs?).to be(false)
+
+          Config.instance.stubs(:pluginconf).returns(
+            "nats.credentials" => "/foo"
+          )
+
+          expect(choria.ngs?).to be(false)
+
+          Config.instance.stubs(:pluginconf).returns(
+            "nats.credentials" => "/foo",
+            "nats.ngs" => "true"
+          )
+
+          expect(choria.ngs?).to be(true)
+        end
+      end
+
       describe "#file_security?" do
         it "should detect file security settings" do
           Config.instance.stubs(:pluginconf).returns(
@@ -429,6 +472,22 @@ module MCollective
       end
 
       describe "#middleware_servers" do
+        it "should support ngs" do
+          Config.instance.stubs(:pluginconf).returns(
+            "nats.credentials" => "/foo",
+            "nats.ngs" => "true"
+          )
+
+          expect(choria.middleware_servers).to eq([["connect.ngs.global", "4222"]])
+
+          Config.instance.stubs(:pluginconf).returns(
+            "nats.credentials" => "/foo",
+            "nats.ngs" => "true",
+            "choria.middleware_hosts" => "x.net:4222"
+          )
+          expect(choria.middleware_servers).to eq([["x.net", "4222"]])
+        end
+
         it "should support federations" do
           choria.expects(:federated?).returns(true)
           choria.expects(:federation_middleware_servers).returns([["f1.net", "4222"], ["f2.net", "4222"]])

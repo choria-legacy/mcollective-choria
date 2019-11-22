@@ -21,6 +21,20 @@ module MCollective
       msg.collective = "mcollective"
     end
 
+    describe "#configure_ngs" do
+      it "should handle lack of nkeys gem" do
+        choria.expects(:nkeys?).returns(false)
+        expect { connector.configure_ngs({}) }.to raise_error("nkeys rubygem is required for connections with credentials")
+      end
+
+      it "should set tls context" do
+        choria.expects(:nkeys?).returns(true)
+        params = {}
+        connector.configure_ngs(params)
+        expect(params).to have_key(:tls)
+      end
+    end
+
     describe "#client_options" do
       it "should get the options from the wrapper" do
         connection.expects(:active_options).returns(:rspec => 1)

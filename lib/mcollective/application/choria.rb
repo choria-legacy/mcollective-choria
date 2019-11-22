@@ -129,6 +129,7 @@ module MCollective
         puts "      Using SRV Records: %s" % choria.should_use_srv?
         puts "              Federated: %s" % choria.federated?
         puts "             SRV Domain: %s" % choria.srv_domain
+        puts "               NATS NGS: %s" % choria.ngs?
 
         middleware_servers = choria.middleware_servers("puppet", 4222).map {|s, p| "%s:%s" % [s, p]}.join(", ")
 
@@ -168,7 +169,7 @@ module MCollective
 
         puts
 
-        puts "SSL setup:"
+        puts "Security setup:"
         puts
 
         valid_ssl = choria.check_ssl_setup(false) rescue false
@@ -191,6 +192,14 @@ module MCollective
           cn = choria.valid_certificate?(File.read(choria.client_public_cert), choria.certname, false)
 
           puts "      Public Cert CN: %s (%s)" % [cn, cn == choria.certname ? Util.colorize(:green, "match") : Util.colorize(:red, "does not match certname")]
+        end
+
+        if choria.credential_file?
+          puts "    NATS Credentials: %s (%s)" % [
+            choria.credential_file,
+            File.exist?(choria.credential_file) ? Util.colorize(:green, "exit") : Util.colorize(:red, "does not exist")
+          ]
+          puts "         'nkeys' gem: %s" % choria.nkeys?
         end
 
         puts

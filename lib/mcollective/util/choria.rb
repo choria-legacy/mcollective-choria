@@ -19,6 +19,37 @@ module MCollective
         check_ssl_setup if check_ssl
       end
 
+      # Determines the configured path to the NATS credentials, empty when not set
+      #
+      # @return [String]
+      def credential_file
+        get_option("nats.credentials", "")
+      end
+
+      # Determines if a credential file is configured
+      #
+      # @return [Boolean]
+      def credential_file?
+        credential_file != ""
+      end
+
+      # Determines if we are connecting to NGS based on credentials and the nats.ngs setting
+      #
+      # @return [Boolean]
+      def ngs?
+        credential_file != "" && Util.str_to_bool(get_option("nats.ngs", "false"))
+      end
+
+      # Attempts to load the optional nkeys library
+      #
+      # @return [Boolean]
+      def nkeys?
+        require "nkeys"
+        true
+      rescue LoadError
+        false
+      end
+
       # Creates a new TasksSupport instance with the configured cache dir
       #
       # @return [TasksSupport]
@@ -372,11 +403,7 @@ module MCollective
 
         unless ca.verify(incoming, chain)
           if log
-            Log.warn("Failed to verify certificate %s against CA %s in %s" % [
-              incoming.subject.to_s,
-              incoming.issuer.to_s,
-              ca_path
-            ])
+            Log.warn("Failed to verify certificate %s against CA %s in %s" % [incoming.subject.to_s, incoming.issuer.to_s, ca_path])
           end
 
           return false
@@ -385,10 +412,7 @@ module MCollective
         Log.debug("Verified certificate %s against CA %s" % [incoming.subject.to_s, incoming.issuer.to_s]) if log
 
         unless OpenSSL::SSL.verify_certificate_identity(incoming, name)
-          raise("Could not parse certificate with subject %s as it has no CN part, or name %s invalid" % [
-            incoming.subject.to_s,
-            name
-          ])
+          raise("Could not parse certificate with subject %s as it has no CN part, or name %s invalid" % [incoming.subject.to_s, name])
         end
 
         name
@@ -497,6 +521,7 @@ module MCollective
       #
       # Attempts to find servers in the following order:
       #
+      #  * connects.ngs.global if configured to be ngs and empty choria.middleware_hosts
       #  * Any federation servers if in a federation
       #  * Configured hosts in choria.middleware_hosts
       #  * SRV lookups in _mcollective-server._tcp and _x-puppet-mcollective._tcp
@@ -509,6 +534,8 @@ module MCollective
       # @param default_port [String] default port
       # @return [Array<Array<String, String>>] groups of host and port
       def middleware_servers(default_host="puppet", default_port="4222")
+        return [["connect.ngs.global", "4222"]] if ngs? && !has_option?("choria.middleware_hosts")
+
         if federated? && federation = federation_middleware_servers
           return federation
         end
@@ -697,6 +724,7 @@ module MCollective
       def ssl_context
         context = OpenSSL::SSL::SSLContext.new
         context.ca_file = ca_path
+        context.ssl_version = :TLSv1_2
 
         public_cert = File.read(client_public_cert)
         private_key = File.read(client_private_key)
