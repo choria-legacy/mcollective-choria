@@ -1,5 +1,10 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/11/26|      |Release 0.17.0                                                                                           |
+|2019/11/21|607   |Support using Synadia NATS NGS as a broker for Choria                                                    |
+|2019/11/01|591   |Support both Puppet 5 and 6 paths for the task helper                                                    |
+|2019/10/28|416   |Detect pure string results from Playbooks and render them correctly                                      |
+|2019/10/27|600   |Align playbook log level names with Puppet                                                               |
 |2019/09/26|      |Release 0.16.1                                                                                           |
 |2019/09/26|      |Use latest mcorpc ruby support gem                                                                       |
 |2019/09/20|      |Release 0.16.0                                                                                           |
