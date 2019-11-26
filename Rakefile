@@ -93,8 +93,8 @@ desc "Prepare and build the Puppet modules"
 task :release do
   Rake::Task[:spec].execute
   Rake::Task[:rubocop].execute
-  Rake::Task[:update_ddl].execute
   Rake::Task[:prep_version].execute if ENV["CHORIA_VERSION"]
+  Rake::Task[:update_ddl].execute
 
   ["choria", "tasks"].each do |mod|
     puts "=" * 20
@@ -123,7 +123,7 @@ task :release do
     end
 
     Dir.chdir("module/%s" % mod) do
-      sh("/usr/bin/env -i PATH=/bin:/usr/bin bash -e /opt/puppetlabs/pdk/bin/pdk build -f")
+      sh("/usr/bin/env -i PATH=/bin:/usr/bin bash -e /opt/puppetlabs/pdk/bin/pdk build --force")
     end
   end
 end
