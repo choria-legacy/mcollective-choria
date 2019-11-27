@@ -50,23 +50,29 @@ module MCollective
       # @return [Util::BoltSupport::PlanRunner]
       def runner(plan, loglevel=nil)
         require "mcollective/util/bolt_support"
-        runner = Util::BoltSupport::PlanRunner.new(
+        plan_runner = Util::BoltSupport::PlanRunner.new(
           plan,
           configuration[:__tmpdir],
           configuration[:__modulepath],
           configuration[:__loglevel] || "info"
         )
 
-        unless runner.exist?
+        unless plan_runner.exist?
           STDERR.puts("Cannot find supplied Playbook %s" % plan)
           STDERR.puts
           STDERR.puts("Module Path:")
           STDERR.puts
-          STDERR.puts(Util.align_text(configuration[:__modulepath].split(":").join("\n")))
+
+          if configuration[:__modulepath]
+            STDERR.puts(Util.align_text(configuration[:__modulepath].split(":").join("\n")))
+          else
+            STDERR.puts(Util.align_text("Puppet Default"))
+          end
+
           exit(1)
         end
 
-        runner
+        plan_runner
       end
 
       # Adds the playbook inputs as CLI options before starting the app
