@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/11/27|      |Release 0.17.1                                                                                           |
+|2019/11/27|      |Update `choria-mcorpc-support` dependency                                                                |
 |2019/11/26|      |Release 0.17.0                                                                                           |
 |2019/11/21|607   |Support using Synadia NATS NGS as a broker for Choria                                                    |
 |2019/11/01|591   |Support both Puppet 5 and 6 paths for the task helper                                                    |
