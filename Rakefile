@@ -53,6 +53,8 @@ task :prep_version do
     end
   end
 
+  Rake::Task[:update_ddl].execute
+
   sh "git add CHANGELOG.md lib module"
   sh "git commit -e -m '(misc) Release %s'" % ENV["CHORIA_VERSION"]
 end
@@ -94,7 +96,6 @@ task :release do
   Rake::Task[:spec].execute
   Rake::Task[:rubocop].execute
   Rake::Task[:prep_version].execute if ENV["CHORIA_VERSION"]
-  Rake::Task[:update_ddl].execute
 
   ["choria", "tasks"].each do |mod|
     puts "=" * 20
