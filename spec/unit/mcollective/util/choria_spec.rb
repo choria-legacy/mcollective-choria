@@ -217,6 +217,23 @@ module MCollective
           choria.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
           expect(choria.valid_certificate?(File.read("spec/fixtures/rip.mcollective.pem"), "rip.mcollective")).to be_truthy
         end
+
+        it "should check the identity when a remote signer is not used" do
+          choria.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
+          expect(choria.remote_signer_configured?).to be(false)
+          expect {
+            choria.valid_certificate?(File.read("spec/fixtures/rip.mcollective.pem"), "other.mcollective")
+          }.to raise_error("Could not parse certificate with subject /CN=rip.mcollective as it has no CN part, or name other.mcollective invalid")
+          expect(choria.valid_certificate?(File.read("spec/fixtures/rip.mcollective.pem"), "rip.mcollective")).to be_truthy
+        end
+
+        it "should not check identity when a remote signer is used" do
+          OpenSSL::SSL.expects(:verify_certificate_identity).never
+          Config.instance.stubs(:pluginconf).returns("choria.security.request_signer.url" => "http://foo")
+          choria.stubs(:ca_path).returns("spec/fixtures/ca_crt.pem")
+          expect(choria.remote_signer_configured?).to be(true)
+          choria.valid_certificate?(File.read("spec/fixtures/rip.mcollective.pem"), "other.mcollective")
+        end
       end
 
       describe "#valid_intermediate_certificate?" do
@@ -457,6 +474,23 @@ module MCollective
           expect(choria.server_resolver("choria.middleware_hosts", ["srv_record"], "1.net", "4222")).to eq(
             [["1.net", "4222"]]
           )
+        end
+      end
+
+      describe "#remote_signer_configured?" do
+        it "should detect when not configured or empty string" do
+          expect(choria.remote_signer_configured?).to be(false)
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.security.request_signer.url" => ""
+          )
+          expect(choria.remote_signer_configured?).to be(false)
+        end
+
+        it "should detect when configured" do
+          Config.instance.stubs(:pluginconf).returns(
+            "choria.security.request_signer.url" => "http://foo"
+          )
+          expect(choria.remote_signer_configured?).to be(true)
         end
       end
 
