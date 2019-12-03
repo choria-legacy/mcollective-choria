@@ -411,11 +411,20 @@ module MCollective
 
         Log.debug("Verified certificate %s against CA %s" % [incoming.subject.to_s, incoming.issuer.to_s]) if log
 
-        unless OpenSSL::SSL.verify_certificate_identity(incoming, name)
+        if !remote_signer_configured? && !OpenSSL::SSL.verify_certificate_identity(incoming, name)
           raise("Could not parse certificate with subject %s as it has no CN part, or name %s invalid" % [incoming.subject.to_s, name])
         end
 
         name
+      end
+
+      # Determines if a remote signer is configured
+      #
+      # @return [Boolean]
+      def remote_signer_configured?
+        url = get_option("choria.security.request_signer.url", nil)
+
+        ![nil, ""].include?(url)
       end
 
       # Utility function to split a chained certificate String into an Array
