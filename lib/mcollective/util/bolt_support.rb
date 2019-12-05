@@ -171,9 +171,9 @@ module MCollective
       def assign_playbook_name(scope)
         return unless scope
         return unless scope["facts"]["choria"]
-        return unless scope["facts"]["choria"]["plan"]
+        return unless scope["facts"]["choria"]["playbook"]
 
-        playbook.metadata["name"] = scope["facts"]["choria"]["plan"]
+        playbook.metadata["name"] = scope["facts"]["choria"]["playbook"]
       end
     end
   end
