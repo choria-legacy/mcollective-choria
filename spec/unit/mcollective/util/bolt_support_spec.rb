@@ -17,7 +17,7 @@ module MCollective
       describe "#assign_playbook_name" do
         it "should assign the playbook name from scope" do
           expect(playbook.name).to be_nil
-          support.assign_playbook_name("facts" => {"choria" => {"plan" => "rspec"}})
+          support.assign_playbook_name("facts" => {"choria" => {"playbook" => "rspec"}})
           expect(playbook.name).to eq("rspec")
         end
 
