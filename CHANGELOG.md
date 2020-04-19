@@ -1,5 +1,10 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2020/04/19|      |Release 0.17.2                                                                                           |
+|2020/01/23|619   |Place the rpcutil DDL in the correct directory                                                           |
+|2019/12/05|616   |Correctly extract the playbook name from facts                                                           |
+|2019/12/03|613   |Improve remote request signing support                                                                   |
+|2019/11/27|611   |Fail gracefully when modulepath is unset                                                                 |
 |2019/11/27|      |Release 0.17.1                                                                                           |
 |2019/11/27|      |Update `choria-mcorpc-support` dependency                                                                |
 |2019/11/26|      |Release 0.17.0                                                                                           |
