@@ -95,6 +95,9 @@ module MCollective
         puts("Waiting up to 240 seconds for it to be signed")
         puts
 
+        puts("Key fingerprint: %s" % choria.csr_fingerprint)
+        puts
+
         24.times do |time|
           print "Attempting to download certificate %s: %d / 24\r" % [certname, time]
 
