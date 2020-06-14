@@ -872,6 +872,15 @@ module MCollective
         File.exist?(csr_path)
       end
 
+      # The formatted string representation of the CSR fingerprint
+      #
+      # @return [String]
+      def csr_fingerprint
+        require "puppet"
+        csr = OpenSSL::X509::Request.new(File.read(csr_path))
+        Puppet::SSL::Digest.new(nil, csr.to_der)
+      end
+
       # Searches the PATH for an executable command
       #
       # @param command [String] a command to search for
