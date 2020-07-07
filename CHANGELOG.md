@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2020/07/07|      |Release 0.17.3                                                                                           |
+|2020/06/12|623   |Print CSR fingerprint in request_cert application                                                        |
 |2020/04/19|      |Release 0.17.2                                                                                           |
 |2020/01/23|619   |Place the rpcutil DDL in the correct directory                                                           |
 |2019/12/05|616   |Correctly extract the playbook name from facts                                                           |
