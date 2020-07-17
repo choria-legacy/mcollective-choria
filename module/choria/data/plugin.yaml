@@ -56,6 +56,8 @@ mcollective_choria::common_directories:
  - util/choria
 mcollective_choria::common_files:
  - application/federation.rb
+ - agent/scout.ddl
+ - agent/scout.json
  - agent/rpcutil.ddl
  - agent/rpcutil.json
  - agent/choria_util.ddl
