@@ -63,7 +63,7 @@ action "get_fact", :description => "Retrieve a single fact from the fact store" 
            :type        => :string,
            :validation  => '^[\w\-\.]+$',
            :optional    => false,
-           :maxlength   => 40
+           :maxlength   => 256
 
      output :fact,
             :description => "The name of the fact being returned",
