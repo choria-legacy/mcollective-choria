@@ -68,7 +68,7 @@ module MCollective
       #
       # Nodes are searched using an `and` operator via the discover_classes method
       #
-      # When the `rpcutil` agent is required it will look for `Mcollective` class
+      # When the `rpcutil` or `scout` agent is required it will look for `Mcollective` class
       # otherwise `Mcollective_avent_agentname` thus it will only find plugins
       # installed using the `choria/mcollective` AIO plugin packager
       #
@@ -76,7 +76,7 @@ module MCollective
       # @return [Array<String>] list of nodes found
       def discover_agents(filter)
         pql = filter.map do |agent|
-          if agent == "rpcutil"
+          if ["rpcutil", "scout"].include?(agent)
             discover_classes(["mcollective::service"])
           elsif agent =~ /^\/(.+)\/$/
             'resources {type = "File" and tag ~ "mcollective_agent_.*?%s.*?_server"}' % [string_regexi($1)]
