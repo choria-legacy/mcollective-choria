@@ -1,5 +1,8 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2020/07/18|      |Release 0.18.0                                                                                           |
+|2020/07/17|628   |Copy `scout` ddl files                                                                                   |
+|2020/07/17|626   |Support the `scout` agent in the `choria` discovery method                                               |
 |2020/07/07|      |Release 0.17.3                                                                                           |
 |2020/06/12|623   |Print CSR fingerprint in request_cert application                                                        |
 |2020/04/19|      |Release 0.17.2                                                                                           |

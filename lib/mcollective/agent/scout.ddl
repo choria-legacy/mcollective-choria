@@ -2,7 +2,7 @@ metadata :name        => "scout",
          :description => "Choria Scout Management API",
          :author      => "R.I.Pienaar <rip@devco.net>",
          :license     => "Apache-2.0",
-         :version     => "0.0.1",
+         :version     => "0.18.0",
          :url         => "https://choria.io",
          :provider    => "golang",
          :timeout     => 5
@@ -79,7 +79,7 @@ action "maintenance", :description => "Pause checking of one or more checks" do
 end
 
 action "goss_validate", :description => "Performs a Goss validation using a specific file" do
-  display :always
+  display :failed
 
   input :file,
         :prompt      => "Goss File",
@@ -132,9 +132,9 @@ action "goss_validate", :description => "Performs a Goss validation using a spec
          :display_as  => "Tests"
 
   summarize do
-    aggregate summary(:tests)
-    aggregate summary(:failures)
-    aggregate summary(:success)
+    aggregate summary(:tests, :format => "%s Test Cases on %d node(s)")
+    aggregate summary(:failures, :format => "%s Failed Cases on %d node(s)")
+    aggregate summary(:success, :format => "%s Passed Cases on %d node(s)")
   end
 end
 
