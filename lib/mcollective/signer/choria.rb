@@ -55,6 +55,31 @@ module MCollective
         end
       end
 
+      # Determines the callerid for this client
+      #
+      # When a remote signer is enabled the caller is extracted from the JWT
+      # otherwise a choria=user style ID is generated
+      #
+      # @return [String]
+      # @raise [Exception] when the JWT is invalid
+      def callerid
+        if remote_signer?
+          parts = token.split(".")
+
+          raise("Invalid JWT token") unless parts.length == 3
+
+          claims = JSON.parse(Base64.decode64(parts[1]))
+
+          raise("Invalid JWT token") unless claims.include?("callerid")
+          raise("Invalid JWT token") unless claims["callerid"].is_a?(String)
+          raise("Invalid JWT token") if claims["callerid"].empty?
+
+          claims["callerid"]
+        else
+          "choria=%s" % choria.certname
+        end
+      end
+
       # The body that would be submitted to the remote service
       #
       # @param secure_request [Hash] a v1 secure request

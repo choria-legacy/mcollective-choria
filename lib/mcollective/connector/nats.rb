@@ -212,7 +212,7 @@ module MCollective
 
         case type
         when :reply
-          "%s.reply.%s.%d.%d" % [collective, identity, current_pid, Client.request_sequence]
+          "%s.reply.%s.%d.%d" % [collective, Digest::MD5.hexdigest(choria.callerid), current_pid, Client.request_sequence]
 
         when :broadcast, :request
           "%s.broadcast.agent.%s" % [collective, agent]
@@ -416,7 +416,12 @@ module MCollective
         user = get_option("nats.user", environment["MCOLLECTIVE_NATS_USERNAME"])
         pass = get_option("nats.pass", environment["MCOLLECTIVE_NATS_PASSWORD"])
 
-        if user && pass
+        if choria.anon_tls?
+          user = PluginManager["security_plugin"].request_signer.token
+          pass = nil
+        end
+
+        if user || pass
           servers.each do |uri|
             uri.user = user
             uri.password = pass

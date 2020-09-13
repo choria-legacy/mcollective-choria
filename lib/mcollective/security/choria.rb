@@ -589,7 +589,10 @@ module MCollective
       # Caller ids are in the form `choria=certname`
       #
       # @return [String] callerid
+      # @raise [Exception] for invalid callerid or JWT token
       def callerid
+        return request_signer.callerid if choria.anon_tls?
+
         "choria=%s" % certname
       end
 
