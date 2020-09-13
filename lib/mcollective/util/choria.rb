@@ -461,6 +461,14 @@ module MCollective
         nil
       end
 
+      # The callerid for the current client
+      #
+      # @return [String]
+      # @raise [Exception] when remote JWT is invalid
+      def callerid
+        PluginManager["security_plugin"].callerid
+      end
+
       # Checks all the required SSL files exist
       #
       # @param log [Boolean] log warnings when true
@@ -468,6 +476,7 @@ module MCollective
       # @raise [StandardError] on failure
       def check_ssl_setup(log=true)
         return true if $choria_unsafe_disable_protocol_security # rubocop:disable Style/GlobalVars
+        return true if anon_tls?
 
         if Process.uid == 0 && PluginManager["security_plugin"].initiated_by == :client
           raise(UserError, "The Choria client cannot be run as root")
@@ -735,6 +744,11 @@ module MCollective
         context.ca_file = ca_path
         context.ssl_version = :TLSv1_2
 
+        if anon_tls?
+          context.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          return context
+        end
+
         public_cert = File.read(client_public_cert)
         private_key = File.read(client_private_key)
 
@@ -847,6 +861,13 @@ module MCollective
         return expand_path(get_option("security.file.ca", "")) if file_security?
 
         File.join(ssl_dir, "certs", "ca.pem")
+      end
+
+      # Determines if Choria is configured for anonymous TLS mode
+      #
+      # @return [Boolean]
+      def anon_tls?
+        remote_signer_configured? && Util.str_to_bool(get_option("security.client_anon_tls", "false"))
       end
 
       # Determines if the CA exist

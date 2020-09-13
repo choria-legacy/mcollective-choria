@@ -16,6 +16,7 @@ module MCollective
       choria.stubs(:ssl_dir).returns("/ssl")
       choria.stubs(:certname).returns("rspec_identity")
       choria.stubs(:check_ssl_setup)
+      choria.stubs(:callerid).returns("choria=rip")
 
       msg.agent = "rspec_agent"
       msg.collective = "mcollective"
@@ -144,7 +145,7 @@ module MCollective
         connector.stubs(:connected_server).returns("nats1.example.net")
         expect(connector.headers_for(msg)).to eq(
           "mc_sender" => "rspec_identity",
-          "reply-to" => "mcollective.reply.rspec_identity.999999.0",
+          "reply-to" => "mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0",
           "seen-by" => [["rspec_identity", "nats1.example.net"]]
         )
       end
@@ -200,8 +201,8 @@ module MCollective
       end
 
       it "should support :reply" do
-        expect(connector.make_target("rspec_agent", :reply, "mcollective")).to eq("mcollective.reply.rspec_identity.999999.0")
-        expect(connector.make_target("rspec_agent", :reply, "mcollective", "rsi")).to eq("mcollective.reply.rsi.999999.0")
+        expect(connector.make_target("rspec_agent", :reply, "mcollective")).to eq("mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0")
+        expect(connector.make_target("rspec_agent", :reply, "mcollective", "rsi")).to eq("mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0")
       end
 
       it "should support :broadcast and :request" do
@@ -229,7 +230,7 @@ module MCollective
           "data" => "rspec",
           "headers" => {
             "mc_sender" => "rspec_identity",
-            "reply-to" => "mcollective.reply.rspec_identity.999999.0",
+            "reply-to" => "mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0",
             "federation" => {
               "req" => "rspec.req.id",
               "target" => ["mcollective.broadcast.agent.rspec_agent"]
@@ -239,8 +240,8 @@ module MCollective
 
         JSON.expects(:dump).with(msg1).returns("msg_1")
 
-        connection.expects(:publish).with("choria.federation.net_a.federation", "msg_1", "mcollective.reply.rspec_identity.999999.0")
-        connection.expects(:publish).with("choria.federation.net_b.federation", "msg_1", "mcollective.reply.rspec_identity.999999.0")
+        connection.expects(:publish).with("choria.federation.net_a.federation", "msg_1", "mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0")
+        connection.expects(:publish).with("choria.federation.net_b.federation", "msg_1", "mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0")
 
         connector.publish_federated_broadcast(msg)
       end
@@ -263,7 +264,7 @@ module MCollective
               "req" => "rspec.req.id",
               "target" => (0..199).to_a.map {|i| "mcollective.node.#{i}.example"}
             },
-            "reply-to" => "mcollective.reply.rspec_identity.999999.0"
+            "reply-to" => "mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0"
           }
         }
 
@@ -276,17 +277,17 @@ module MCollective
               "req" => "rspec.req.id",
               "target" => (200..300).to_a.map {|i| "mcollective.node.#{i}.example"}
             },
-            "reply-to" => "mcollective.reply.rspec_identity.999999.0"
+            "reply-to" => "mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0"
           }
         }
 
         JSON.expects(:dump).with(msg1).returns("msg_1")
         JSON.expects(:dump).with(msg2).returns("msg_2")
 
-        connection.expects(:publish).with("choria.federation.net_a.federation", "msg_1", "mcollective.reply.rspec_identity.999999.0")
-        connection.expects(:publish).with("choria.federation.net_a.federation", "msg_2", "mcollective.reply.rspec_identity.999999.0")
-        connection.expects(:publish).with("choria.federation.net_b.federation", "msg_1", "mcollective.reply.rspec_identity.999999.0")
-        connection.expects(:publish).with("choria.federation.net_b.federation", "msg_2", "mcollective.reply.rspec_identity.999999.0")
+        connection.expects(:publish).with("choria.federation.net_a.federation", "msg_1", "mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0")
+        connection.expects(:publish).with("choria.federation.net_a.federation", "msg_2", "mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0")
+        connection.expects(:publish).with("choria.federation.net_b.federation", "msg_1", "mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0")
+        connection.expects(:publish).with("choria.federation.net_b.federation", "msg_2", "mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0")
 
         connector.publish_federated_directed(msg)
       end
@@ -324,14 +325,14 @@ module MCollective
           "data" => "rspec",
           "headers" => {
             "mc_sender" => "rspec_identity",
-            "reply-to" => "mcollective.reply.rspec_identity.999999.0",
+            "reply-to" => "mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0",
             "federation" => {
               "reply-to" => "reply.example"
             }
           }
         ).returns("json_stub")
 
-        connector.connection.expects(:publish).with("mcollective.broadcast.agent.rspec_agent", "json_stub", "mcollective.reply.rspec_identity.999999.0")
+        connector.connection.expects(:publish).with("mcollective.broadcast.agent.rspec_agent", "json_stub", "mcollective.reply.d92f5de06d3c84950d8040e4253f08bb.999999.0")
 
         connector.publish_connected_broadcast(msg)
       end
