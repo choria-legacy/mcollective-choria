@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2020/09/28|      |Release 0.19.0                                                                                           |
+|2020/09/13|634   |Support JWT based anonymous broker tls                                                                   |
 |2020/07/18|      |Release 0.18.0                                                                                           |
 |2020/07/17|628   |Copy `scout` ddl files                                                                                   |
 |2020/07/17|626   |Support the `scout` agent in the `choria` discovery method                                               |
