@@ -61,7 +61,7 @@ module MCollective
       # @param filter [String] a collective name
       # @return [String] a query string
       def discover_collective(filter)
-        'certname in inventory[certname] { facts.mcollective.server.collectives.match("\d+") = "%s" }' % filter
+        nil
       end
 
       # Searches for facts
