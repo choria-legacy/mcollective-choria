@@ -77,7 +77,7 @@ module MCollective
       def discover_agents(filter)
         pql = filter.map do |agent|
           if ["rpcutil", "scout"].include?(agent)
-            discover_classes(["mcollective::service"])
+            "(%s or %s)" % [discover_classes(["mcollective::service"]), discover_classes(["choria::service"])]
           elsif agent =~ /^\/(.+)\/$/
             'resources {type = "File" and tag ~ "mcollective_agent_.*?%s.*?_server"}' % [string_regexi($1)]
           else

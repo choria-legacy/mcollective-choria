@@ -110,7 +110,7 @@ module MCollective
         # rubocop:disable Metrics/LineLength
         expect(
           discovery.discover_agents(["rpcutil", "rspec1", "/rs/"])
-        ).to eq('resources {type = "Class" and title = "Mcollective::Service"} and resources {type = "File" and tag = "mcollective_agent_rspec1_server"} and resources {type = "File" and tag ~ "mcollective_agent_.*?[rR][sS].*?_server"}')
+        ).to eq('(resources {type = "Class" and title = "Mcollective::Service"} or resources {type = "Class" and title = "Choria::Service"}) and resources {type = "File" and tag = "mcollective_agent_rspec1_server"} and resources {type = "File" and tag ~ "mcollective_agent_.*?[rR][sS].*?_server"}')
         # rubocop:enable Metrics/LineLength
       end
     end
