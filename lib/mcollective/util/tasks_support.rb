@@ -469,9 +469,7 @@ module MCollective
           result["stderr"] = File.read(stderr) if File.exist?(stderr)
           result["wrapper_spawned"] = File.exist?(wrapper_stderr) && file_size(wrapper_stderr) == 0
 
-          if File.exist?(wrapper_stderr) && file_size(wrapper_stderr) > 0
-            result["wrapper_error"] = File.read(wrapper_stderr)
-          end
+          result["wrapper_error"] = File.read(wrapper_stderr) if File.exist?(wrapper_stderr) && file_size(wrapper_stderr) > 0
 
           if File.exist?(wrapper_pid) && file_size(wrapper_pid) > 0
             result["start_time"] = File::Stat.new(wrapper_pid).mtime.utc

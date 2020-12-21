@@ -184,7 +184,7 @@ module MCollective
           err = <<-ERROR
 terminate called after throwing an instance of 'leatherman::json_container::data_key_error'
   what():  unknown object entry with key: executable
-ERROR
+          ERROR
 
           expect(status).to eq(
             "spool" => spool,

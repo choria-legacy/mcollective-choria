@@ -6,10 +6,7 @@ module MCollective
           def prepare; end
 
           def validate_configuration!
-            if @terraform
-              raise("The supplied terraform path %s is not executable" % @terraform) unless File.executable?(@terraform)
-            end
-
+            raise("The supplied terraform path %s is not executable" % @terraform) if @terraform && !File.executable?(@terraform)
             raise("A terraform state file is needed") unless @state
             raise("The terraform statefile %s is not readable" % @state) unless File.readable?(@state)
             raise("An output name is needed") unless @output

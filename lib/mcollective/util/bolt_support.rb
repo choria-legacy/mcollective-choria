@@ -10,7 +10,7 @@ module MCollective
   module Util
     class BoltSupport
       def choria
-        @__choria ||= Choria.new
+        @_choria ||= Choria.new
       end
 
       # Converts the current Puppet loglevel to one we understand
@@ -18,9 +18,7 @@ module MCollective
       # @return ["debug", "info", "warn", "error", "fatal"]
       def self.loglevel
         case Puppet::Util::Log.level
-        when :notice
-          "warn"
-        when :warning
+        when :notice, :warning
           "warn"
         when :err
           "error"
@@ -35,9 +33,7 @@ module MCollective
       #
       # @return [BoltSupport]
       def self.init_choria
-        unless Config.instance.configured
-          Config.instance.loadconfig(Util.config_file_for_user)
-        end
+        Config.instance.loadconfig(Util.config_file_for_user) unless Config.instance.configured
 
         new
       end
@@ -47,11 +43,11 @@ module MCollective
       # @return [Playbook]
       def playbook
         @_playbook ||= begin
-                         pb = Playbook.new(self.class.loglevel)
-                         pb.logger = Playbook::Puppet_Logger
-                         pb.set_logger_level
-                         pb
-                       end
+          pb = Playbook.new(self.class.loglevel)
+          pb.logger = Playbook::Puppet_Logger
+          pb.set_logger_level
+          pb
+        end
       end
 
       def nodes

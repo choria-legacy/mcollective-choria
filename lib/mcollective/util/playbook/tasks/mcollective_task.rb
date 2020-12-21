@@ -245,15 +245,11 @@ module MCollective
 
             Log.warn("Failed request %s for %s#%s in %0.2fs" % [stats.requestid, @agent, @action, stats.totaltime])
 
-            unless stats.noresponsefrom.empty?
-              Log.warn("No responses from: %s" % stats.noresponsefrom.join(", "))
-            end
+            Log.warn("No responses from: %s" % stats.noresponsefrom.join(", ")) unless stats.noresponsefrom.empty?
 
             if stats.failcount > 0
               replies.each do |reply|
-                if reply.results[:statuscode] > 0
-                  Log.warn("Failed result from %s: %s" % [reply.results[:sender], reply.results[:statusmsg]])
-                end
+                Log.warn("Failed result from %s: %s" % [reply.results[:sender], reply.results[:statusmsg]]) if reply.results[:statuscode] > 0
               end
             end
           end
@@ -261,6 +257,7 @@ module MCollective
           def log_reply(reply)
             if reply.results[:statuscode] == 0
               return unless @log_replies
+
               Log.info("%s %s#%s success: %s" % [reply.results[:sender], @agent, @action, reply.results[:data].inspect])
             else
               Log.warn("%s %s#%s failure: %s" % [reply.results[:sender], @agent, @action, reply.results[:data].inspect])

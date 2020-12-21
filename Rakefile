@@ -11,7 +11,7 @@ task :default => ["spec", "rubocop"]
 
 desc "Run rubycop style checks"
 task :rubocop do
-  sh("rubocop -f progress -f offenses")
+  sh("rubocop")
 end
 
 namespace :doc do
@@ -43,13 +43,13 @@ task :prep_version do
 
   File.open("CHANGELOG.md", "w") do |cl|
     changelog.each do |line|
-      # rubocop:disable Metrics/LineLength
+      # rubocop:disable Layout/LineLength
       cl.puts line
 
       if line =~ /^\|----------/
         cl.puts "|%s|      |Release %s                                                                                           |" % [Time.now.strftime("%Y/%m/%d"), ENV["CHORIA_VERSION"]]
       end
-      # rubocop:enable Metrics/LineLength
+      # rubocop:enable Layout/LineLength
     end
   end
 

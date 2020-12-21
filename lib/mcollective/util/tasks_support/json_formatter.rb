@@ -5,7 +5,7 @@ module MCollective
         class JSONFormatter
           attr_reader :out
 
-          def initialize(cli, verbose=false, out=STDOUT)
+          def initialize(cli, verbose=false, out=$stdout)
             @cli = cli
             @verbose = verbose
             @out = out
@@ -41,7 +41,7 @@ module MCollective
               "callers" => callers,
               "completed" => completed,
               "running" => running,
-              "task_not_known" =>  task_not_known,
+              "task_not_known" => task_not_known,
               "wrapper_failure" => wrapper_failure,
               "success" => success,
               "failed" => fails,
@@ -87,7 +87,7 @@ module MCollective
             begin
               item["stdout"] = JSON.parse(item["stdout"])
               item["stdout"] = item["stdout"].delete("_output") if item["stdout"]["_output"]
-            rescue # rubocop:disable Lint/HandleExceptions
+            rescue # rubocop:disable Lint/SuppressedException
             end
 
             out.puts "," unless @first_item

@@ -5,6 +5,7 @@ module MCollective
   module Util
     class Choria
       class UserError < StandardError; end
+
       class Abort < StandardError; end
 
       unless defined?(Choria::VERSION) # rubocop:disable Style/IfUnlessModifier
@@ -222,7 +223,7 @@ module MCollective
         sorted_answers = []
 
         # this is roughly based on the resolv-srv and supposedly mostly rfc2782 compliant
-        answers.each do |_, available| # rubocop:disable Performance/HashEachMethods
+        answers.each do |_, available|
           total_weight = available.inject(0) {|a, e| a + e.weight + 1 }
 
           until available.empty?
@@ -382,9 +383,7 @@ module MCollective
       def valid_certificate?(pubcert, name, log=true)
         return false unless name
 
-        unless File.readable?(ca_path)
-          raise("Cannot find or read the CA in %s, cannot verify public certificate" % ca_path)
-        end
+        raise("Cannot find or read the CA in %s, cannot verify public certificate" % ca_path) unless File.readable?(ca_path)
 
         certs = parse_pubcert(pubcert, log)
 
@@ -402,9 +401,7 @@ module MCollective
         end
 
         unless ca.verify(incoming, chain)
-          if log
-            Log.warn("Failed to verify certificate %s against CA %s in %s" % [incoming.subject.to_s, incoming.issuer.to_s, ca_path])
-          end
+          Log.warn("Failed to verify certificate %s against CA %s in %s" % [incoming.subject.to_s, incoming.issuer.to_s, ca_path]) if log
 
           return false
         end
@@ -478,9 +475,7 @@ module MCollective
         return true if $choria_unsafe_disable_protocol_security # rubocop:disable Style/GlobalVars
         return true if anon_tls?
 
-        if Process.uid == 0 && PluginManager["security_plugin"].initiated_by == :client
-          raise(UserError, "The Choria client cannot be run as root")
-        end
+        raise(UserError, "The Choria client cannot be run as root") if Process.uid == 0 && PluginManager["security_plugin"].initiated_by == :client
 
         raise(UserError, "Not all required SSL files exist") unless have_ssl_files?(log)
 
@@ -742,7 +737,7 @@ module MCollective
       def ssl_context
         context = OpenSSL::SSL::SSLContext.new
         context.ca_file = ca_path
-        context.ssl_version = :TLSv1_2
+        context.ssl_version = :TLSv1_2 # rubocop:disable Naming/VariableNumber
 
         if anon_tls?
           context.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -783,13 +778,13 @@ module MCollective
       #
       # @return [String]
       def ssl_dir
-        @__ssl_dir ||= if has_option?("choria.ssldir")
-                         File.expand_path(get_option("choria.ssldir"))
-                       elsif Util.windows? || Process.uid == 0
-                         puppet_setting(:ssldir)
-                       else
-                         File.expand_path("~/.puppetlabs/etc/puppet/ssl")
-                       end
+        @_ssl_dir ||= if has_option?("choria.ssldir")
+                        File.expand_path(get_option("choria.ssldir"))
+                      elsif Util.windows? || Process.uid == 0
+                        puppet_setting(:ssldir)
+                      else
+                        File.expand_path("~/.puppetlabs/etc/puppet/ssl")
+                      end
       end
 
       # Determines the security provider
@@ -964,9 +959,7 @@ module MCollective
       # @return [OpenSSL::PKey::RSA]
       # @raise [StandardError] when the key already exist
       def write_key
-        if has_client_private_key?
-          raise("Refusing to overwrite existing key in %s" % client_private_key)
-        end
+        raise("Refusing to overwrite existing key in %s" % client_private_key) if has_client_private_key?
 
         key = create_rsa_key(4096)
         File.open(client_private_key, "w", 0o0640) {|f| f.write(key.to_pem)}
@@ -977,17 +970,17 @@ module MCollective
       # Creates a basic CSR
       #
       # @return [OpenSSL::X509::Request] signed CSR
-      def create_csr(cn, ou, key)
+      def create_csr(comonname, orgunit, key)
         csr = OpenSSL::X509::Request.new
         csr.version = 0
         csr.public_key = key.public_key
         csr.subject = OpenSSL::X509::Name.new(
           [
-            ["CN", cn, OpenSSL::ASN1::UTF8STRING],
-            ["OU", ou, OpenSSL::ASN1::UTF8STRING]
+            ["CN", comonname, OpenSSL::ASN1::UTF8STRING],
+            ["OU", orgunit, OpenSSL::ASN1::UTF8STRING]
           ]
         )
-        csr.sign(key, OpenSSL::Digest::SHA1.new)
+        csr.sign(key, OpenSSL::Digest.new("SHA1"))
 
         csr
       end

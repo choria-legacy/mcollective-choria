@@ -183,9 +183,10 @@ module MCollective
           nil
         else
           pql = filter.map do |ident|
-            if ident =~ /^pql:\s*(.+)$/
+            case ident
+            when /^pql:\s*(.+)$/
               "certname in %s" % $1
-            elsif ident =~ /^\/(.+)\/$/
+            when /^\/(.+)\/$/
               'certname ~ "%s"' % string_regexi($1)
             else
               'certname = "%s"' % ident

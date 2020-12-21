@@ -7,7 +7,7 @@ module MCollective
     class Nats < Base
       attr_reader :connection
 
-      def initialize
+      def initialize # rubocop:disable Lint/MissingSuper
         @config = Config.instance
         @subscriptions = []
         @connection = Util::NatsWrapper.new
@@ -107,7 +107,7 @@ module MCollective
         raise("nkeys rubygem is required for connections with credentials") unless choria.nkeys?
 
         tls = OpenSSL::SSL::SSLContext.new
-        tls.ssl_version = :TLSv1_2
+        tls.ssl_version = :TLSv1_2 # rubocop:disable Naming/VariableNumber
 
         parameters[:tls] = {:context => tls}
       end
@@ -141,9 +141,7 @@ module MCollective
             headers["reply-to"] = make_target(msg.agent, :reply, msg.collective)
           end
 
-          if msg.headers.include?("seen-by")
-            headers["seen-by"] << [@config.identity, connected_server.to_s]
-          end
+          headers["seen-by"] << [@config.identity, connected_server.to_s] if msg.headers.include?("seen-by")
         elsif msg.type == :reply
           if msg.request.headers.include?("seen-by")
             headers["seen-by"] = msg.request.headers["seen-by"]
@@ -329,11 +327,8 @@ module MCollective
         }
 
         # only happens when replying
-        if received_message = msg.request
-          if received_message.headers.include?("federation")
-            data["headers"]["federation"] = received_message.headers["federation"]
-          end
-        end
+        received_message = msg.request
+        data["headers"]["federation"] = received_message.headers["federation"] if received_message && received_message.headers.include?("federation")
 
         Log.debug("Sending a broadcast message to NATS target '%s' for message type %s" % [target.inspect, msg.type])
 
@@ -387,9 +382,7 @@ module MCollective
           end
         end
 
-        if msg["headers"].include?("seen-by")
-          msg["headers"]["seen-by"] << [connected_server.to_s, @config.identity]
-        end
+        msg["headers"]["seen-by"] << [connected_server.to_s, @config.identity] if msg["headers"].include?("seen-by")
 
         Message.new(msg["data"], msg, :base64 => true, :headers => msg["headers"])
       end

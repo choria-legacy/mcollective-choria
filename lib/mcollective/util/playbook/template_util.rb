@@ -15,15 +15,16 @@ module MCollective
         def t(data)
           data = Marshal.load(Marshal.dump(data))
 
-          if data.is_a?(String)
+          case data
+          when String
             __template_process_string(data)
-          elsif data.is_a?(Hash)
+          when Hash
             data.each do |k, v|
               data[k] = t(v)
             end
 
             data
-          elsif data.is_a?(Array)
+          when Array
             data.map do |v|
               t(v)
             end
@@ -70,21 +71,20 @@ module MCollective
 
           combined_regex = Regexp.union(data_regex, date_regex, task_regex, singles_regex)
 
-          if req = string.match(/^#{data_regex}$/)
+          if req = (string.match(/^#{data_regex}$/) || string.match(/^#{task_regex}$/))
             __template_resolve(req["type"], req["item"])
           elsif req = string.match(/^#{date_regex}$/)
             __template_resolve(req["type"], req["format"])
-          elsif req = string.match(/^#{task_regex}$/)
-            __template_resolve(req["type"], req["item"])
           elsif req = string.match(/^#{singles_regex}$/)
             __template_resolve(req["type"], "")
           else
             string.gsub(/#{combined_regex}/) do |part|
               value = __template_process_string(part)
 
-              if value.is_a?(Array)
+              case value
+              when Array
                 value.join(", ")
-              elsif value.is_a?(Hash)
+              when Hash
                 value.to_json
               else
                 value

@@ -26,15 +26,15 @@ module MCollective
           @exception = exception
         end
 
-        def to_json(o={})
-          @results.to_json(o)
+        def to_json(obj={})
+          @results.to_json(obj)
         end
 
         # Iterate over all results
         #
         # @yield [TaskResult]
-        def each
-          @results.each {|r| yield r}
+        def each(&block)
+          @results.each(&block)
         end
 
         # Set of all the results that are errors regardless of fail_ok
@@ -66,6 +66,7 @@ module MCollective
 
         def message
           return exception.to_s if exception
+
           @message
         end
 

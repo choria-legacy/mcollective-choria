@@ -112,9 +112,7 @@ module MCollective
 
         reply_task_status(status)
 
-        if reply.statuscode == 0 && !status["wrapper_spawned"]
-          reply.fail!("Could not spawn task %s: %s" % [request[:task], status["wrapper_error"]])
-        end
+        reply.fail!("Could not spawn task %s: %s" % [request[:task], status["wrapper_error"]]) if reply.statuscode == 0 && !status["wrapper_spawned"]
       end
 
       def caller_only_status?

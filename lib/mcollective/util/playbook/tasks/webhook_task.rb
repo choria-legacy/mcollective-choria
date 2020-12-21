@@ -67,6 +67,7 @@ module MCollective
           def http_request(uri)
             return http_get_request(uri) if @method == "GET"
             return http_post_request(uri) if @method == "POST"
+
             raise("Unknown request method %s" % @method)
           end
 

@@ -17,7 +17,7 @@ module MCollective
           set_level(@playbook.loglevel.intern)
         end
 
-        def log(level, from, msg, normal_output=STDERR, last_resort_output=STDERR)
+        def log(level, from, msg, normal_output=$stderr, last_resort_output=$stderr)
           if @playbook.loglevel != "debug"
             if should_show?
               console_from = "%s#%-25s" % [@playbook.name, @playbook.context]

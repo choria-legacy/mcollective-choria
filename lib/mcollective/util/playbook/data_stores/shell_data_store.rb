@@ -54,6 +54,7 @@ module MCollective
 
           def validate_key(key)
             raise("Valid keys must match ^[a-zA-Z0-9_-]+$") unless key =~ /^[a-zA-Z0-9_-]+$/
+
             true
           end
 

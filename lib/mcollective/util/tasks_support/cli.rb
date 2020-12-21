@@ -21,7 +21,7 @@ module MCollective
         # @param environment [String] the environment to query
         # @param detail [Boolean] show task descriptions
         # @param out [IO]
-        def show_task_list(environment, detail, out=STDOUT)
+        def show_task_list(environment, detail, out=$stdout)
           out.puts "Known tasks in the %s environment" % environment
           out.puts
 
@@ -53,7 +53,7 @@ module MCollective
         #
         # @param environment [String] the environment to query
         # @param detail [Boolean] show task descriptions
-        def task_list(environment, detail, out=STDOUT)
+        def task_list(environment, detail, out=$stdout)
           tasks = {}
 
           out.print("Retrieving tasks....")
@@ -79,7 +79,7 @@ module MCollective
         # @param task [String] task name
         # @param environment [String] environment to feetch task from
         # @param out [IO]
-        def show_task_help(task, environment, out=STDOUT)
+        def show_task_help(task, environment, out=$stdout)
           out.puts("Retrieving task metadata for task %s from the Puppet Server" % task)
 
           begin
@@ -155,6 +155,7 @@ module MCollective
 
           configuration.each do |item, value|
             next if item.to_s.start_with?("__")
+
             result[item.to_s] = value
           end
 
@@ -232,11 +233,11 @@ module MCollective
         # @param task [String] the task to fetch
         # @param environment [String] Puppet environment
         def task_metadata(task, environment)
-          @__metadata ||= {}
+          @_metadata ||= {}
 
-          return @__metadata[task] if @__metadata[task]
+          return @_metadata[task] if @_metadata[task]
 
-          @__metadata[task] = @support.task_metadata(task, environment)
+          @_metadata[task] = @support.task_metadata(task, environment)
         end
 
         # Draw a compact CLI progress indicator

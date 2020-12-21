@@ -119,10 +119,11 @@ module MCollective
       def decodemsg(message)
         secure_payload = deserialize(message.payload)
 
-        if secure_payload["protocol"] == "choria:secure:request:1"
+        case secure_payload["protocol"]
+        when "choria:secure:request:1"
           decode_request(message, secure_payload)
 
-        elsif secure_payload["protocol"] == "choria:secure:reply:1"
+        when "choria:secure:reply:1"
           decode_reply(secure_payload)
 
         else
@@ -161,7 +162,7 @@ module MCollective
           # at core its not compatible with this JSON stuff as is
           begin
             request["message"] = deserialize(request["message"], default_serializer)
-          rescue # rubocop:disable Lint/HandleExceptions
+          rescue # rubocop:disable Lint/SuppressedException
           end
         else
           record_legacy_request(request)
@@ -174,9 +175,7 @@ module MCollective
       #
       # @param request [Hash] decoded request
       def record_legacy_request(request)
-        if request["envelope"] && request["envelope"]["requestid"]
-          Cache.write(:choria_security, request["envelope"]["requestid"], true)
-        end
+        Cache.write(:choria_security, request["envelope"]["requestid"], true) if request["envelope"] && request["envelope"]["requestid"]
       end
 
       # Determines if a specific requestid was a previously seen legacy request
@@ -216,7 +215,7 @@ module MCollective
           # at core its not compatible with this JSON stuff as is
           begin
             reply["message"] = deserialize(reply["message"], default_serializer)
-          rescue # rubocop:disable Lint/HandleExceptions
+          rescue # rubocop:disable Lint/SuppressedException
           end
         end
 
@@ -428,7 +427,7 @@ module MCollective
       #
       # @return [Mutex]
       def client_cache_mutex
-        @_ccmutex ||= Mutex.new
+        @_client_cache_mutex ||= Mutex.new
       end
 
       # Caches the public certificate of a sender
@@ -448,10 +447,12 @@ module MCollective
           certfile = public_certfile(callerid)
           certmetadata = public_cert_metadatafile(callerid)
 
-          if !File.exist?(certfile)
-            unless should_cache_certname?(pubcert, callerid)
-              raise("Received an invalid certificate for %s" % callerid)
-            end
+          if File.exist?(certfile)
+            Log.debug("Already have a cert from %s in %s" % [callerid, certfile])
+
+            false
+          else
+            raise("Received an invalid certificate for %s" % callerid) unless should_cache_certname?(pubcert, callerid)
 
             Log.info("Saving verified pubcert for %s in %s" % [callerid, certfile])
 
@@ -464,10 +465,6 @@ module MCollective
             end
 
             true
-          else
-            Log.debug("Already have a cert from %s in %s" % [callerid, certfile])
-
-            false
           end
         end
       end
@@ -490,7 +487,7 @@ module MCollective
       # @return [String] the certificate name
       # @raise [StandardError] when a unexpected format id is received
       def certname_from_callerid(id)
-        if id =~ /^choria=([\w\.\-]+)/
+        if id =~ /^choria=([\w.\-]+)/
           $1
         else
           raise("Received a callerid in an unexpected format: %s" % id)
@@ -612,7 +609,7 @@ module MCollective
         end
 
         key = OpenSSL::PKey::RSA.new(File.read(key))
-        signed = key.sign(OpenSSL::Digest::SHA256.new, string)
+        signed = key.sign(OpenSSL::Digest.new("SHA256"), string)
 
         Base64.encode64(signed).chomp
       end
@@ -636,7 +633,7 @@ module MCollective
           next unless File.exist?(certname)
 
           key = OpenSSL::X509::Certificate.new(File.read(certname)).public_key
-          result = key.verify(OpenSSL::Digest::SHA256.new, Base64.decode64(signature), string)
+          result = key.verify(OpenSSL::Digest.new("SHA256"), Base64.decode64(signature), string)
 
           if result
             Log.debug("Message validated using certificate in %s (allow_privileged=%s)" % [certname, allow_privileged])

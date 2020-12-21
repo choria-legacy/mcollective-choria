@@ -4,6 +4,7 @@ module MCollective
       # Register plugins that inherits base
       def self.inherited(klass)
         PluginManager << {:type => "choria_signer_plugin", :class => klass.to_s}
+        super
       end
 
       def initialize

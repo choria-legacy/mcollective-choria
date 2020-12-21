@@ -393,7 +393,7 @@ module MCollective
         end
 
         it "should support proc defaults" do
-          expect(choria.get_option("choria.fail", ->() { "lambda result" })).to eq("lambda result")
+          expect(choria.get_option("choria.fail", -> { "lambda result" })).to eq("lambda result")
         end
 
         it "should support normal defaults" do

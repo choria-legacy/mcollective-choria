@@ -23,8 +23,8 @@ module MCollective
           {@host => @result}
         end
 
-        def to_json(o={})
-          to_hash.to_json(o)
+        def to_json(obj={})
+          to_hash.to_json(obj)
         end
 
         # A error object if this represents an error

@@ -254,9 +254,7 @@ Examples:
         abort("Please specify a task id to display") unless taskid
 
         if configuration[:__metadata]
-          unless options[:verbose]
-            say("Requesting task metadata for request %s" % Util.colorize(:bold, taskid))
-          end
+          say("Requesting task metadata for request %s" % Util.colorize(:bold, taskid)) unless options[:verbose]
 
           bolt_tasks.task_status(:task_id => taskid).each do |status|
             cli.print_result_metadata(status)
@@ -264,9 +262,7 @@ Examples:
 
           cli.print_rpc_stats(bolt_tasks.stats)
         else
-          unless options[:verbose]
-            say("Requesting task status for request %s, showing failures only pass --verbose for all output" % Util.colorize(:bold, taskid))
-          end
+          say("Requesting task status for request %s, showing failures only pass --verbose for all output" % Util.colorize(:bold, taskid)) unless options[:verbose]
 
           request_and_report(:task_status, {:task_id => taskid}, taskid)
         end
@@ -368,7 +364,7 @@ Examples:
       end
 
       def bolt_tasks
-        @__bolt_tasks ||= rpcclient("bolt_tasks")
+        @_bolt_tasks ||= rpcclient("bolt_tasks")
       end
 
       def reset_client!
@@ -391,18 +387,18 @@ Examples:
       def choria
         Util.loadclass("MCollective::Util::Choria")
 
-        @__choria ||= Util::Choria.new
+        @_choria ||= Util::Choria.new
       end
 
       def tasks_support
-        @__tasks ||= choria.tasks_support
+        @_tasks_support ||= choria.tasks_support
       end
 
       def cli
         format = configuration[:__json_format] ? :json : :default
 
         if options
-          @__cli ||= tasks_support.cli(format, options[:verbose])
+          @_cli ||= tasks_support.cli(format, options[:verbose])
         else
           tasks_support.cli(format, false)
         end

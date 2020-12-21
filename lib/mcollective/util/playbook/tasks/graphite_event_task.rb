@@ -19,11 +19,11 @@ module MCollective
           end
 
           def webhook_task
-            return @__webhook if @__webhook
+            return @_webhook if @_webhook
 
-            @__webhook = Tasks::WebhookTask.new(@playbook)
+            @_webhook = Tasks::WebhookTask.new(@playbook)
 
-            @__webhook.from_hash(
+            @_webhook.from_hash(
               "description" => @description,
               "headers" => @headers,
               "uri" => @graphite,
@@ -31,7 +31,7 @@ module MCollective
               "data" => request
             )
 
-            @__webhook
+            @_webhook
           end
 
           def validate_configuration!
