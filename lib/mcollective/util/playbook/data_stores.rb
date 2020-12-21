@@ -31,7 +31,7 @@ module MCollective
         # @return [String, String] store name and key name
         # @raise [StandardError] for incorrectly formatted paths
         def parse_path(path)
-          if path =~ /^([a-zA-Z0-9\-\_]+)\/(.+)$/
+          if path =~ /^([a-zA-Z0-9\-_]+)\/(.+)$/
             [$1, $2]
           else
             raise("Invalid data store path %s" % [path])

@@ -76,11 +76,9 @@ module MCollective
         end
 
         # Yields a PAL script compiler in the temporary environment
-        def with_script_compiler
+        def with_script_compiler(&block)
           in_environment do |env|
-            env.with_script_compiler do |compiler|
-              yield(compiler)
-            end
+            env.with_script_compiler(&block)
           end
         end
 
@@ -98,12 +96,10 @@ module MCollective
         end
 
         # Sets up a temporary environment
-        def in_environment
+        def in_environment(&block)
           initialize_settings
 
-          Puppet::Pal.in_tmp_environment("choria", :modulepath => @modulepath, :facts => facts) do |env|
-            yield(env)
-          end
+          Puppet::Pal.in_tmp_environment("choria", :modulepath => @modulepath, :facts => facts, &block)
         end
 
         # Converts a Puppet type into something mcollective understands

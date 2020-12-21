@@ -10,15 +10,15 @@ The ACTION can be one of the following:
 
    trace         - trace the path to a client
 
-USAGE
+      USAGE
 
       exclude_argument_sections "common", "filter", "rpc"
 
       option :collective,
              :description => "Target messages to a specific sub collective",
-             :arguments   => ["-T", "--target COLLECTIVE"],
-             :type        => String,
-             :required    => false
+             :arguments => ["-T", "--target COLLECTIVE"],
+             :type => String,
+             :required => false
 
       # Publish a specially crafted 'ping' with seen-by headers
       # embedded, this signals to the entire collective to record
@@ -45,9 +45,7 @@ USAGE
 
           found_time = Time.now.to_f
 
-          unless reply[:senderid] == node
-            abort("Received a response from %s while expecting a response from %s" % [reply[:senderid], node])
-          end
+          abort("Received a response from %s while expecting a response from %s" % [reply[:senderid], node]) unless reply[:senderid] == node
 
           route = message.headers["seen-by"]
         end
@@ -162,9 +160,10 @@ USAGE
         route = result[:route]
         puts "Reported Route:"
         puts
-        if route.size == 5
+        case route.size
+        when 5
           display_federated_route(route)
-        elsif route.size == 3
+        when 3
           display_unfederated_route(route)
         end
 
@@ -216,9 +215,7 @@ USAGE
       def validate_configuration(configuration)
         Util.loadclass("MCollective::Util::Choria")
 
-        unless valid_commands.include?(configuration[:command])
-          abort("Unknown command %s, valid commands are: %s" % [configuration[:command], valid_commands.join(", ")])
-        end
+        abort("Unknown command %s, valid commands are: %s" % [configuration[:command], valid_commands.join(", ")]) unless valid_commands.include?(configuration[:command])
 
         if !choria.has_client_public_cert? && !["request_cert", "show_config"].include?(configuration[:command])
           abort("A certificate is needed from the Puppet CA for `%s`, please use the `request_cert` command" % choria.certname)

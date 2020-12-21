@@ -68,9 +68,7 @@ module MCollective
 
             option_params[:arguments] = ["--%s" % input.downcase] if type == :boolean
 
-            if set_required && !i_props.include?("data")
-              option_params[:required] = i_props["required"]
-            end
+            option_params[:required] = i_props["required"] if set_required && !i_props.include?("data")
 
             application.class.option(input, option_params)
           end
@@ -231,9 +229,10 @@ module MCollective
 
           validator = @inputs[input][:properties]["validation"]
 
-          if validator =~ /^:(.+)/
+          case validator
+          when /^:(.+)/
             validator = $1.intern
-          elsif validator =~ /^\/(.+)\/$/
+          when /^\/(.+)\/$/
             validator = Regexp.new($1)
           end
 

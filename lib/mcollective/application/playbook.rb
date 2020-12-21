@@ -16,7 +16,7 @@ module MCollective
   flags and help related to the specific playbook.
 
   Any inputs to the playbook should be given on the CLI.
-  USAGE
+      USAGE
 
       exclude_argument_sections "common", "filter", "rpc"
 
@@ -58,15 +58,15 @@ module MCollective
         )
 
         unless plan_runner.exist?
-          STDERR.puts("Cannot find supplied Playbook %s" % plan)
-          STDERR.puts
-          STDERR.puts("Module Path:")
-          STDERR.puts
+          warn("Cannot find supplied Playbook %s" % plan)
+          $stderr.puts
+          warn("Module Path:")
+          $stderr.puts
 
           if configuration[:__modulepath]
-            STDERR.puts(Util.align_text(configuration[:__modulepath].split(":").join("\n")))
+            warn(Util.align_text(configuration[:__modulepath].split(":").join("\n")))
           else
-            STDERR.puts(Util.align_text("Puppet Default"))
+            warn(Util.align_text("Puppet Default"))
           end
 
           exit(1)
@@ -137,9 +137,7 @@ module MCollective
       def validate_configuration(configuration)
         abort("Please specify a playbook to run") unless configuration[:__playbook]
 
-        if options[:verbose] && !configuration.include?(:loglevel)
-          configuration[:__loglevel] = "debug"
-        end
+        configuration[:__loglevel] = "debug" if options[:verbose] && !configuration.include?(:loglevel)
       end
 
       # List of valid commands this application respond to
@@ -158,12 +156,12 @@ module MCollective
         run_plan(pb, pb_config)
       end
 
-      def run_plan(pb, pb_config)
+      def run_plan(playbook, pb_config)
         startime = Time.now
 
         success = true
 
-        result = pb.run!(pb_config)
+        result = playbook.run!(pb_config)
       rescue
         success = false
       ensure
@@ -190,10 +188,10 @@ module MCollective
           puts
           puts "Result: "
           puts
-          if result.class != String
-            puts Util.align_text(JSON.pretty_generate(result), 10000)
-          else
+          if result.instance_of?(String)
             puts result
+          else
+            puts Util.align_text(JSON.pretty_generate(result), 10000)
           end
           puts
         end

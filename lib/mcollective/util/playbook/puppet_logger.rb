@@ -17,7 +17,7 @@ module MCollective
           set_level(@playbook.loglevel.intern)
         end
 
-        def log(level, from, msg, normal_output=STDERR, last_resort_output=STDERR)
+        def log(level, from, msg, normal_output=$stderr, last_resort_output=$stderr)
           return unless should_show?(level)
 
           logmethod = case level

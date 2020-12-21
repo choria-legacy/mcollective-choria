@@ -2,8 +2,7 @@ module MCollective
   module Util
     class Playbook
       class TaskResult
-        attr_accessor :success, :msg, :data, :ran, :task, :set
-        attr_accessor :start_time, :end_time, :description
+        attr_accessor :success, :msg, :data, :ran, :task, :set, :start_time, :end_time, :description
 
         def initialize(task)
           @start_time = Time.now

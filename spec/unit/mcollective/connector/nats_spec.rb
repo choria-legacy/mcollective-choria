@@ -294,10 +294,11 @@ module MCollective
     end
 
     describe "#publish_connected_broadcast" do
-      it "should support broacasts" do
+      it "should support broadcasts" do
         msg.collective = "mcollective"
         msg.agent = "rspec_agent"
         msg.type = :request
+
         connector.connection.expects(:publish).with("mcollective.broadcast.agent.rspec_agent", any_parameters)
 
         connector.publish_connected_broadcast(msg)

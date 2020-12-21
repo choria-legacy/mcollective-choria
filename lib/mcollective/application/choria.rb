@@ -17,7 +17,7 @@ module MCollective
   The batching works a bit different than typical, it will only batch
   based on a sorted list of certificate names, this means the batches
   will always run in predictable order.
-  USAGE
+      USAGE
 
       exclude_argument_sections "common", "filter", "rpc"
 
@@ -47,9 +47,7 @@ module MCollective
       def validate_configuration(configuration)
         Util.loadclass("MCollective::Util::Choria")
 
-        unless valid_commands.include?(configuration[:command])
-          abort("Unknown command %s, valid commands are: %s" % [configuration[:command], valid_commands.join(", ")])
-        end
+        abort("Unknown command %s, valid commands are: %s" % [configuration[:command], valid_commands.join(", ")]) unless valid_commands.include?(configuration[:command])
 
         if !choria.has_client_public_cert? && !["request_cert", "show_config"].include?(configuration[:command])
           abort("A certificate is needed from the Puppet CA for `%s`, please use the `request_cert` command" % choria.certname)
@@ -59,7 +57,7 @@ module MCollective
       def main
         send("%s_command" % configuration[:command])
       rescue Util::Choria::UserError
-        STDERR.puts("Encountered a critical error: %s" % Util.colorize(:red, $!.to_s))
+        warn("Encountered a critical error: %s" % Util.colorize(:red, $!.to_s))
       rescue Util::Choria::Abort
         exit(1)
       end
@@ -70,13 +68,9 @@ module MCollective
       def request_cert_command
         disconnect
 
-        unless choria.puppet_security?
-          raise(Util::Choria::UserError, "Cannot only request certificates in Puppet security mode")
-        end
+        raise(Util::Choria::UserError, "Cannot only request certificates in Puppet security mode") unless choria.puppet_security?
 
-        if choria.has_client_public_cert?
-          raise(Util::Choria::UserError, "Already have a certificate '%s', cannot request a new one" % choria.client_public_cert)
-        end
+        raise(Util::Choria::UserError, "Already have a certificate '%s', cannot request a new one" % choria.client_public_cert) if choria.has_client_public_cert?
 
         choria.ca = configuration[:ca] if configuration[:ca]
 
@@ -246,9 +240,9 @@ module MCollective
       def confirm(msg)
         print("%s (y/n) " % msg)
 
-        STDOUT.flush
+        $stdout.flush
 
-        exit(1) unless STDIN.gets.strip.match?(/^(?:y|yes)$/i)
+        exit(1) unless $stdin.gets.strip.match?(/^(?:y|yes)$/i)
       end
     end
   end

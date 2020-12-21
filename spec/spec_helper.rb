@@ -12,8 +12,6 @@ end
 
 require "rspec"
 require "mcollective"
-require "rspec/mocks"
-require "mocha"
 require "webmock/rspec"
 require "json-schema-rspec"
 

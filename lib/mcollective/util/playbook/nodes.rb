@@ -133,9 +133,7 @@ module MCollective
           )
           success, msg, _ = rpc.run
 
-          unless success
-            raise("Connectivity test failed for some nodes: %s" % [msg])
-          end
+          raise("Connectivity test failed for some nodes: %s" % [msg]) unless success
         end
 
         # Checks that discovered nodes matches stated expectations
@@ -145,9 +143,7 @@ module MCollective
         def validate_nodes(nodes)
           return if properties(nodes)["empty_ok"]
 
-          unless self[nodes].size >= properties(nodes)["at_least"]
-            raise("Node set %s needs at least %d nodes, got %d" % [nodes, properties(nodes)["at_least"], self[nodes].size])
-          end
+          raise("Node set %s needs at least %d nodes, got %d" % [nodes, properties(nodes)["at_least"], self[nodes].size]) unless self[nodes].size >= properties(nodes)["at_least"]
         end
 
         # Handles an empty discovered list
@@ -155,9 +151,7 @@ module MCollective
         # @param nodes [String] node set name
         # @raise [StandardError] when empty
         def check_empty(nodes)
-          if self[nodes].empty? && !properties(nodes)["empty_ok"]
-            raise(properties(nodes)["when_empty"] || "Did not discover any nodes for nodeset %s" % nodes)
-          end
+          raise(properties(nodes)["when_empty"] || "Did not discover any nodes for nodeset %s" % nodes) if self[nodes].empty? && !properties(nodes)["empty_ok"]
         end
 
         # Limits the discovered list for a node set based on the playbook limits

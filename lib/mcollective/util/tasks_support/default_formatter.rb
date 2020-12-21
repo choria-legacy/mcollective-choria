@@ -5,7 +5,7 @@ module MCollective
         class DefaultFormatter
           attr_reader :out
 
-          def initialize(cli, verbose=false, out=STDOUT)
+          def initialize(cli, verbose=false, out=$stdout)
             @cli = cli
             @verbose = verbose
             @out = out
@@ -77,7 +77,7 @@ module MCollective
                 stdout_text.delete("_error")
                 stdout_text = stdout_text.to_json
                 stdout_text = nil if stdout_text == "{}"
-              rescue # rubocop:disable Lint/HandleExceptions
+              rescue # rubocop:disable Lint/SuppressedException
               end
             end
 

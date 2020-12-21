@@ -49,18 +49,20 @@ module MCollective
           def parse_data
             return({}) if File.size(@file) == 0
 
-            if @format == "json"
+            case @format
+            when "json"
               JSON.parse(File.read(@file))
-            elsif @format == "yaml"
+            when "yaml"
               YAML.load(File.read(@file))
             end
           end
 
           def save_data(raw_data)
             File.open(@file, "w") do |f|
-              if @format == "json"
+              case @format
+              when "json"
                 f.print(JSON.dump(raw_data))
-              elsif @format == "yaml"
+              when "yaml"
                 f.print(YAML.dump(raw_data))
               end
             end

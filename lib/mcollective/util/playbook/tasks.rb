@@ -179,9 +179,10 @@ module MCollective
         end
 
         def from_hash(data)
-          if data.is_a?(Array)
+          case data
+          when Array
             load_tasks(data, "tasks")
-          elsif data.is_a?(Hash)
+          when Hash
             data.each do |set, tasks|
               load_tasks(tasks, set)
             end

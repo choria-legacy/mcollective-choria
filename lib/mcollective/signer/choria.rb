@@ -27,9 +27,7 @@ module MCollective
         if file
           file = File.expand_path(file)
 
-          unless File.exist?(file)
-            raise("No token found in %s, please authenticate using your configured authentication service" % file)
-          end
+          raise("No token found in %s, please authenticate using your configured authentication service" % file) unless File.exist?(file)
 
           return File.read(file).chomp
         end
@@ -127,9 +125,7 @@ module MCollective
           raise("Could not get remote signature: %s: %s" % [resp.code, resp.body])
         end
 
-        if signature["error"]
-          raise("Could not get remote signature: %s" % signature["error"])
-        end
+        raise("Could not get remote signature: %s" % signature["error"]) if signature["error"]
 
         signed_request = JSON.parse(Base64.decode64(signature["secure_request"]))
         signed_request.each do |k, v|
