@@ -260,6 +260,8 @@ terminate called after throwing an instance of 'leatherman::json_container::data
           File.stubs(:exist?).with("/opt/puppetlabs/puppet/bin/task_wrapper").returns(true)
           File.stubs(:exist?).with(ts.wrapper_path).returns(true)
           ts.stubs(:request_spooldir).returns(File.join(cache, "test_1"))
+          ts.stubs(:populate_spooldir)
+
           ts.expects(:spawn_command).with(
             "/opt/puppetlabs/puppet/bin/task_wrapper",
             {
@@ -361,12 +363,24 @@ terminate called after throwing an instance of 'leatherman::json_container::data
 
       describe "#create_request_spooldir" do
         it "should create a spooldir with the right name and permissions" do
+          task = {"files" => []}
           choria.stubs(:tasks_spool_dir).returns(cache)
-          dir = ts.create_request_spooldir("1234567890")
+          dir = ts.create_request_spooldir("1234567890", task)
 
           expect(dir).to eq(File.join(cache, "1234567890"))
           expect(File.directory?(dir)).to be(true)
           expect(File::Stat.new(dir).mode).to eq(0o040750)
+        end
+      end
+
+      describe "#populate_spooldir" do
+        let(:spooldir) do
+          "/tmp/tasks-spool-#{$$}"
+        end
+        it "should copy files" do
+          FileUtils.expects(:mkdir_p).with(File.join(spooldir, "files"), :mode => 0o750)
+          FileUtils.expects(:cp).with(File.join(cache, "f3b4821836cf7fe6fe17dfb2924ff6897eba43a44cc4cba0e0ed136b27934ede"), File.join(spooldir, "files", "ls.rb"))
+          ts.populate_spooldir(spooldir, task_fixture)
         end
       end
 
@@ -402,16 +416,16 @@ terminate called after throwing an instance of 'leatherman::json_container::data
           task_run_request_fixture["input_method"] = "powershell"
           task_run_request_fixture["files"][0]["filename"] = "test.ps1"
 
-          expect(ts.task_command(task_run_request_fixture)).to eq(
+          expect(ts.task_command(cache, task_run_request_fixture)).to eq(
             [
               "/opt/puppetlabs/puppet/bin/PowershellShim.ps1",
-              "#{cache}/f3b4821836cf7fe6fe17dfb2924ff6897eba43a44cc4cba0e0ed136b27934ede/test.ps1"
+              "#{cache}/files/test.ps1"
             ]
           )
         end
 
         it "should use the platform specific command otherwise" do
-          expect(ts.task_command(task_run_request_fixture)).to eq(["#{cache}/f3b4821836cf7fe6fe17dfb2924ff6897eba43a44cc4cba0e0ed136b27934ede/ls.rb"])
+          expect(ts.task_command(cache, task_run_request_fixture)).to eq(["#{cache}/files/ls.rb"])
         end
       end
 
@@ -670,12 +684,6 @@ terminate called after throwing an instance of 'leatherman::json_container::data
       describe "#task_file_name" do
         it "should determine the correct file name" do
           expect(ts.task_file_name(task_fixture["files"][0])).to eq(File.join(cache, "f3b4821836cf7fe6fe17dfb2924ff6897eba43a44cc4cba0e0ed136b27934ede", "ls.rb"))
-        end
-      end
-
-      describe "#task_dir" do
-        it "should determine the correct directory" do
-          expect(ts.task_dir(task_fixture["files"][0])).to eq(File.join(cache, "f3b4821836cf7fe6fe17dfb2924ff6897eba43a44cc4cba0e0ed136b27934ede"))
         end
       end
 

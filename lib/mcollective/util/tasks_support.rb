@@ -152,11 +152,12 @@ module MCollective
 
       # Given a task spec figures out the command to run using the wrapper
       #
+      # @param spooldir [String] path to the spool for this specific request
       # @param task [Hash] task specification
       # @return [String] path to the command
-      def task_command(task)
+      def task_command(spooldir, task)
         file_spec = task["files"][0]
-        file_name = File.join(task_dir(file_spec), file_spec["filename"])
+        file_name = File.join(spooldir, "files", file_spec["filename"])
 
         command = platform_specific_command(file_name)
 
@@ -199,14 +200,29 @@ module MCollective
       # Generates the spool path and create it
       #
       # @param requestid [String] unique mco request id
+      # @param task [Hash] task specification
       # @return [String] path to the spool dir
       # @raise [StandardError] should it not be able to make the directory
-      def create_request_spooldir(requestid)
+      def create_request_spooldir(requestid, task)
         dir = request_spooldir(requestid)
 
         FileUtils.mkdir_p(dir, :mode => 0o0750)
 
+        populate_spooldir(dir, task)
+
         dir
+      end
+
+      # Copy task files to the spool directory
+      # @param spooldir [String] path to the spool dir
+      # @param task [Hash] task specification
+      def populate_spooldir(spooldir, task)
+        task["files"].each do |file|
+          spool_filename = File.join(spooldir, "files", file["filename"])
+
+          FileUtils.mkdir_p(File.dirname(spool_filename), :mode => 0o0750)
+          FileUtils.cp(task_file_name(file), spool_filename)
+        end
       end
 
       # Given a task spec, creates the standard input
@@ -310,8 +326,8 @@ module MCollective
         raise("Task %s is not available or does not match the specification, please download it" % task["task"]) unless cached?(task["files"])
         raise("Task spool for request %s already exist, cannot rerun", requestid) if task_ran?(requestid)
 
-        command = task_command(task)
-        spool = create_request_spooldir(requestid)
+        spool = create_request_spooldir(requestid, task)
+        command = task_command(spool, task)
 
         Log.debug("Trying to spawn task %s in spool %s using command %s" % [task["task"], spool, command])
 
