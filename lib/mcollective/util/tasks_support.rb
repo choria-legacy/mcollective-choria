@@ -552,16 +552,8 @@ module MCollective
       #
       # @param file [Hash] a file hash as per the task metadata
       # @return [String] the directory the file would go into
-      def task_dir(file)
-        File.join(cache_dir, file["sha256"])
-      end
-
-      # Determines the full path to cache the task file into
-      #
-      # @param file [Hash] a file hash as per the task metadata
-      # @return [String] the file path to cache into
       def task_file_name(file)
-        File.join(task_dir(file), file["filename"])
+        File.join(cache_dir, file["sha256"])
       end
 
       # Does a HTTP GET against the Puppet Server
@@ -660,7 +652,6 @@ module MCollective
 
         Log.debug("Checking if file %s is cached using %s" % [file_name, file.pretty_inspect])
 
-        return false unless File.directory?(task_dir(file))
         return false unless File.exist?(file_name)
         return false unless file_size(file_name) == file["size_bytes"]
         return false unless file_sha256(file_name) == file["sha256"]
@@ -684,7 +675,8 @@ module MCollective
         http_get(path, "Accept" => "application/octet-stream") do |resp|
           raise("Failed to request task content %s: %s: %s" % [path, resp.code, resp.body]) unless resp.code == "200"
 
-          FileUtils.mkdir_p(task_dir(file), :mode => 0o0750)
+          FileUtils.mkdir_p(cache_dir, :mode => 0o0750)
+          FileUtils.rm_rf(file_name) if File.directory?(file_name)
 
           task_file = Tempfile.new("tasks_%s" % file["filename"])
           task_file.binmode

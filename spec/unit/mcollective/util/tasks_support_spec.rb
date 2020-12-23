@@ -597,26 +597,18 @@ terminate called after throwing an instance of 'leatherman::json_container::data
       end
 
       describe "#task_file" do
-        it "should fail if the dir does not exist" do
-          File.expects(:directory?).with(ts.task_dir(file)).returns(false)
-          expect(ts.task_file?(file)).to be(false)
-        end
-
         it "should fail if the file does not exist" do
-          File.expects(:directory?).with(ts.task_dir(file)).returns(true)
           File.expects(:exist?).with(ts.task_file_name(file)).returns(false)
           expect(ts.task_file?(file)).to be(false)
         end
 
         it "should fail if the file has the wrong size" do
-          File.expects(:directory?).with(ts.task_dir(file)).returns(true)
           File.expects(:exist?).with(ts.task_file_name(file)).returns(true)
           ts.expects(:file_size).with(ts.task_file_name(file)).returns(1)
           expect(ts.task_file?(file)).to be(false)
         end
 
         it "should fail if the file has the wrong sha256" do
-          File.expects(:directory?).with(ts.task_dir(file)).returns(true)
           File.expects(:exist?).with(ts.task_file_name(file)).returns(true)
           ts.expects(:file_size).with(ts.task_file_name(file)).returns(149)
           ts.expects(:file_sha256).with(ts.task_file_name(file)).returns("")
@@ -625,7 +617,6 @@ terminate called after throwing an instance of 'leatherman::json_container::data
         end
 
         it "should pass for correct files" do
-          File.expects(:directory?).with(ts.task_dir(file)).returns(true)
           File.expects(:exist?).with(ts.task_file_name(file)).returns(true)
           ts.expects(:file_size).with(ts.task_file_name(file)).returns(149)
           ts.expects(:file_sha256).with(ts.task_file_name(file)).returns("f3b4821836cf7fe6fe17dfb2924ff6897eba43a44cc4cba0e0ed136b27934ede")
@@ -683,7 +674,7 @@ terminate called after throwing an instance of 'leatherman::json_container::data
 
       describe "#task_file_name" do
         it "should determine the correct file name" do
-          expect(ts.task_file_name(task_fixture["files"][0])).to eq(File.join(cache, "f3b4821836cf7fe6fe17dfb2924ff6897eba43a44cc4cba0e0ed136b27934ede", "ls.rb"))
+          expect(ts.task_file_name(task_fixture["files"][0])).to eq(File.join(cache, "f3b4821836cf7fe6fe17dfb2924ff6897eba43a44cc4cba0e0ed136b27934ede"))
         end
       end
 
