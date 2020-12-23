@@ -186,6 +186,8 @@ module MCollective
           environment["PT_%s" % k] = v.to_s
         end
 
+        environment["PT__installdir"] = File.join(request_spooldir(task_id), "files")
+
         environment
       end
 
