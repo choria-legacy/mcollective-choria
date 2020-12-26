@@ -6,7 +6,7 @@ group :development, :test do
   gem "choria-mcorpc-support"
   gem "coveralls"
   gem "diplomat", "~> 2"
-  gem "etcdv3", "~> 0.6.0"
+  gem "etcdv3"
   gem "jgrep", ">= 1.5.0"
   gem "json", "2.4.1"
   gem "json-schema-rspec"
