@@ -19,7 +19,8 @@
         "checks": {
           "description": "Details about each check",
           "display_as": "Checks",
-          "default": null
+          "default": null,
+          "type": "array"
         }
       },
       "display": "ok",
@@ -51,32 +52,38 @@
         "failures": {
           "description": "The number of tests that failed",
           "display_as": "Failed Tests",
-          "default": null
+          "default": null,
+          "type": "integer"
         },
         "results": {
           "description": "The full test results",
           "display_as": "Results",
-          "default": null
+          "default": null,
+          "type": "array"
         },
         "runtime": {
           "description": "The time it took to run the tests, in seconds",
           "display_as": "Runtime",
-          "default": null
+          "default": null,
+          "type": "integer"
         },
         "success": {
           "description": "Indicates if the test passed",
           "display_as": "Success",
-          "default": null
+          "default": null,
+          "type": "string"
         },
         "summary": {
           "description": "A human friendly test result",
           "display_as": "Summary",
-          "default": null
+          "default": null,
+          "type": "string"
         },
         "tests": {
           "description": "The number of tests that were run",
           "display_as": "Tests",
-          "default": null
+          "default": null,
+          "type": "integer"
         }
       },
       "display": "failed",
@@ -126,17 +133,20 @@
         "failed": {
           "description": "List of checks that could not be paused",
           "display_as": "Failed",
-          "default": null
+          "default": null,
+          "type": "array"
         },
         "skipped": {
           "description": "List of checks that was skipped",
           "display_as": "Skipped",
-          "default": null
+          "default": null,
+          "type": "array"
         },
         "transitioned": {
           "description": "List of checks that were paused",
           "display_as": "Triggered",
-          "default": null
+          "default": null,
+          "type": "array"
         }
       },
       "display": "failed",
@@ -157,17 +167,20 @@
         "failed": {
           "description": "List of checks that could not be resumed",
           "display_as": "Failed",
-          "default": null
+          "default": null,
+          "type": "array"
         },
         "skipped": {
           "description": "List of checks that was skipped",
           "display_as": "Skipped",
-          "default": null
+          "default": null,
+          "type": "array"
         },
         "transitioned": {
           "description": "List of checks that were resumed",
           "display_as": "Triggered",
-          "default": null
+          "default": null,
+          "type": "array"
         }
       },
       "display": "failed",
@@ -188,17 +201,20 @@
         "failed": {
           "description": "List of checks that could not be triggered",
           "display_as": "Failed",
-          "default": null
+          "default": null,
+          "type": "array"
         },
         "skipped": {
           "description": "List of checks that was skipped",
           "display_as": "Skipped",
-          "default": null
+          "default": null,
+          "type": "array"
         },
         "transitioned": {
           "description": "List of checks that were triggered",
           "display_as": "Triggered",
-          "default": null
+          "default": null,
+          "type": "array"
         }
       },
       "display": "failed",
