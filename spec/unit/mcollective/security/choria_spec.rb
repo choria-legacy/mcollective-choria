@@ -503,7 +503,9 @@ module MCollective
       it "should produce correct client signatures" do
         signed = File.read("spec/fixtures/too_many_secrets.sig")
         security.initiated_by = :client
-        choria.expects(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key")).twice
+        choria.expects(:client_private_key).returns(File.expand_path("spec/fixtures/rip.mcollective.key")).times(4)
+        expect(security.sign("too many secrets")).to eq(signed)
+        expect(security.sign("too many secrets")).to eq(signed)
         expect(security.sign("too many secrets")).to eq(signed)
       end
     end

@@ -602,14 +602,18 @@ module MCollective
       def sign(string, id=nil)
         key = client_private_key
 
-        if has_client_private_key?
-          Log.debug("Signing request using client private key %s" % key)
-        else
-          raise("Cannot find private key %s, cannot sign message" % key)
+        @_keys ||= {}
+        if @_keys[key].nil?
+          if has_client_private_key?
+            Log.debug("Signing request using client private key %s" % key)
+          else
+            raise("Cannot find private key %s, cannot sign message" % key)
+          end
+
+          @_keys[key] ||= OpenSSL::PKey::RSA.new(File.read(key))
         end
 
-        key = OpenSSL::PKey::RSA.new(File.read(key))
-        signed = key.sign(OpenSSL::Digest.new("SHA256"), string)
+        signed = @_keys[key].sign(OpenSSL::Digest.new("SHA256"), string)
 
         Base64.encode64(signed).chomp
       end
