@@ -1,6 +1,8 @@
 Choria Orchestrator
 ===================
 
+**NOTE**: This repository has been merged into [mcorpc-ruby-support](https://github.com/choria-io/mcorpc-ruby-support/) to simplify deployment and will be archived soon.
+
 A distribution of plugins for MCollective designed to give a very smooth and streamlined experience
 in getting started when using modern Puppet connected to a Puppet Server.
 
